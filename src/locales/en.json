@@ -1,6 +1,6 @@
 {
   "app": { "name": "HENZO", "tagline": "Poultry farm management" },
-  "nav": { "dashboard": "Home", "saisie": "Entry", "ferme": "Farm", "planning": "Planning", "argent": "Money", "stock": "Stock", "reglages": "Settings", "sync": "Sync", "plus": "More", "logout": "Log out" },
+  "nav": { "dashboard": "Home", "saisie": "Entry", "ferme": "Farm", "planning": "Planning", "analyses": "Analyses", "argent": "Money", "stock": "Stock", "reglages": "Settings", "sync": "Sync", "plus": "More", "logout": "Log out" },
   "roles": { "directeur": "Director", "exploitation": "Operations", "finance": "Finance", "employe": "Employee" },
   "auth": { "title": "Sign in", "subtitle": "Enter your credentials to access the farm.", "username": "Username", "usernamePlaceholder": "e.g. kenfack", "password": "Password", "submit": "Sign in", "error": "Wrong username or password", "offline": "Cannot sign in while offline. Sign in once with internet first.", "noProfile": "No role is assigned to this account. Contact the director." },
   "status": { "online": "Online", "offline": "Offline", "pending": "{{count}} entry(ies) waiting to be sent", "install": "Install" },
@@ -82,7 +82,7 @@
     "history": "Stock movements", "noMoves": "No movement."
   },
   "reglages": {
-    "tabs": { "tiers": "Customers & suppliers", "prix": "Current prices" },
+    "tabs": { "tiers": "Customers & suppliers", "prix": "Current prices", "demarrage": "Initial setup" },
     "newTiers": "New customer / supplier", "type": "Type", "name": "Name", "phone": "Phone", "address": "Address",
     "allowCredit": "Allow sales on credit", "ceiling": "Credit limit (FCFA)", "tiersList": "Customers and suppliers", "noTiers": "No customer or supplier.",
     "editCredit": "Credit…", "creditPrompt": "Credit limit for {{nom}} in FCFA (0 = no credit):", "creditUpTo": "Credit up to {{n}}",
@@ -109,7 +109,7 @@
     "none": "No investor yet.", "inactive": "inactive",
     "contributed": "Capital contributed", "reinvested": "Capital reinvested", "withdrawn": "Capital withdrawn", "remaining": "Remaining capital",
     "paid10": "10 % paid", "pending10": "10 % pending", "statement": "Statement",
-    "newOperation": "Capital contribution or withdrawal", "types": { "apport": "Contribution", "retrait_capital": "Capital withdrawal", "reinvestissement": "10 % reinvested" },
+    "newOperation": "Capital contribution or withdrawal", "types": { "apport": "Contribution", "retrait_capital": "Capital withdrawal", "reinvestissement": "10 % reinvested", "capital_initial": "Initial capital (before HENZO)" },
     "investor": "Investor", "newInvestor": "New investor", "idDoc": "ID document (no.)",
     "rule": "Current rule: at each broiler flock closure, 10 % of the remaining capital is due to the investor (payout or reinvestment).",
     "back": "Back to money", "print": "Print / PDF", "statementTitle": "Investment statement", "at": "as of {{d}}",
@@ -159,6 +159,41 @@
     "pret_proche": "Loan {{preteur}} due on {{date}}",
     "depenses_a_valider": "{{nombre}} expense(s) to approve",
     "dix_pourcent": "{{montant}} F of 10 % to pay out or reinvest (investors)"
+  },
+  "analyses": {
+    "tabs": { "comparaison": "Flock comparison", "previsionnel": "Forecast", "rapport": "Monthly report" },
+    "noFlock": "No flock to analyse yet.", "running": "running",
+    "chartTitle": "Compare flocks", "tableTitle": "Flock performance", "bestHint": "Green: best value among closed flocks. Running flocks on yellow (provisional figures).",
+    "metrics": { "taux_mortalite": "Mortality", "fcr": "FCR", "gmq_g_jour": "Avg. daily gain", "poids_moyen_g": "Avg. weight", "cout_par_poulet_vendu": "Cost / bird", "cout_par_kg": "Cost / kg", "prix_moyen_poulet": "Avg. price", "marge_brute": "Margin", "duree_jours": "Duration" },
+    "noRunning": "No running flock.",
+    "forecastWarning": "FORECAST — not a real result. Real figures are in the flock file and in its closing report.",
+    "forecastSub": "{{age}} days · {{n}} birds left", "estPrice": "Estimated sale price per bird (FCFA)", "extraCosts": "Costs still to come (estimate)",
+    "realSales": "Sales already made (real)", "toSell": "{{n}} birds left × {{p}}", "potentialRevenue": "Potential revenue", "currentCosts": "Current costs (real)", "potentialProfit": "Potential profit",
+    "month": "Month", "reportTitle": "Monthly report — {{mois}}",
+    "r": {
+      "production": "Production and mortality", "eggs": "Eggs collected", "broken": "Broken eggs", "trays": "Trays sold", "birdsSold": "Birds sold", "kgSold": "Kg sold by weight", "feed": "Feed used", "deadChair": "Dead (broilers)", "deadLayers": "Dead (layers)",
+      "result": "Sales and expenses of the month", "ventes": "Sales", "depenses": "Expenses", "balance": "Difference", "total": "Total",
+      "resultNote": "Sales and expenses recorded in the month (feed counted when bought). Each flock's margin, based on feed actually used, is in its file.",
+      "sales": "Sales detail", "activity": "Activity", "expenses": "Expenses detail", "count": "Count",
+      "cash": "Cash", "in": "In this month", "out": "Out this month", "endBalance": "Month-end balance",
+      "stocks": "Stock", "used": "Used this month", "endStock": "Month-end stock",
+      "debts": "Receivables and debts (today)", "receivables": "Customer receivables", "receivablesLate": "of which late", "payables": "Supplier debts", "payablesLate": "of which overdue",
+      "capital": "Investors and loans", "tenMonth": "10 % this month", "repaidMonth": "Repaid this month",
+      "flocks": "Flock performance", "closed": "Flocks closed this month", "running": "Running flocks",
+      "generated": "Report generated on {{d}} by HENZO."
+    }
+  },
+  "demarrage": {
+    "title": "Initial setup", "subtitle": "Do it once, at first launch: record the situation existing before HENZO.",
+    "steps": { "ferme": "Farm details and thresholds", "soldes": "Opening cash balances", "investisseurs": "Capital already invested", "prets": "Running loans", "stock": "Existing stock", "bandes": "Flocks already running" },
+    "settings": "Farm settings", "farmName": "Farm name", "threshold": "Expense approval threshold (FCFA)", "investorRate": "Investors' share at each flock end (%)", "mortalityAlert": "Mortality alert (% per day)", "autonomyAlert": "Stock-out alert (days of stock)",
+    "alreadyBalances_one": "{{count}} opening balance already recorded: only add what is missing.", "alreadyBalances_other": "{{count}} opening balances already recorded: only add what is missing.",
+    "balancesHint": "Count the money actually available in each cash box on the start day.", "balanceDate": "Count date", "nothing": "Enter at least one amount.",
+    "capitalHint": "Capital brought before HENZO: counted in the investor's capital without touching the cash boxes (the money is already in the opening balances).",
+    "newInvestor": "— New investor —", "capitalAmount": "Remaining capital today (FCFA)", "beforeHenzo": "Capital brought before HENZO",
+    "loanHint": "Loan received before HENZO: recorded without cash entry. Enter what has already been repaid.", "alreadyRepaid": "Already repaid (FCFA)", "loanDate": "Loan date",
+    "stockHint": "In Stock: create each product, then “Manual entry or adjustment” with the quantity on hand and its unit cost.",
+    "flocksHint": "In Farm: create each flock with its real arrival date, then record in Entry the deaths already observed."
   },
   "notifications": { "title": "Notifications", "markRead": "Mark all read", "empty": "No notification." },
   "sync": { "title": "Pending entries", "empty": "Everything is synced.", "retry": "Sync now", "error": "Error", "waiting": "Waiting", "discard": "Delete", "confirmDiscard": "Delete this refused entry? It will not be saved." },

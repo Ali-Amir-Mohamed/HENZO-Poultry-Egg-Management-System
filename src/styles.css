@@ -438,6 +438,31 @@ details[open] summary { margin-bottom: .6rem; }
   .releve { gap: .6rem; }
 }
 
+/* ---------- Phase E: analyses, report, setup ---------- */
+.inline-select { font: inherit; font-size: .85rem; padding: .45rem .6rem; border: 1.5px solid var(--border); border-radius: 10px; background: var(--surface-2); color: var(--text); }
+.hbars { display: flex; flex-direction: column; gap: .5rem; }
+.hbar { display: grid; grid-template-columns: minmax(90px, 140px) 1fr auto; align-items: center; gap: .7rem; }
+.hbar-label { font-weight: 700; font-size: .85rem; text-decoration: none; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hbar-label small { color: var(--muted); font-weight: 600; }
+.hbar-track { height: 18px; background: var(--surface-2); border-radius: 8px; overflow: hidden; }
+.hbar-fill { height: 100%; border-radius: 8px; background: linear-gradient(90deg, var(--green-500), var(--green-700)); }
+.hbar-fill.open { background: repeating-linear-gradient(45deg, var(--yolk), var(--yolk) 6px, var(--yolk-dark) 6px, var(--yolk-dark) 12px); }
+.hbar-fill.neg { background: var(--rose); }
+.hbar-val { font-size: .82rem; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.table.compare td.best { color: var(--green-500); font-weight: 800; }
+.table.compare tr.open-row td { background: var(--yolk-100); }
+.table td a { color: inherit; }
+.report h3 { font-size: .95rem; margin: .8rem 0 .3rem; }
+.report-section { gap: .7rem; }
+.checklist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .5rem; }
+.checklist li { display: flex; align-items: center; gap: .6rem; font-weight: 600; }
+.checklist li.ok { color: var(--green-500); }
+.checklist li.ok .task-check { background: var(--green-500); border-color: var(--green-500); }
+@media print {
+  .report-section, .releve .panel { break-inside: avoid; }
+  .table th, .table td { padding: .35rem .4rem; font-size: 11px; }
+}
+
 /* ---------- Lists / empty states ---------- */
 .list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: .6rem; }
 .list li {

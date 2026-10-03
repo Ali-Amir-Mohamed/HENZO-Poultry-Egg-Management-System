@@ -7,17 +7,23 @@ import { can, PRODUITS, TABLES } from '../config'
 import { localDate } from '../lib/stats'
 import { day, Empty, Field, FormCard, Loading, money, Panel, Tabs } from '../components/ui'
 import Icon from '../components/Icon'
+import Demarrage from './reglages/Demarrage'
 
-// Settings: customers & suppliers (with credit authorisation) and current sale prices
+// Settings: customers & suppliers (with credit authorisation), current sale prices, initial setup
 export default function Reglages() {
+  const { role } = useAuth()
   const [tab, setTab] = useState('tiers')
+  const tabs = [
+    { id: 'tiers', label: 'reglages.tabs.tiers', icon: 'users' },
+    { id: 'prix', label: 'reglages.tabs.prix', icon: 'tag' },
+    ...(can(role, 'demarrage') ? [{ id: 'demarrage', label: 'reglages.tabs.demarrage', icon: 'flag' }] : [])
+  ]
   return (
     <div className="stack">
-      <Tabs value={tab} onChange={setTab} tabs={[
-        { id: 'tiers', label: 'reglages.tabs.tiers', icon: 'users' },
-        { id: 'prix', label: 'reglages.tabs.prix', icon: 'tag' }
-      ]} />
-      {tab === 'tiers' ? <Tiers /> : <Prix />}
+      <Tabs value={tab} onChange={setTab} tabs={tabs} />
+      {tab === 'tiers' && <Tiers />}
+      {tab === 'prix' && <Prix />}
+      {tab === 'demarrage' && <Demarrage />}
     </div>
   )
 }

@@ -13,6 +13,7 @@ import FicheLot from './pages/FicheLot'
 import Argent from './pages/Argent'
 import Stock from './pages/Stock'
 import Planning from './pages/Planning'
+import Analyses from './pages/Analyses'
 import ReleveInvestisseur from './pages/argent/ReleveInvestisseur'
 import Reglages from './pages/Reglages'
 import Sync from './pages/Sync'
@@ -53,6 +54,7 @@ export default function App() {
         <Route path="argent" element={<Guard section="argent"><Argent /></Guard>} />
         <Route path="argent/investisseur/:id" element={<Guard section="argent"><ReleveInvestisseur /></Guard>} />
         <Route path="planning" element={<Guard section="planning"><Planning /></Guard>} />
+        <Route path="analyses" element={<Guard section="analyses"><Analyses /></Guard>} />
         <Route path="stock" element={<Guard section="stock"><Stock /></Guard>} />
         <Route path="reglages" element={<Guard section="reglages"><Reglages /></Guard>} />
         <Route path="sync" element={<Guard section="sync"><Sync /></Guard>} />

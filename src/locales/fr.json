@@ -1,6 +1,6 @@
 {
   "app": { "name": "HENZO", "tagline": "Gestion de ferme avicole" },
-  "nav": { "dashboard": "Accueil", "saisie": "Saisie", "ferme": "Ferme", "planning": "Planning", "argent": "Argent", "stock": "Stock", "reglages": "Réglages", "sync": "Synchro", "plus": "Plus", "logout": "Déconnexion" },
+  "nav": { "dashboard": "Accueil", "saisie": "Saisie", "ferme": "Ferme", "planning": "Planning", "analyses": "Analyses", "argent": "Argent", "stock": "Stock", "reglages": "Réglages", "sync": "Synchro", "plus": "Plus", "logout": "Déconnexion" },
   "roles": { "directeur": "Directeur", "exploitation": "Exploitation", "finance": "Finance", "employe": "Employé" },
   "auth": { "title": "Connexion", "subtitle": "Entrez vos identifiants pour accéder à la ferme.", "username": "Nom d’utilisateur", "usernamePlaceholder": "ex. kenfack", "password": "Mot de passe", "submit": "Se connecter", "error": "Nom d’utilisateur ou mot de passe incorrect", "offline": "Connexion impossible hors ligne. Connectez-vous une première fois avec internet.", "noProfile": "Aucun rôle n’est attribué à ce compte. Contactez le directeur." },
   "status": { "online": "En ligne", "offline": "Hors ligne", "pending": "{{count}} saisie(s) en attente d’envoi", "install": "Installer" },
@@ -82,7 +82,7 @@
     "history": "Historique des mouvements", "noMoves": "Aucun mouvement."
   },
   "reglages": {
-    "tabs": { "tiers": "Clients & fournisseurs", "prix": "Prix du moment" },
+    "tabs": { "tiers": "Clients & fournisseurs", "prix": "Prix du moment", "demarrage": "Démarrage" },
     "newTiers": "Nouveau client / fournisseur", "type": "Type", "name": "Nom", "phone": "Téléphone", "address": "Adresse",
     "allowCredit": "Autoriser la vente à crédit", "ceiling": "Plafond de crédit (FCFA)", "tiersList": "Clients et fournisseurs", "noTiers": "Aucun client ni fournisseur.",
     "editCredit": "Crédit…", "creditPrompt": "Plafond de crédit pour {{nom}} en FCFA (0 = pas de crédit) :", "creditUpTo": "Crédit jusqu’à {{n}}",
@@ -109,7 +109,7 @@
     "none": "Aucun investisseur enregistré.", "inactive": "inactif",
     "contributed": "Capital apporté", "reinvested": "Capital réinvesti", "withdrawn": "Capital retiré", "remaining": "Capital restant",
     "paid10": "10 % versés", "pending10": "10 % en attente", "statement": "Relevé",
-    "newOperation": "Apport ou retrait de capital", "types": { "apport": "Apport", "retrait_capital": "Retrait de capital", "reinvestissement": "Réinvestissement des 10 %" },
+    "newOperation": "Apport ou retrait de capital", "types": { "apport": "Apport", "retrait_capital": "Retrait de capital", "reinvestissement": "Réinvestissement des 10 %", "capital_initial": "Capital initial (avant HENZO)" },
     "investor": "Investisseur", "newInvestor": "Nouvel investisseur", "idDoc": "Pièce d’identité (n°)",
     "rule": "Règle actuelle : à chaque fin de bande de chair, 10 % du capital restant sont dus à l’investisseur (retrait ou réinvestissement).",
     "back": "Retour à l’argent", "print": "Imprimer / PDF", "statementTitle": "Relevé d’investissement", "at": "au {{d}}",
@@ -159,6 +159,41 @@
     "pret_proche": "Échéance du prêt {{preteur}} le {{date}}",
     "depenses_a_valider": "{{nombre}} dépense(s) à valider",
     "dix_pourcent": "{{montant}} F de 10 % à verser ou réinvestir (investisseurs)"
+  },
+  "analyses": {
+    "tabs": { "comparaison": "Comparaison des bandes", "previsionnel": "Prévisionnel", "rapport": "Rapport mensuel" },
+    "noFlock": "Aucune bande à analyser pour l’instant.", "running": "en cours",
+    "chartTitle": "Comparer les bandes", "tableTitle": "Performances des bandes", "bestHint": "En vert : meilleure valeur parmi les bandes clôturées. Bandes en cours sur fond jaune (chiffres provisoires).",
+    "metrics": { "taux_mortalite": "Mortalité", "fcr": "FCR", "gmq_g_jour": "Gain moyen/jour", "poids_moyen_g": "Poids moyen", "cout_par_poulet_vendu": "Coût / poulet", "cout_par_kg": "Coût / kg", "prix_moyen_poulet": "Prix moyen", "marge_brute": "Marge", "duree_jours": "Durée" },
+    "noRunning": "Aucune bande en cours.",
+    "forecastWarning": "PRÉVISION — ce n’est pas un résultat réel. Les chiffres réels sont dans la fiche de la bande et dans son bilan à la clôture.",
+    "forecastSub": "{{age}} jours · {{n}} poulets restants", "estPrice": "Prix de vente estimé par poulet (FCFA)", "extraCosts": "Dépenses encore à venir (estimation)",
+    "realSales": "Ventes déjà réalisées (réel)", "toSell": "{{n}} poulets restants × {{p}}", "potentialRevenue": "Revenus potentiels", "currentCosts": "Dépenses actuelles (réel)", "potentialProfit": "Bénéfice potentiel",
+    "month": "Mois", "reportTitle": "Rapport mensuel — {{mois}}",
+    "r": {
+      "production": "Production et mortalité", "eggs": "Œufs collectés", "broken": "Œufs cassés", "trays": "Plateaux vendus", "birdsSold": "Poulets vendus", "kgSold": "Kg vendus au kilo", "feed": "Aliment consommé", "deadChair": "Morts (chair)", "deadLayers": "Morts (pondeuses)",
+      "result": "Ventes et dépenses du mois", "ventes": "Ventes", "depenses": "Dépenses", "balance": "Différence", "total": "Total",
+      "resultNote": "Ventes et dépenses enregistrées dans le mois (achats d’aliment comptés à l’achat). La marge de chaque bande, calculée sur l’aliment réellement consommé, est dans sa fiche.",
+      "sales": "Détail des ventes", "activity": "Activité", "expenses": "Détail des dépenses", "count": "Nombre",
+      "cash": "Trésorerie", "in": "Entrées du mois", "out": "Sorties du mois", "endBalance": "Solde fin de mois",
+      "stocks": "Stocks", "used": "Consommé dans le mois", "endStock": "Stock fin de mois",
+      "debts": "Créances et dettes (à ce jour)", "receivables": "Créances clients", "receivablesLate": "dont en retard", "payables": "Dettes fournisseurs", "payablesLate": "dont échues",
+      "capital": "Investisseurs et prêts", "tenMonth": "10 % du mois", "repaidMonth": "Remboursé dans le mois",
+      "flocks": "Performances des bandes", "closed": "Bandes clôturées dans le mois", "running": "Bandes en cours",
+      "generated": "Rapport généré le {{d}} par HENZO."
+    }
+  },
+  "demarrage": {
+    "title": "Configuration initiale", "subtitle": "À faire une fois, au premier lancement : reprendre la situation existante avant HENZO.",
+    "steps": { "ferme": "Informations et seuils de la ferme", "soldes": "Soldes initiaux des caisses", "investisseurs": "Capital déjà investi par les investisseurs", "prets": "Prêts en cours", "stock": "Stocks existants", "bandes": "Bandes et lots déjà en cours" },
+    "settings": "Paramètres de la ferme", "farmName": "Nom de la ferme", "threshold": "Seuil de validation des dépenses (FCFA)", "investorRate": "Part des investisseurs à chaque fin de bande (%)", "mortalityAlert": "Alerte de mortalité (% par jour)", "autonomyAlert": "Alerte de rupture (jours de stock)",
+    "alreadyBalances_one": "{{count}} solde initial déjà enregistré : n’ajoutez que ce qui manque.", "alreadyBalances_other": "{{count}} soldes initiaux déjà enregistrés : n’ajoutez que ce qui manque.",
+    "balancesHint": "Comptez l’argent réellement disponible dans chaque caisse le jour du démarrage.", "balanceDate": "Date du comptage", "nothing": "Saisissez au moins un montant.",
+    "capitalHint": "Capital apporté avant HENZO : il compte dans le capital de l’investisseur, sans toucher aux caisses (l’argent est déjà dans les soldes initiaux).",
+    "newInvestor": "— Nouvel investisseur —", "capitalAmount": "Capital restant à ce jour (FCFA)", "beforeHenzo": "Capital apporté avant HENZO",
+    "loanHint": "Prêt déjà reçu avant HENZO : enregistré sans entrée en caisse. Indiquez ce qui a déjà été remboursé.", "alreadyRepaid": "Déjà remboursé (FCFA)", "loanDate": "Date du prêt",
+    "stockHint": "Dans Stock : créez chaque produit, puis « Entrée ou ajustement manuel » avec la quantité présente et son coût unitaire.",
+    "flocksHint": "Dans Ferme : créez chaque bande avec sa vraie date d’arrivée, puis enregistrez dans Saisie les morts déjà constatés."
   },
   "notifications": { "title": "Notifications", "markRead": "Tout marquer lu", "empty": "Aucune notification." },
   "sync": { "title": "Saisies en attente", "empty": "Tout est synchronisé.", "retry": "Synchroniser", "error": "Erreur", "waiting": "En attente", "discard": "Supprimer", "confirmDiscard": "Supprimer cette saisie refusée ? Elle ne sera pas enregistrée." },

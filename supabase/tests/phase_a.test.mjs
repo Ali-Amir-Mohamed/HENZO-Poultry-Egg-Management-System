@@ -351,6 +351,35 @@ await as('kenfack', `update public.bandes set statut = 'cloture_demandee' where 
 await as('dahirou', `update public.bandes set statut = 'cloturee' where code = 'C6'`)
 ok('closure cancels remaining tasks', (await as('kenfack', `select * from public.taches where bande_id = $1 and statut = 'a_faire'`, [C6])).rows.length === 0)
 
+// ---------- Phase E: starting data and monthly report ----------
+try {
+  await db.exec(readFileSync(new URL('0006_phase_e_analyses.sql', MIG), 'utf8'))
+  ok('migration 0006 runs', true)
+} catch (e) { ok('migration 0006 runs', false, e.message); process.exit(1) }
+
+const totalCash = async () => Number((await one('ali', `select sum(solde) s from public.soldes_caisses`)).s)
+let cashE = await totalCash()
+await expectOk('existing investor capital recorded', 'dahirou', `insert into public.investisseurs (nom) values ('Investisseur C')`)
+const INVC = (await db.query(`select id from public.investisseurs where nom = 'Investisseur C'`)).rows[0].id
+await expectOk('initial capital without cash movement', 'dahirou', `insert into public.operations_investisseurs (investisseur_id, type_operation, montant) values ($1, 'capital_initial', 2000000)`, [INVC])
+ok('cash unchanged by initial capital', (await totalCash()) === cashE)
+ok('initial capital counted in capital', Number((await one('kenfack', `select capital_restant, capital_apporte from public.situation_investisseurs where investisseur_id = '${INVC}'`)).capital_apporte) === 2000000)
+await expectErr('kenfack cannot record initial capital', 'kenfack', `insert into public.operations_investisseurs (investisseur_id, type_operation, montant) values ($1, 'capital_initial', 1)`, [INVC])
+
+cashE = await totalCash()
+await expectOk('existing loan recorded', 'dahirou', `insert into public.prets (type_preteur, preteur, montant_initial, interets, activite, mode_paiement, existant, deja_rembourse) values ('particulier', 'M. Y', 1000000, 100000, 'chair', 'especes', true, 400000)`)
+ok('existing loan does not touch cash', (await totalCash()) === cashE)
+ok('existing loan balance = 700000', Number((await one('kenfack', `select solde from public.situation_prets where preteur = 'M. Y'`)).solde) === 700000)
+await expectErr('repayment capped by real balance', 'dahirou', `insert into public.remboursements_prets (pret_id, montant, mode_paiement) select id, 800000, 'especes' from public.prets where preteur = 'M. Y'`, [], 'solde')
+await expectErr('already-repaid cannot exceed amount due', 'dahirou', `insert into public.prets (type_preteur, preteur, montant_initial, activite, mode_paiement, existant, deja_rembourse) values ('banque', 'Z', 100, 'chair', 'banque', true, 200)`)
+
+const rep = (await as('dahirou', `select public.rapport_mensuel(current_date) r`)).rows[0].r
+ok('monthly report has every section', ['production', 'mortalite', 'ventes', 'depenses', 'resultat', 'tresorerie', 'stocks', 'creances', 'dettes', 'investisseurs', 'prets', 'bandes_cloturees', 'bandes_en_cours', 'lots'].every((k) => k in rep), Object.keys(rep).join(','))
+ok('report counts birds sold this month', Number(rep.production.poulets_vendus) > 0, String(rep.production.poulets_vendus))
+ok('report lists flocks closed this month', rep.bandes_cloturees.some((b) => b.code === 'C3'), rep.bandes_cloturees.map((b) => b.code).join(','))
+ok('report treasury: 6 cash boxes', rep.tresorerie.length === 6)
+await expectErr('employe cannot get the report', 'employe', `select public.rapport_mensuel(current_date)`, [], 'responsables')
+
 // ---------- Journal ----------
 ok('journal visible to directeur', (await as('ali', `select * from public.journal_activite`)).rows.length > 10)
 ok('journal hidden from finance', (await as('dahirou', `select * from public.journal_activite`)).rows.length === 0)

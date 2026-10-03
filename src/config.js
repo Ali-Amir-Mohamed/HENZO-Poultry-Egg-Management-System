@@ -36,6 +36,7 @@ export const ACCESS = {
   saisie: [D, X, E],
   ferme: [D, X, F],
   planning: [D, X, F],
+  analyses: [D, X, F],
   argent: [D, X, F],
   stock: [D, X, F],
   reglages: [D, X, F],
@@ -64,7 +65,9 @@ export const PERMISSIONS = {
   'caisse.verify': [D, F],
   'caisse.adjust': [D],
   'tache.plan': [D, X, F],
-  'programme.edit': [D, X]
+  'programme.edit': [D, X],
+  'demarrage': [D, F],          // initial setup (opening balances, existing capital / loans)
+  'ferme.settings': [D]
 }
 
 export const TYPES_TACHE = ['vaccination', 'traitement', 'pesee', 'achat_aliment', 'remboursement', 'arrivee_poussins', 'vente_prevue', 'nettoyage', 'autre']
