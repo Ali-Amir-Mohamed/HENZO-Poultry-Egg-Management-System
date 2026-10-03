@@ -27,13 +27,29 @@ export default function Icon({ name, size = 20, ...props }) {
   )
 }
 
+// Hen mark, drawn on a 40x40 grid (same drawing as public/favicon.svg)
+export function HenMark({ size }) {
+  return (
+    <svg viewBox="0 0 40 40" width={size} height={size} aria-hidden="true">
+      <path d="M26.5 20 30 7.5c2.6 3 4.6 8 3.8 14.5z" fill="#fff8e7" />
+      <path d="M29.2 11.5 31 18.5" stroke="#e8d6ae" strokeWidth="1.4" strokeLinecap="round" />
+      <path d="M17.5 34.5v3.2M23 34.5v3.2M16 37.7h3M21.5 37.7h3" stroke="#f5b52e" strokeWidth="1.8" strokeLinecap="round" />
+      <ellipse cx="21" cy="25" rx="12" ry="9.5" fill="#fff8e7" />
+      <path d="M9.5 16.5 16 12l7 9-11 4z" fill="#fff8e7" />
+      <circle cx="13" cy="13.5" r="5.5" fill="#fff8e7" />
+      <path d="M9.6 9.2c-.4-2 1-3.4 2.3-2.6.3-1.7 2.4-2.1 3.1-.5 1.3-.9 3 .3 2.5 2.2z" fill="#e2513c" />
+      <path d="M7.7 12.6 4 14.4l3.9 1.6z" fill="#f5b52e" />
+      <path d="M8.6 16.6c-.9 1.6-.3 3.3 1 3.3s1.6-1.8.6-3.4z" fill="#e2513c" />
+      <circle cx="12.2" cy="12.6" r="1.15" fill="#16382b" />
+      <path d="M16.5 24c3 4.5 8.5 5 12.5.5" stroke="#e8d6ae" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+    </svg>
+  )
+}
+
 export function Logo({ size = 40 }) {
   return (
     <span className="logo" style={{ width: size, height: size }}>
-      <svg viewBox="0 0 40 40" width={size * 0.62} height={size * 0.62} aria-hidden="true">
-        <path d="M20 4c6.6 0 12 9.6 12 18.4A12 12 0 0 1 8 22.4C8 13.6 13.4 4 20 4z" fill="#fff8e7" />
-        <circle cx="20" cy="24" r="5.5" fill="#f5b52e" />
-      </svg>
+      <HenMark size={size * 0.74} />
     </span>
   )
 }
