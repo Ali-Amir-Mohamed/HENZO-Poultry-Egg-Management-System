@@ -1,0 +1,11 @@
+{
+  "app": { "name": "HENZO", "tagline": "Gestion de ferme avicole" },
+  "nav": { "dashboard": "Tableau de bord", "saisie": "Saisie", "production": "Production", "finance": "Finance", "sync": "Synchronisation", "logout": "Déconnexion" },
+  "roles": { "directeur": "Directeur", "exploitation": "Exploitation", "finance": "Finance", "employe": "Employé" },
+  "auth": { "title": "Connexion", "email": "E-mail", "password": "Mot de passe", "submit": "Se connecter", "error": "Identifiants incorrects", "offline": "Connexion impossible hors ligne. Reconnectez-vous une première fois avec internet.", "noProfile": "Aucun rôle n’est attribué à ce compte. Contactez le directeur." },
+  "status": { "online": "En ligne", "offline": "Hors ligne", "pending": "{{count}} saisie(s) en attente", "install": "Installer l’application" },
+  "dashboard": { "welcome": "Bienvenue, {{name}}", "role": "Rôle : {{role}}" },
+  "saisie": { "title": "Ramassage d’œufs", "date": "Date", "building": "Bâtiment / bande", "eggs": "Œufs ramassés", "broken": "Œufs cassés", "notes": "Remarques", "save": "Enregistrer", "saved": "Enregistré. Envoi automatique dès que la connexion revient." },
+  "sync": { "title": "Saisies en attente", "empty": "Tout est synchronisé.", "retry": "Synchroniser maintenant", "error": "Erreur" },
+  "common": { "comingSoon": "Module à venir (étape suivante).", "forbidden": "Accès non autorisé pour votre rôle.", "loading": "Chargement…" }
+}

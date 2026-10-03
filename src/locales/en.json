@@ -1,0 +1,11 @@
+{
+  "app": { "name": "HENZO", "tagline": "Poultry farm management" },
+  "nav": { "dashboard": "Dashboard", "saisie": "Data entry", "production": "Production", "finance": "Finance", "sync": "Sync", "logout": "Log out" },
+  "roles": { "directeur": "Director", "exploitation": "Operations", "finance": "Finance", "employe": "Employee" },
+  "auth": { "title": "Sign in", "email": "Email", "password": "Password", "submit": "Sign in", "error": "Invalid credentials", "offline": "Cannot sign in while offline. Sign in once with internet first.", "noProfile": "No role is assigned to this account. Contact the director." },
+  "status": { "online": "Online", "offline": "Offline", "pending": "{{count}} entry(ies) pending", "install": "Install app" },
+  "dashboard": { "welcome": "Welcome, {{name}}", "role": "Role: {{role}}" },
+  "saisie": { "title": "Egg collection", "date": "Date", "building": "House / flock", "eggs": "Eggs collected", "broken": "Broken eggs", "notes": "Notes", "save": "Save", "saved": "Saved. It will be sent automatically when back online." },
+  "sync": { "title": "Pending entries", "empty": "Everything is synced.", "retry": "Sync now", "error": "Error" },
+  "common": { "comingSoon": "Module coming in a later step.", "forbidden": "Your role does not have access.", "loading": "Loading…" }
+}
