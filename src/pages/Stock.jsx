@@ -21,17 +21,27 @@ export default function Stock() {
     .order('created_at', { ascending: false }).limit(40)))
   const reload = () => { stock.reload(); moves.reload() }
 
-  const [article, setArticle] = useState({ nom: '', categorie: 'aliment', unite: 'sac', seuil_minimum: '0' })
-  const [move, setMove] = useState({ article_id: '', type_mouvement: 'entree', quantite: '', date_mouvement: localDate(), notes: '' })
+  const [article, setArticle] = useState({ nom: '', categorie: 'aliment', unite: 'sac', seuil_minimum: '0', poids_unitaire_kg: '50' })
+  const [move, setMove] = useState({ article_id: '', type_mouvement: 'entree', quantite: '', cout_unitaire: '', date_mouvement: localDate(), notes: '' })
 
   const createArticle = async () => {
-    must(await supabase.from(TABLES.articles).insert({ ...article, seuil_minimum: Number(article.seuil_minimum) }))
+    const needsWeight = article.categorie === 'aliment' && article.unite !== 'kg'
+    must(await supabase.from(TABLES.articles).insert({
+      ...article,
+      seuil_minimum: Number(article.seuil_minimum),
+      poids_unitaire_kg: needsWeight && article.poids_unitaire_kg ? Number(article.poids_unitaire_kg) : null
+    }))
     setArticle({ ...article, nom: '' })
     reload()
   }
   const createMove = async () => {
-    must(await supabase.from(TABLES.mouvementsStock).insert({ ...move, quantite: Number(move.quantite), notes: move.notes || null }))
-    setMove({ ...move, quantite: '', notes: '' })
+    must(await supabase.from(TABLES.mouvementsStock).insert({
+      ...move,
+      quantite: Number(move.quantite),
+      cout_unitaire: move.type_mouvement === 'entree' && move.cout_unitaire ? Number(move.cout_unitaire) : null,
+      notes: move.notes || null
+    }))
+    setMove({ ...move, quantite: '', cout_unitaire: '', notes: '' })
     reload()
   }
 
@@ -78,6 +88,11 @@ export default function Stock() {
               </select>
             </Field>
             <Field label={t('stock.threshold')}><input type="number" min="0" step="0.01" value={article.seuil_minimum} onChange={(e) => setArticle({ ...article, seuil_minimum: e.target.value })} /></Field>
+            {article.categorie === 'aliment' && article.unite !== 'kg' && (
+              <Field label={t('stock.unitWeight', { unite: t(`unites.${article.unite}`) })}>
+                <input type="number" min="0.001" step="0.001" required value={article.poids_unitaire_kg} onChange={(e) => setArticle({ ...article, poids_unitaire_kg: e.target.value })} />
+              </Field>
+            )}
           </div>
         </FormCard>
       )}
@@ -102,6 +117,9 @@ export default function Stock() {
               <input type="number" step="0.01" required value={move.quantite} onChange={(e) => setMove({ ...move, quantite: e.target.value })} />
             </Field>
             <Field label={t('saisie.date')}><input type="date" required value={move.date_mouvement} onChange={(e) => setMove({ ...move, date_mouvement: e.target.value })} /></Field>
+            {move.type_mouvement === 'entree' && (
+              <Field label={t('stock.unitCost')}><input type="number" min="0" value={move.cout_unitaire} onChange={(e) => setMove({ ...move, cout_unitaire: e.target.value })} /></Field>
+            )}
           </div>
           <Field label={t('saisie.notes')}><input required={move.type_mouvement === 'ajustement'} value={move.notes} onChange={(e) => setMove({ ...move, notes: e.target.value })} /></Field>
         </FormCard>

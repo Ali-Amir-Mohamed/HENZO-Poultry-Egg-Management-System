@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../auth/AuthProvider'
@@ -6,7 +7,7 @@ import { must, useQuery } from '../hooks'
 import { can, TABLES } from '../config'
 import { localDate } from '../lib/stats'
 import Icon from '../components/Icon'
-import { day, Empty, Field, FormCard, Loading, Tabs } from '../components/ui'
+import { day, Empty, Field, FormCard, Loading, money, Tabs } from '../components/ui'
 
 // Broiler flocks and layer lots: list, creation, closure workflow
 export default function Ferme() {
@@ -15,8 +16,28 @@ export default function Ferme() {
     <div className="stack">
       <Tabs value={tab} onChange={setTab}
         tabs={[{ id: 'chair', label: 'types.chair_pl', icon: 'drumstick' }, { id: 'pondeuse', label: 'types.pondeuse_pl', icon: 'egg' }]} />
+      <ActivitySummary activite={tab} />
       {tab === 'chair' ? <Bandes /> : <Lots />}
     </div>
+  )
+}
+
+// Activity result: turnover, direct costs, gross margin, overheads, net profit
+function ActivitySummary({ activite }) {
+  const { t, i18n } = useTranslation()
+  const lang = i18n.resolvedLanguage
+  const q = useQuery(async () => must(await supabase.from('resultat_activites').select('*').eq('activite', activite).maybeSingle()), [activite])
+  const r = q.data
+  if (!r) return null
+  return (
+    <section className="summary">
+      <div><span>{t('fiche.turnover')}</span><strong>{money(r.chiffre_affaires, lang)}</strong></div>
+      <div><span>{t('fiche.directCosts')}</span><strong>{money(r.charges_directes, lang)}</strong></div>
+      <div><span>{t('fiche.margin')}</span><strong className={Number(r.marge_brute) < 0 ? 'error' : 'success'}>{money(r.marge_brute, lang)}</strong></div>
+      <div><span>{t('fiche.overheads')}</span><strong>{money(r.charges_generales, lang)}</strong></div>
+      <div className="main"><span>{t('fiche.netProfit')}</span><strong className={Number(r.benefice_net) < 0 ? 'error' : 'success'}>{money(r.benefice_net, lang)}</strong></div>
+      {Number(r.retraits_associes) > 0 && <div><span>{t('fiche.withdrawals')}</span><strong>{money(r.retraits_associes, lang)}</strong></div>}
+    </section>
   )
 }
 
@@ -83,7 +104,7 @@ function Bandes() {
           {list.data.map((b) => (
             <article key={b.bande_id} className="card-item">
               <header>
-                <strong>{b.code}</strong>
+                <Link to={`/ferme/bande/${b.bande_id}`} className="card-title">{b.code}<Icon name="chevron" size={16} /></Link>
                 <span className={`tag ${b.statut === 'en_cours' ? 'ok' : b.statut === 'cloturee' ? 'muted' : 'warn'}`}>{t(`statuts.${b.statut}`)}</span>
               </header>
               <div className="facts">
@@ -95,6 +116,7 @@ function Bandes() {
                 <Fact label={t('ferme.plannedSale')} value={day(b.date_vente_prevue, lang)} />
               </div>
               <footer>
+                <Link to={`/ferme/bande/${b.bande_id}`} className="btn primary"><Icon name="note" size={16} />{t('fiche.open')}</Link>
                 {b.statut === 'en_cours' && can(role, 'bande.requestClose') && (
                   <button className="btn ghost" onClick={() => changeStatut(b, 'cloture_demandee', t('ferme.confirmRequest', { code: b.code }))}>
                     <Icon name="flag" size={16} />{t('ferme.requestClose')}
@@ -175,7 +197,7 @@ function Lots() {
           {list.data.map((l) => (
             <article key={l.lot_id} className="card-item">
               <header>
-                <strong>{l.code}</strong>
+                <Link to={`/ferme/lot/${l.lot_id}`} className="card-title">{l.code}<Icon name="chevron" size={16} /></Link>
                 <span className={`tag ${l.statut === 'en_production' ? 'ok' : 'muted'}`}>{t(`statuts.${l.statut}`)}</span>
               </header>
               <div className="facts">
@@ -185,11 +207,12 @@ function Lots() {
                 <Fact label={t('ferme.reformed')} value={l.vendus} />
                 <Fact label={t('ferme.arrival')} value={day(l.date_arrivee, lang)} />
               </div>
-              {l.statut === 'en_production' && can(role, 'bande.create') && (
-                <footer>
+              <footer>
+                <Link to={`/ferme/lot/${l.lot_id}`} className="btn primary"><Icon name="note" size={16} />{t('fiche.open')}</Link>
+                {l.statut === 'en_production' && can(role, 'bande.create') && (
                   <button className="btn ghost" onClick={() => reformer(l)}>{t('ferme.reform')}</button>
-                </footer>
-              )}
+                )}
+              </footer>
             </article>
           ))}
         </div>

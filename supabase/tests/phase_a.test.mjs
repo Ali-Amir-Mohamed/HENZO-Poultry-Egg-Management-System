@@ -194,6 +194,50 @@ await expectOk('dahirou validates closure', 'dahirou', `update public.bandes set
 await expectErr('kenfack cannot edit closed flock', 'kenfack', `update public.bandes set notes = 'x' where code = 'C2'`, [], 'clôturée')
 await expectErr('no sale on closed flock', 'kenfack', `insert into public.ventes (bande_id, produit, unite, quantite, prix_unitaire, nombre_sujets, mode_paiement) select id, 'poulets', 'piece', 1, 3000, 1, 'especes' from public.bandes where code = 'C2'`, [], 'clôturée')
 
+// ---------- Phase B: flock indicators and frozen closing report ----------
+try {
+  await db.exec(readFileSync(new URL('0003_phase_b_bandes.sql', MIG), 'utf8'))
+  ok('migration 0003 runs', true)
+} catch (e) { ok('migration 0003 runs', false, e.message); process.exit(1) }
+
+await expectOk('kenfack creates bande C3', 'kenfack', `insert into public.bandes (code, date_arrivee, nombre_initial) values ('C3', current_date - 30, 200)`)
+await expectOk('kenfack creates 50 kg feed bag', 'kenfack', `insert into public.articles (nom, categorie, unite, poids_unitaire_kg) values ('Aliment finition', 'aliment', 'sac', 50)`)
+const C3 = (await db.query(`select id from public.bandes where code = 'C3'`)).rows[0].id
+const ART2 = (await db.query(`select id from public.articles where nom = 'Aliment finition'`)).rows[0].id
+await expectOk('dahirou buys 10 bags', 'dahirou', `insert into public.depenses (portee, activite, categorie, libelle, montant, mode_paiement, article_id, quantite) values ('ferme', 'chair', 'aliment', '10 sacs finition', 200000, 'banque', $1, 10)`, [ART2])
+await expectOk('employe uses 2 bags on C3', 'employe', `insert into public.mouvements_stock (article_id, type_mouvement, quantite, bande_id) values ($1, 'sortie', 2, $2)`, [ART2, C3])
+await expectOk('dahirou pays chicks of C3', 'dahirou', `insert into public.depenses (portee, activite, bande_id, categorie, libelle, montant, mode_paiement) values ('ferme', 'chair', $1, 'poussins', 'Poussins C3', 100000, 'banque')`, [C3])
+await expectOk('employe mortality C3', 'employe', `insert into public.mortalites (bande_id, nombre) values ($1, 10)`, [C3])
+await expectOk('employe weighs C3', 'employe', `insert into public.pesees (bande_id, nombre_peses, poids_moyen_g) values ($1, 10, 2000)`, [C3])
+await expectOk('kenfack sells 50 birds of C3', 'kenfack', `insert into public.ventes (bande_id, produit, unite, quantite, prix_unitaire, nombre_sujets, mode_paiement) values ($1, 'poulets', 'piece', 50, 3000, 50, 'especes')`, [C3])
+
+const ind = await one('kenfack', `select * from public.indicateurs_bandes where code = 'C3'`)
+ok('C3 remaining = 140', ind?.restants === 140, JSON.stringify({ r: ind?.restants }))
+ok('C3 feed = 100 kg, cost 40000', Number(ind?.aliment_kg) === 100 && Number(ind?.cout_aliment) === 40000, `${ind?.aliment_kg} kg / ${ind?.cout_aliment}`)
+ok('C3 total cost = 140000', Number(ind?.cout_total) === 140000, String(ind?.cout_total))
+ok('C3 turnover 150000, margin 10000', Number(ind?.chiffre_affaires) === 150000 && Number(ind?.marge_brute) === 10000)
+ok('C3 live weight 380 kg, FCR 0.26', Number(ind?.poids_vif_kg) === 380 && Number(ind?.fcr) === 0.26, `${ind?.poids_vif_kg} / ${ind?.fcr}`)
+ok('C3 mortality rate 5 %', Number(ind?.taux_mortalite) === 5)
+ok('C3 cost per bird sold 2800', Number(ind?.cout_par_poulet_vendu) === 2800, String(ind?.cout_par_poulet_vendu))
+ok('employe cannot see indicators', (await as('employe', `select * from public.indicateurs_bandes`)).rows.length === 0)
+await expectErr('base view not exposed', 'kenfack', `select * from public.indicateurs_bandes_base`, [], 'permission denied')
+
+await expectOk('kenfack requests C3 closure', 'kenfack', `update public.bandes set statut = 'cloture_demandee' where code = 'C3'`)
+await expectOk('dahirou validates C3 closure', 'dahirou', `update public.bandes set statut = 'cloturee' where code = 'C3'`)
+const bilan = await one('ali', `select * from public.bilans_bandes where code = 'C3'`)
+ok('closing report frozen', Number(bilan?.cout_total) === 140000 && Number(bilan?.marge_brute) === 10000 && bilan?.valide_par === U.dahirou, JSON.stringify({ c: bilan?.cout_total, v: bilan?.valide_par }))
+ok('directeur notified of report', (await as('ali', `select * from public.notifications where type_notification = 'bilan_bande'`)).rows.length === 1)
+await expectNoRows('report cannot be edited by RLS', 'ali', `update public.bilans_bandes set cout_total = 1 returning bande_id`)
+try { await db.query(`update public.bilans_bandes set cout_total = 1`); ok('report immutable even for db owner', false) }
+catch (e) { ok('report immutable even for db owner', true, e.message) }
+ok('employe cannot read reports', (await as('employe', `select * from public.bilans_bandes`)).rows.length === 0)
+
+const res = Object.fromEntries((await as('dahirou', `select * from public.resultat_activites`)).rows.map((r) => [r.activite, r]))
+ok('activity results computed', res.chair && res.pondeuse && Number(res.chair.chiffre_affaires) > 0, JSON.stringify(res.chair))
+ok('withdrawals shown apart', Number(res.chair.retraits_associes) === 15000, String(res.chair.retraits_associes))
+const lot = await one('kenfack', `select * from public.indicateurs_lots where code = 'P1'`)
+ok('layer indicators: laying rate 82 %', Number(lot?.taux_ponte_7j) === 82, JSON.stringify({ t: lot?.taux_ponte_7j, ca: lot?.chiffre_affaires }))
+
 // ---------- Journal ----------
 ok('journal visible to directeur', (await as('ali', `select * from public.journal_activite`)).rows.length > 10)
 ok('journal hidden from finance', (await as('dahirou', `select * from public.journal_activite`)).rows.length === 0)

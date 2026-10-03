@@ -76,7 +76,7 @@
     "empty": "Aucun produit. Créez d’abord vos aliments et médicaments.", "threshold": "Seuil minimum", "perDay": "Conso / jour", "autonomy": "Autonomie", "low": "Stock bas : pensez à racheter.",
     "newArticle": "Nouveau produit", "name": "Nom", "category": "Catégorie",
     "manualMove": "Entrée ou ajustement manuel", "manualHint": "Les achats entrent en stock automatiquement depuis les Dépenses. Utilisez ceci pour le stock de départ ou un inventaire.",
-    "moveType": "Type", "types": { "entree": "Entrée", "sortie": "Consommation", "ajustement": "Ajustement (inventaire)" }, "adjustQty": "Quantité (+ ou −)",
+    "moveType": "Type", "types": { "entree": "Entrée", "sortie": "Consommation", "ajustement": "Ajustement (inventaire)" }, "adjustQty": "Quantité (+ ou −)", "unitWeight": "Poids d’un {{unite}} (kg)", "unitCost": "Coût unitaire (FCFA)",
     "history": "Historique des mouvements", "noMoves": "Aucun mouvement."
   },
   "reglages": {
@@ -87,6 +87,18 @@
     "currentPrices": "Prix du moment", "pricesHint": "Proposés automatiquement lors des ventes.", "noPrices": "Aucun prix défini.",
     "per": "par {{unite}}", "since": "depuis le {{d}}", "newPrice": "Nouveau prix", "price": "Prix (FCFA)", "from": "À partir du",
     "priceGapNote": "Une vente à un autre prix est signalée au directeur."
+  },
+  "fiche": {
+    "back": "Retour à la ferme", "open": "Ouvrir la fiche", "indicators": "Indicateurs (en cours)", "report": "Bilan de fin de bande",
+    "frozen": "Bande clôturée : bilan figé le {{d}}. Ces chiffres ne changent plus.",
+    "mortality": "Mortalité", "gmq": "Gain moyen / jour", "feed": "Aliment consommé", "fcrHint": "kg d’aliment par kg de poids vif", "duration": "Durée", "liveWeight": "Poids vif total",
+    "profitability": "Rentabilité", "costFeed": "Coût de l’aliment", "costHealth": "Médicaments et autres produits", "costOther": "Autres charges directes (poussins…)",
+    "costTotal": "Coût total", "turnover": "Chiffre d’affaires", "margin": "Marge brute", "costPerBird": "Coût par poulet vendu", "costPerKg": "Coût par kg", "avgPrice": "Prix moyen de vente",
+    "liveNote": "Chiffres en cours : ils seront figés au moment de la clôture.",
+    "growth": "Courbe de croissance", "history": "Historique complet",
+    "layingRate7": "Taux de ponte (7 j)", "eggsTotal": "Œufs collectés (total)", "breakRate": "Taux de casse", "costPerEgg": "Coût par œuf bon", "layingCurve": "Taux de ponte (30 derniers jours)",
+    "directCosts": "Charges directes", "overheads": "Charges générales", "netProfit": "Bénéfice net", "withdrawals": "Retraits d’associés",
+    "ev": { "arrival": "Arrivée de {{n}} poussins", "arrivalLot": "Arrivée de {{n}} pondeuses", "death": "{{n}} mort(s)", "weight": "Pesée : {{g}} g ({{n}} pesés)", "sale": "Vente de {{n}} {{produit}}" }
   },
   "notifications": { "title": "Notifications", "markRead": "Tout marquer lu", "empty": "Aucune notification." },
   "sync": { "title": "Saisies en attente", "empty": "Tout est synchronisé.", "retry": "Synchroniser", "error": "Erreur", "waiting": "En attente", "discard": "Supprimer", "confirmDiscard": "Supprimer cette saisie refusée ? Elle ne sera pas enregistrée." },

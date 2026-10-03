@@ -76,7 +76,7 @@
     "empty": "No product. First create your feeds and medicines.", "threshold": "Minimum level", "perDay": "Use / day", "autonomy": "Lasts", "low": "Low stock: reorder soon.",
     "newArticle": "New product", "name": "Name", "category": "Category",
     "manualMove": "Manual entry or adjustment", "manualHint": "Purchases enter stock automatically from Expenses. Use this for opening stock or a stock count.",
-    "moveType": "Type", "types": { "entree": "Entry", "sortie": "Used", "ajustement": "Adjustment (count)" }, "adjustQty": "Quantity (+ or −)",
+    "moveType": "Type", "types": { "entree": "Entry", "sortie": "Used", "ajustement": "Adjustment (count)" }, "adjustQty": "Quantity (+ or −)", "unitWeight": "Weight of one {{unite}} (kg)", "unitCost": "Unit cost (FCFA)",
     "history": "Stock movements", "noMoves": "No movement."
   },
   "reglages": {
@@ -87,6 +87,18 @@
     "currentPrices": "Current prices", "pricesHint": "Suggested automatically on sales.", "noPrices": "No price set.",
     "per": "per {{unite}}", "since": "since {{d}}", "newPrice": "New price", "price": "Price (FCFA)", "from": "From",
     "priceGapNote": "A sale at a different price is reported to the director."
+  },
+  "fiche": {
+    "back": "Back to farm", "open": "Open file", "indicators": "Indicators (live)", "report": "Flock closing report",
+    "frozen": "Flock closed: report frozen on {{d}}. These figures no longer change.",
+    "mortality": "Mortality", "gmq": "Avg. daily gain", "feed": "Feed used", "fcrHint": "kg of feed per kg of live weight", "duration": "Duration", "liveWeight": "Total live weight",
+    "profitability": "Profitability", "costFeed": "Feed cost", "costHealth": "Medicines and other products", "costOther": "Other direct costs (chicks…)",
+    "costTotal": "Total cost", "turnover": "Turnover", "margin": "Gross margin", "costPerBird": "Cost per bird sold", "costPerKg": "Cost per kg", "avgPrice": "Average sale price",
+    "liveNote": "Live figures: they will be frozen at closure.",
+    "growth": "Growth curve", "history": "Full history",
+    "layingRate7": "Laying rate (7 d)", "eggsTotal": "Eggs collected (total)", "breakRate": "Breakage rate", "costPerEgg": "Cost per good egg", "layingCurve": "Laying rate (last 30 days)",
+    "directCosts": "Direct costs", "overheads": "Overheads", "netProfit": "Net profit", "withdrawals": "Partner withdrawals",
+    "ev": { "arrival": "{{n}} chicks arrived", "arrivalLot": "{{n}} layers arrived", "death": "{{n}} dead", "weight": "Weighing: {{g}} g ({{n}} weighed)", "sale": "Sale of {{n}} {{produit}}" }
   },
   "notifications": { "title": "Notifications", "markRead": "Mark all read", "empty": "No notification." },
   "sync": { "title": "Pending entries", "empty": "Everything is synced.", "retry": "Sync now", "error": "Error", "waiting": "Waiting", "discard": "Delete", "confirmDiscard": "Delete this refused entry? It will not be saved." },

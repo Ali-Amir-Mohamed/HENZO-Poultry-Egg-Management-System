@@ -376,6 +376,49 @@ a { color: inherit; }
 }
 @media (max-width: 420px) { .hide-xs { display: none; } }
 
+/* ---------- Phase B: flock files ---------- */
+.back { display: inline-flex; align-items: center; gap: .3rem; color: var(--muted); font-weight: 600; text-decoration: none; font-size: .9rem; }
+.flip { transform: rotate(180deg); }
+.hero.compact { align-items: center; padding: 1.25rem 1.5rem; }
+.hero.compact h1 { font-size: 1.9rem; }
+.hero-facts { display: flex; gap: 1.5rem; position: relative; z-index: 1; }
+.hero-facts div { display: flex; flex-direction: column; }
+.hero-facts span { font-size: .78rem; color: rgba(255, 255, 255, .7); font-weight: 600; }
+.hero-facts strong { font-size: 1.3rem; font-weight: 800; }
+.card-title { display: inline-flex; align-items: center; gap: .25rem; font-weight: 800; font-size: 1.05rem; text-decoration: none; color: var(--text); }
+.card-title:hover { color: var(--green-500); }
+.card-item footer a.btn { text-decoration: none; }
+.facts.big { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.facts.big .fact { background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow); padding: .8rem 1rem; }
+.facts.big .fact strong { font-size: 1.2rem; }
+.fact.bad strong { color: var(--rose); }
+.money-table td:last-child { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+.money-table tr.sum td { border-top: 2px solid var(--border); font-weight: 800; font-size: 1rem; }
+.money-table tr.good td:last-child { color: var(--green-500); }
+.money-table tr.bad td:last-child { color: var(--rose); }
+.summary {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: .6rem;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; box-shadow: var(--shadow);
+}
+.summary div { display: flex; flex-direction: column; gap: .15rem; }
+.summary span { font-size: .75rem; font-weight: 600; color: var(--muted); }
+.summary strong { font-size: 1rem; font-weight: 800; }
+.summary .main strong { font-size: 1.2rem; }
+.timeline { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.timeline li { display: flex; gap: .75rem; padding: .6rem 0; border-bottom: 1px dashed var(--border); align-items: flex-start; }
+.timeline li:last-child { border-bottom: 0; }
+.timeline li div { display: flex; flex-direction: column; gap: .1rem; }
+.timeline li strong { font-size: .9rem; font-weight: 600; }
+.timeline li.cancelled { opacity: .5; }
+.timeline li.cancelled strong { text-decoration: line-through; }
+.curve { width: 100%; height: auto; }
+.curve .axis { stroke: var(--border); stroke-width: 1.5; }
+.curve .line { fill: none; stroke: var(--green-500); stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
+.curve .area { fill: var(--green-100); opacity: .7; }
+.curve .dot { fill: var(--surface); stroke: var(--green-500); stroke-width: 2.5; }
+.curve .val { font-size: 12px; font-weight: 700; fill: var(--text); }
+.curve .lbl { font-size: 11px; fill: var(--muted); }
+
 /* ---------- Lists / empty states ---------- */
 .list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: .6rem; }
 .list li {

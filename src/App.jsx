@@ -8,6 +8,8 @@ import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Saisie from './pages/Saisie'
 import Ferme from './pages/Ferme'
+import FicheBande from './pages/FicheBande'
+import FicheLot from './pages/FicheLot'
 import Argent from './pages/Argent'
 import Stock from './pages/Stock'
 import Reglages from './pages/Reglages'
@@ -44,6 +46,8 @@ export default function App() {
         <Route index element={<Dashboard />} />
         <Route path="saisie" element={<Guard section="saisie"><Saisie /></Guard>} />
         <Route path="ferme" element={<Guard section="ferme"><Ferme /></Guard>} />
+        <Route path="ferme/bande/:id" element={<Guard section="ferme"><FicheBande /></Guard>} />
+        <Route path="ferme/lot/:id" element={<Guard section="ferme"><FicheLot /></Guard>} />
         <Route path="argent" element={<Guard section="argent"><Argent /></Guard>} />
         <Route path="stock" element={<Guard section="stock"><Stock /></Guard>} />
         <Route path="reglages" element={<Guard section="reglages"><Reglages /></Guard>} />
