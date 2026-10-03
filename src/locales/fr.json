@@ -4,9 +4,18 @@
   "roles": { "directeur": "Directeur", "exploitation": "Exploitation", "finance": "Finance", "employe": "Employé" },
   "auth": { "title": "Connexion", "subtitle": "Entrez vos identifiants pour accéder à la ferme.", "username": "Nom d’utilisateur", "usernamePlaceholder": "ex. kenfack", "password": "Mot de passe", "submit": "Se connecter", "error": "Nom d’utilisateur ou mot de passe incorrect", "offline": "Connexion impossible hors ligne. Connectez-vous une première fois avec internet.", "noProfile": "Aucun rôle n’est attribué à ce compte. Contactez le directeur." },
   "status": { "online": "En ligne", "offline": "Hors ligne", "pending": "{{count}} saisie(s) en attente", "install": "Installer" },
-  "dashboard": { "welcome": "Bonjour {{name}} 👋", "newEntry": "Nouvelle saisie", "eggsToday": "Œufs aujourd’hui", "broken": "Cassés aujourd’hui", "rate": "{{rate}} % du ramassage", "flock": "Poules en élevage", "pending": "En attente d’envoi", "last7": "Production des 7 derniers jours", "total": "{{n}} œufs au total", "noData": "Connectez-vous à internet pour charger les chiffres.", "cached": "Hors ligne : chiffres du {{date}}" },
-  "saisie": { "title": "Ramassage d’œufs", "subtitle": "Fonctionne aussi sans internet.", "date": "Date", "bande": "Bande", "choose": "Choisir une bande", "noBande": "Aucune bande active (connectez-vous une fois en ligne)", "eggs": "Œufs ramassés", "broken": "Œufs cassés", "notes": "Remarques", "save": "Enregistrer", "saved": "Enregistré ! Envoi automatique dès que la connexion revient." },
+  "types": { "chair": "Chair", "pondeuse": "Pondeuse", "chair_pl": "Poulets de chair", "pondeuse_pl": "Pondeuses" },
+  "dashboard": { "welcome": "Bonjour {{name}} 👋", "newEntry": "Nouvelle saisie", "eggsToday": "Œufs aujourd’hui", "broken": "Cassés aujourd’hui", "rate": "{{rate}} % du ramassage", "layers": "Pondeuses en élevage", "broilers": "Poulets de chair", "broilerFlocks": "Bandes de chair actives", "lastWeight": "Poids moyen actuel", "broilerTable": "Suivi des bandes de chair", "age": "Âge", "days": "{{n}} j", "birds": "Effectif", "weight": "Poids moyen", "fcr": "Indice", "fcrHint": "Indice de consommation : kg d’aliment par kg de poulet (approximatif)", "noBroilers": "Aucune bande de chair active.", "last7": "Œufs : 7 derniers jours", "total": "{{n}} œufs au total", "noData": "Connectez-vous à internet pour charger les chiffres.", "cached": "Hors ligne : chiffres du {{date}}" },
+  "saisie": {
+    "kinds": { "oeufs": "Œufs", "mortalite": "Mortalité", "pesee": "Pesée" },
+    "titles": { "oeufs": "Ramassage d’œufs", "mortalite": "Mortalité", "pesee": "Pesée des poulets" },
+    "hints": { "oeufs": "Bandes pondeuses uniquement.", "mortalite": "Pondeuses et poulets de chair.", "pesee": "Poulets de chair : pesez un échantillon et notez le poids moyen." },
+    "date": "Date", "bande": "Bande", "choose": "Choisir une bande", "noBande": "Aucune bande de ce type (ou connectez-vous une fois en ligne)",
+    "eggs": "Œufs ramassés", "broken": "Œufs cassés", "deaths": "Nombre de morts", "cause": "Cause (si connue)",
+    "avgWeight": "Poids moyen (g)", "sampleSize": "Nombre de poulets pesés",
+    "notes": "Remarques", "save": "Enregistrer", "saved": "Enregistré ! Envoi automatique dès que la connexion revient."
+  },
   "sync": { "title": "Saisies en attente", "empty": "Tout est synchronisé.", "retry": "Synchroniser", "error": "Erreur", "waiting": "En attente" },
-  "tables": { "ramassages_oeufs": "Ramassage d’œufs", "mortalites": "Mortalité", "mouvements_aliment": "Aliment", "ventes": "Vente", "depenses": "Dépense" },
+  "tables": { "ramassages_oeufs": "Ramassage d’œufs", "mortalites": "Mortalité", "pesees": "Pesée", "sante": "Vaccin / soin", "mouvements_aliment": "Aliment", "ventes": "Vente", "depenses": "Dépense" },
   "common": { "comingSoon": "Ce module arrive à la prochaine étape.", "forbidden": "Accès non autorisé pour votre rôle.", "loading": "Chargement…" }
 }

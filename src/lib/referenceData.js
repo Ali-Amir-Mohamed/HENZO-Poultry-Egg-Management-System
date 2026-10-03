@@ -8,11 +8,12 @@ function readCache(key) {
   try { return JSON.parse(localStorage.getItem(CACHE_PREFIX + key)) ?? [] } catch { return [] }
 }
 
+// Active flocks with their production type ('chair' | 'pondeuse')
 export async function loadBandesActives() {
   if (!navigator.onLine) return readCache('bandes')
   const { data, error } = await supabase
     .from(TABLES.bandes)
-    .select('id, code')
+    .select('id, code, type_production')
     .eq('statut', 'active')
     .order('code')
   if (error) return readCache('bandes')

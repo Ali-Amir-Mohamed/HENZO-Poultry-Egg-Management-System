@@ -15,7 +15,9 @@ const PATHS = {
   check: 'M20 6 9 17l-5-5',
   alert: 'M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z',
   calendar: 'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z',
-  clock: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2'
+  clock: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2',
+  scale: 'M12 3v18M5 7h14M5 7l-3 7a3 3 0 0 0 6 0zM19 7l-3 7a3 3 0 0 0 6 0zM8 21h8',
+  drumstick: 'M15.4 15.6a6 6 0 1 0-7-7L4.6 12.4a2 2 0 1 0 2.8 2.8L4 18.6a1.5 1.5 0 1 0 2.1 2.1L9.5 17.3a2 2 0 1 0 2.8-2.8z'
 }
 
 export default function Icon({ name, size = 20, ...props }) {

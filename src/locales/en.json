@@ -4,9 +4,18 @@
   "roles": { "directeur": "Director", "exploitation": "Operations", "finance": "Finance", "employe": "Employee" },
   "auth": { "title": "Sign in", "subtitle": "Enter your credentials to access the farm.", "username": "Username", "usernamePlaceholder": "e.g. kenfack", "password": "Password", "submit": "Sign in", "error": "Wrong username or password", "offline": "Cannot sign in while offline. Sign in once with internet first.", "noProfile": "No role is assigned to this account. Contact the director." },
   "status": { "online": "Online", "offline": "Offline", "pending": "{{count}} entry(ies) pending", "install": "Install" },
-  "dashboard": { "welcome": "Hello {{name}} 👋", "newEntry": "New entry", "eggsToday": "Eggs today", "broken": "Broken today", "rate": "{{rate}}% of collection", "flock": "Hens in flock", "pending": "Waiting to send", "last7": "Production, last 7 days", "total": "{{n}} eggs in total", "noData": "Go online to load the figures.", "cached": "Offline: figures from {{date}}" },
-  "saisie": { "title": "Egg collection", "subtitle": "Works without internet too.", "date": "Date", "bande": "Flock", "choose": "Choose a flock", "noBande": "No active flock (go online once to load them)", "eggs": "Eggs collected", "broken": "Broken eggs", "notes": "Notes", "save": "Save", "saved": "Saved! It will be sent automatically when back online." },
+  "types": { "chair": "Broiler", "pondeuse": "Layer", "chair_pl": "Broilers", "pondeuse_pl": "Layers" },
+  "dashboard": { "welcome": "Hello {{name}} 👋", "newEntry": "New entry", "eggsToday": "Eggs today", "broken": "Broken today", "rate": "{{rate}}% of collection", "layers": "Laying hens", "broilers": "Broilers", "broilerFlocks": "Active broiler flocks", "lastWeight": "Current average weight", "broilerTable": "Broiler flocks", "age": "Age", "days": "{{n}} d", "birds": "Birds", "weight": "Avg. weight", "fcr": "FCR", "fcrHint": "Feed conversion ratio: kg of feed per kg of live bird (approximate)", "noBroilers": "No active broiler flock.", "last7": "Eggs: last 7 days", "total": "{{n}} eggs in total", "noData": "Go online to load the figures.", "cached": "Offline: figures from {{date}}" },
+  "saisie": {
+    "kinds": { "oeufs": "Eggs", "mortalite": "Mortality", "pesee": "Weighing" },
+    "titles": { "oeufs": "Egg collection", "mortalite": "Mortality", "pesee": "Broiler weighing" },
+    "hints": { "oeufs": "Layer flocks only.", "mortalite": "Layers and broilers.", "pesee": "Broilers: weigh a sample and record the average weight." },
+    "date": "Date", "bande": "Flock", "choose": "Choose a flock", "noBande": "No flock of this type (or go online once to load them)",
+    "eggs": "Eggs collected", "broken": "Broken eggs", "deaths": "Number of deaths", "cause": "Cause (if known)",
+    "avgWeight": "Average weight (g)", "sampleSize": "Birds weighed",
+    "notes": "Notes", "save": "Save", "saved": "Saved! It will be sent automatically when back online."
+  },
   "sync": { "title": "Pending entries", "empty": "Everything is synced.", "retry": "Sync now", "error": "Error", "waiting": "Waiting" },
-  "tables": { "ramassages_oeufs": "Egg collection", "mortalites": "Mortality", "mouvements_aliment": "Feed", "ventes": "Sale", "depenses": "Expense" },
+  "tables": { "ramassages_oeufs": "Egg collection", "mortalites": "Mortality", "pesees": "Weighing", "sante": "Vaccine / care", "mouvements_aliment": "Feed", "ventes": "Sale", "depenses": "Expense" },
   "common": { "comingSoon": "This module comes in the next step.", "forbidden": "Your role does not have access.", "loading": "Loading…" }
 }

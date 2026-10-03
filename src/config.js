@@ -1,8 +1,10 @@
 // Single place mapping the app to the database schema (supabase/migrations/0001_schema_etape1.sql)
 export const TABLES = {
   profiles: 'profiles',           // id (= auth.users.id), nom_complet, role, actif
-  bandes: 'bandes',
-  ramassages: 'ramassages_oeufs'
+  bandes: 'bandes',                // type_production: 'chair' | 'pondeuse'
+  ramassages: 'ramassages_oeufs',  // pondeuses only (enforced by a DB trigger)
+  mortalites: 'mortalites',        // both types
+  pesees: 'pesees'                 // broilers only (enforced by a DB trigger)
 }
 
 export const ROLES = {

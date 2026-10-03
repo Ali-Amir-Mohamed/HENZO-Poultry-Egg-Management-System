@@ -3,6 +3,7 @@
 | Fichier | Contenu |
 |---|---|
 | `0001_schema_etape1.sql` | Rôles, profils, bâtiments, bandes, ramassages d'œufs, mortalités, aliment, ventes, dépenses, vues et règles RLS |
+| `0002_chair_et_pondeuses.sql` | Type de bande (chair / pondeuse), pesées, vaccins et soins, ventes de poulets (pièce ou kg), vues croissance et rentabilité par bande |
 
 ## Installation
 
