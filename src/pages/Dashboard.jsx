@@ -6,7 +6,7 @@ export default function Dashboard() {
   const { profile } = useAuth()
   return (
     <section className="card">
-      <h2>{t('dashboard.welcome', { name: profile.full_name ?? '' })}</h2>
+      <h2>{t('dashboard.welcome', { name: profile.nom_complet ?? '' })}</h2>
       <p className="muted">{t('dashboard.role', { role: t(`roles.${profile.role}`) })}</p>
       <p>{t('common.comingSoon')}</p>
     </section>

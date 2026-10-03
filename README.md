@@ -17,6 +17,7 @@ npm run dev
 | `src/config.js` | Noms des tables, rôles, droits d'accès par section |
 | `src/lib/supabase.js` | Client Supabase |
 | `src/lib/offlineQueue.js` | File d'attente IndexedDB (Dexie) + synchronisation automatique |
+| `src/lib/referenceData.js` | Listes de référence (bandes actives) mises en cache pour le hors-ligne |
 | `src/auth/AuthProvider.jsx` | Session et profil (rôle), profil mis en cache pour l'usage hors ligne |
 | `src/locales/{fr,en}.json` | Traductions |
 | `supabase/migrations/` | Schéma SQL |

@@ -1,8 +1,8 @@
-// Single place mapping the app to the database schema.
-// TODO(schema étape 1): align these names with the actual Supabase schema.
+// Single place mapping the app to the database schema (supabase/migrations/0001_schema_etape1.sql)
 export const TABLES = {
-  profiles: 'profiles',           // id (= auth.users.id), full_name, role
-  eggCollections: 'egg_collections'
+  profiles: 'profiles',           // id (= auth.users.id), nom_complet, role, actif
+  bandes: 'bandes',
+  ramassages: 'ramassages_oeufs'
 }
 
 export const ROLES = {

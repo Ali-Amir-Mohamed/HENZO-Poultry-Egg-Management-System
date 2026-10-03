@@ -17,8 +17,9 @@ async function loadProfile(user) {
   if (!navigator.onLine) return readCachedProfile(user.id)
   const { data, error } = await supabase
     .from(TABLES.profiles)
-    .select('id, full_name, role')
+    .select('id, nom_complet, role')
     .eq('id', user.id)
+    .eq('actif', true)
     .maybeSingle()
   if (error) return readCachedProfile(user.id)
   try { localStorage.setItem(PROFILE_CACHE, JSON.stringify(data)) } catch {}

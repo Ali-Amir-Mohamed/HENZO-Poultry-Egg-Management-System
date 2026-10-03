@@ -31,7 +31,7 @@ main { padding: 1rem; }
 .row { display: flex; align-items: center; gap: .5rem; }
 .spacer { flex: 1; }
 label { display: flex; flex-direction: column; gap: .25rem; font-size: .9rem; }
-input, textarea { font: inherit; padding: .6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); }
+input, textarea, select { font: inherit; padding: .6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); }
 button { font: inherit; padding: .6rem 1rem; border: 0; border-radius: 6px; background: var(--brand); color: #fff; cursor: pointer; }
 button:disabled { opacity: .5; cursor: default; }
 button.link { background: none; padding: .25rem .5rem; color: var(--brand); }
