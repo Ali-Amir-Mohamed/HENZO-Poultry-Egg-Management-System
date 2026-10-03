@@ -21,4 +21,16 @@ export const ACCESS = {
   sync: Object.values(ROLES)
 }
 
-export const canAccess = (role, section) => !!role && ACCESS[section]?.includes(role)
+// Users sign in with a username; Supabase Auth needs an email, so the username is
+// mapped to <username>@LOGIN_DOMAIN. Accounts must be created with that address.
+// A full email (containing "@") is still accepted as-is.
+export const LOGIN_DOMAIN = 'henzo.local'
+
+export function toLoginEmail(identifier) {
+  const id = identifier.trim().toLowerCase()
+  if (id.includes('@')) return id
+  const username = id.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, '.')
+  return `${username}@${LOGIN_DOMAIN}`
+}
+
+export const canAccess =(role, section) => !!role && ACCESS[section]?.includes(role)

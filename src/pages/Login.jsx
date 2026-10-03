@@ -7,7 +7,7 @@ import Icon, { Logo } from '../components/Icon'
 export default function Login() {
   const { t } = useTranslation()
   const { signIn } = useAuth()
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
@@ -17,7 +17,7 @@ export default function Login() {
     if (!navigator.onLine) return setError(t('auth.offline'))
     setBusy(true)
     setError(null)
-    const { error } = await signIn(email, password)
+    const { error } = await signIn(username, password)
     setBusy(false)
     if (error) setError(t('auth.error'))
   }
@@ -34,9 +34,10 @@ export default function Login() {
         <h2>{t('auth.title')}</h2>
         <p className="muted">{t('auth.subtitle')}</p>
         <label className="field">
-          <span>{t('auth.email')}</span>
-          <input type="email" autoComplete="username" required value={email}
-            onChange={(e) => setEmail(e.target.value)} placeholder="nom@exemple.com" />
+          <span>{t('auth.username')}</span>
+          <input type="text" autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck="false"
+            required value={username} onChange={(e) => setUsername(e.target.value)}
+            placeholder={t('auth.usernamePlaceholder')} />
         </label>
         <label className="field">
           <span>{t('auth.password')}</span>

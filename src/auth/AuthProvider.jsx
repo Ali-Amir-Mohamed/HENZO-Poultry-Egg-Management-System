@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
-import { TABLES } from '../config'
+import { TABLES, toLoginEmail } from '../config'
 
 const AuthContext = createContext(null)
 const PROFILE_CACHE = 'henzo.profile'
@@ -47,7 +47,8 @@ export function AuthProvider({ children }) {
     return () => { active = false; sub.subscription.unsubscribe() }
   }, [])
 
-  const signIn = (email, password) => supabase.auth.signInWithPassword({ email, password })
+  const signIn = (identifier, password) =>
+    supabase.auth.signInWithPassword({ email: toLoginEmail(identifier), password })
   const signOut = async () => {
     try { localStorage.removeItem(PROFILE_CACHE) } catch {}
     await supabase.auth.signOut()

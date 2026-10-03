@@ -31,6 +31,12 @@ npm run dev
 | `finance` | Dahirou Bachar | saisie, finance |
 | `employe` | — | saisie |
 
+## Comptes
+
+Connexion par **nom d'utilisateur** + mot de passe. Dans Supabase, chaque compte est créé avec
+l'adresse `<nom_utilisateur>@henzo.local` (Auto Confirm User coché) : l'utilisateur tape seulement
+`<nom_utilisateur>`. Une adresse e-mail complète reste acceptée à la connexion.
+
 ## Hors connexion
 
 - L'application (HTML/JS/CSS) est mise en cache par le service worker et s'ouvre sans réseau.
