@@ -381,6 +381,7 @@ a { color: inherit; }
 .flip { transform: rotate(180deg); }
 .hero.compact { align-items: center; padding: 1.25rem 1.5rem; }
 .hero.compact h1 { font-size: 1.9rem; }
+.hero.compact .hero-date { text-transform: none; }
 .hero-facts { display: flex; gap: 1.5rem; position: relative; z-index: 1; }
 .hero-facts div { display: flex; flex-direction: column; }
 .hero-facts span { font-size: .78rem; color: rgba(255, 255, 255, .7); font-weight: 600; }
