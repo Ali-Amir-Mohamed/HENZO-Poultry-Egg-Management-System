@@ -238,6 +238,84 @@ ok('withdrawals shown apart', Number(res.chair.retraits_associes) === 15000, Str
 const lot = await one('kenfack', `select * from public.indicateurs_lots where code = 'P1'`)
 ok('layer indicators: laying rate 82 %', Number(lot?.taux_ponte_7j) === 82, JSON.stringify({ t: lot?.taux_ponte_7j, ca: lot?.chiffre_affaires }))
 
+// ---------- Phase C: investors, loans, cash check ----------
+try {
+  await db.exec(readFileSync(new URL('0004_phase_c_argent.sql', MIG), 'utf8'))
+  ok('migration 0004 runs', true)
+} catch (e) { ok('migration 0004 runs', false, e.message); process.exit(1) }
+
+const solde = async (activite, mode) => Number((await one('ali', `select solde from public.soldes_caisses where activite = '${activite}' and mode = '${mode}'`)).solde)
+const closeBande = async (code, n) => {
+  await as('kenfack', `insert into public.bandes (code, date_arrivee, nombre_initial) values ('${code}', current_date - 40, ${n})`)
+  await as('kenfack', `update public.bandes set statut = 'cloture_demandee' where code = '${code}'`)
+  await as('dahirou', `update public.bandes set statut = 'cloturee' where code = '${code}'`)
+}
+
+await expectOk('dahirou creates investor', 'dahirou', `insert into public.investisseurs (nom, telephone) values ('Investisseur A', '690000000')`)
+await expectErr('kenfack cannot create investor', 'kenfack', `insert into public.investisseurs (nom) values ('X')`)
+const INV = (await db.query(`select id from public.investisseurs where nom = 'Investisseur A'`)).rows[0].id
+const bankBefore = await solde('chair', 'banque')
+await expectOk('dahirou records capital contribution', 'dahirou', `insert into public.operations_investisseurs (investisseur_id, type_operation, montant, activite, mode_paiement) values ($1, 'apport', 1000000, 'chair', 'banque')`, [INV])
+ok('contribution enters the cash box', (await solde('chair', 'banque')) - bankBefore === 1000000)
+await expectErr('kenfack cannot record contribution', 'kenfack', `insert into public.operations_investisseurs (investisseur_id, type_operation, montant, activite, mode_paiement) values ($1, 'apport', 1, 'chair', 'banque')`, [INV])
+await expectErr('manual reinvestment not allowed', 'dahirou', `insert into public.operations_investisseurs (investisseur_id, type_operation, montant) values ($1, 'reinvestissement', 1)`, [INV])
+await expectErr('withdrawal above capital rejected', 'dahirou', `insert into public.operations_investisseurs (investisseur_id, type_operation, montant, activite, mode_paiement) values ($1, 'retrait_capital', 2000000, 'chair', 'banque')`, [INV], 'capital')
+ok('kenfack reads investors', (await as('kenfack', `select * from public.situation_investisseurs`)).rows.length === 1)
+ok('employe reads no investor', (await as('employe', `select * from public.situation_investisseurs`)).rows.length === 0)
+
+await closeBande('C4', 100)
+const dist = await one('dahirou', `select * from public.distributions_investisseurs`)
+ok('10 % due at flock closure', Number(dist?.montant) === 100000 && dist?.statut === 'en_attente', JSON.stringify({ m: dist?.montant }))
+ok('finance notified of 10 %', (await as('dahirou', `select * from public.notifications where type_notification = 'distribution'`)).rows.length === 1)
+await expectNoRows('kenfack cannot decide 10 %', 'kenfack', `update public.distributions_investisseurs set statut = 'retire', mode_paiement = 'especes' returning id`)
+await expectErr('payout needs a payment mode', 'dahirou', `update public.distributions_investisseurs set statut = 'retire'`, [], 'mode')
+const cashBefore = await solde('chair', 'especes')
+await expectOk('investor takes the 10 % in cash', 'dahirou', `update public.distributions_investisseurs set statut = 'retire', mode_paiement = 'especes'`)
+ok('payout leaves the cash box', cashBefore - (await solde('chair', 'especes')) === 100000)
+await expectErr('decision taken only once', 'dahirou', `update public.distributions_investisseurs set statut = 'reinvesti'`, [], 'une seule fois')
+
+await expectOk('second investor contributes', 'dahirou', `insert into public.investisseurs (nom) values ('Investisseur B')`)
+const INVB = (await db.query(`select id from public.investisseurs where nom = 'Investisseur B'`)).rows[0].id
+await as('dahirou', `insert into public.operations_investisseurs (investisseur_id, type_operation, montant, activite, mode_paiement) values ($1, 'apport', 500000, 'chair', 'mobile_money')`, [INVB])
+await closeBande('C5', 100)
+ok('10 % computed for each investor', Number((await one('dahirou', `select montant from public.distributions_investisseurs where investisseur_id = '${INVB}'`)).montant) === 50000)
+await expectOk('investor B reinvests', 'dahirou', `update public.distributions_investisseurs set statut = 'reinvesti' where investisseur_id = '${INVB}'`)
+const sitB = await one('kenfack', `select * from public.situation_investisseurs where investisseur_id = '${INVB}'`)
+ok('reinvested 10 % added to capital', Number(sitB.capital_restant) === 550000 && Number(sitB.capital_reinvesti) === 50000, JSON.stringify(sitB))
+await expectErr('reinvestment cannot be cancelled alone', 'ali', `update public.operations_investisseurs set annulee = true, motif_annulation = 'x' where type_operation = 'reinvestissement'`, [], 'réinvestissement')
+await expectNoRows('dahirou cannot cancel a contribution', 'dahirou', `update public.operations_investisseurs set annulee = true, motif_annulation = 'x' where investisseur_id = '${INVB}' and type_operation = 'apport' returning id`)
+
+// Loans
+await expectOk('dahirou records bank loan', 'dahirou', `insert into public.prets (type_preteur, preteur, montant_initial, interets, activite, mode_paiement) values ('banque', 'Banque X', 2000000, 200000, 'pondeuse', 'banque')`)
+const PRET = (await db.query(`select id from public.prets`)).rows[0].id
+await expectOk('dahirou plans due dates', 'dahirou', `insert into public.echeances_prets (pret_id, date_echeance, montant) values ($1, current_date - 5, 1100000), ($1, current_date + 60, 1100000)`, [PRET])
+await expectOk('dahirou repays 500000', 'dahirou', `insert into public.remboursements_prets (pret_id, montant, mode_paiement) values ($1, 500000, 'banque')`, [PRET])
+let sp = await one('kenfack', `select * from public.situation_prets`)
+ok('loan balance 1700000, late', Number(sp.solde) === 1700000 && sp.en_retard === true, JSON.stringify({ s: sp.solde, r: sp.en_retard, n: sp.prochaine_echeance }))
+await expectErr('overpayment of loan rejected', 'dahirou', `insert into public.remboursements_prets (pret_id, montant, mode_paiement) values ($1, 9999999, 'banque')`, [PRET], 'solde')
+await expectErr('kenfack cannot repay loan', 'kenfack', `insert into public.remboursements_prets (pret_id, montant, mode_paiement) values ($1, 1, 'banque')`, [PRET])
+await expectErr('loan with repayments cannot be cancelled', 'ali', `update public.prets set annulee = true, motif_annulation = 'Erreur'`, [], 'remboursements')
+await expectOk('ali cancels repayment', 'ali', `update public.remboursements_prets set annulee = true, motif_annulation = 'Erreur'`)
+sp = await one('kenfack', `select * from public.situation_prets`)
+ok('balance restored after cancellation', Number(sp.solde) === 2200000)
+const layerBank = await solde('pondeuse', 'banque')
+await expectOk('ali cancels loan', 'ali', `update public.prets set annulee = true, motif_annulation = 'Erreur de saisie'`)
+ok('cancelled loan reversed in cash', layerBank - (await solde('pondeuse', 'banque')) === 2000000)
+
+// Cash check
+const caisseEsp = (await db.query(`select id from public.caisses where activite = 'chair' and mode = 'especes'`)).rows[0].id
+await as('dahirou', `insert into public.ecritures (caisse_id, sens, montant, nature, libelle) values ($1, 'entree', 300000, 'solde_initial', 'Fonds de caisse')`, [caisseEsp])
+const theo = await solde('chair', 'especes')
+await expectOk('cash check without gap', 'dahirou', `insert into public.verifications_caisse (caisse_id, montant_compte) values ($1, ${theo})`, [caisseEsp])
+await expectErr('gap needs justification', 'dahirou', `insert into public.verifications_caisse (caisse_id, montant_compte) values ($1, ${theo + 5000})`, [caisseEsp], 'justification')
+await expectErr('finance cannot adjust cash', 'dahirou', `insert into public.verifications_caisse (caisse_id, montant_compte, justification, ajustement) values ($1, ${theo + 5000}, 'Oubli', true)`, [caisseEsp], 'directeur')
+await expectOk('ali adjusts cash after count', 'ali', `insert into public.verifications_caisse (caisse_id, montant_compte, justification, ajustement) values ($1, ${theo + 5000}, 'Vente non saisie', true)`, [caisseEsp])
+ok('cash box now matches the count', (await solde('chair', 'especes')) === theo + 5000)
+ok('gap recorded = 5000', Number((await one('ali', `select ecart from public.verifications_caisse order by created_at desc limit 1`)).ecart) === 5000)
+ok('cash gap notified to directeur', (await as('ali', `select * from public.notifications where type_notification = 'ecart_caisse'`)).rows.length >= 1)
+const cap = await one('kenfack', `select * from public.capitaux_engages`)
+ok('committed capital = 1550000, no loan', Number(cap.capital_investisseurs) === 1550000 && Number(cap.solde_prets) === 0, JSON.stringify(cap))
+
 // ---------- Journal ----------
 ok('journal visible to directeur', (await as('ali', `select * from public.journal_activite`)).rows.length > 10)
 ok('journal hidden from finance', (await as('dahirou', `select * from public.journal_activite`)).rows.length === 0)

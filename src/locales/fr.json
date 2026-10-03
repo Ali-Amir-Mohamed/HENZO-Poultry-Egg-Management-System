@@ -11,7 +11,7 @@
   "produits": { "poulets": "Poulets", "oeufs": "Œufs", "plateaux": "Plateaux d’œufs", "poules_reformees": "Poules réformées", "fientes": "Fientes", "autre": "Autre" },
   "categories": { "poussins": "Poussins", "aliment": "Aliment", "medicament": "Médicaments / remèdes", "main_oeuvre": "Main-d’œuvre ponctuelle", "transport": "Transport", "entretien": "Entretien", "autre_ferme": "Autre (ferme)", "loyer": "Loyer", "charges": "Charges (eau, électricité…)", "salaires": "Salaires", "fonctionnement": "Fonctionnement", "retrait_associe": "Retrait d’associé", "autre_general": "Autre (général)" },
   "retraits": { "avance_benefice": "Avance sur bénéfice", "depense_personnelle": "Dépense personnelle", "frais_medicaux": "Frais médicaux", "urgence_familiale": "Urgence familiale", "autre": "Autre" },
-  "natures": { "vente": "Vente", "encaissement_creance": "Paiement client", "depense": "Dépense", "paiement_fournisseur": "Paiement fournisseur", "solde_initial": "Solde initial", "correction": "Correction", "annulation": "Annulation" },
+  "natures": { "vente": "Vente", "encaissement_creance": "Paiement client", "depense": "Dépense", "paiement_fournisseur": "Paiement fournisseur", "solde_initial": "Solde initial", "correction": "Correction", "annulation": "Annulation", "apport_investisseur": "Apport investisseur", "retrait_investisseur": "Retrait investisseur", "versement_investisseur": "10 % versés", "pret_recu": "Prêt reçu", "remboursement_pret": "Remboursement de prêt", "ajustement_caisse": "Ajustement de caisse" },
   "articleCategories": { "aliment": "Aliment", "medicament": "Médicament", "autre": "Autre" },
   "tiersTypes": { "client": "Client", "fournisseur": "Fournisseur", "client_fournisseur": "Client et fournisseur" },
   "dashboard": {
@@ -20,6 +20,8 @@
     "toValidate_one": "{{count}} dépense à valider", "toValidate_other": "{{count}} dépenses à valider",
     "lowStock": "Stock bas : {{nom}} ({{stock}} {{unite}})",
     "lateClients_one": "{{count}} paiement client en retard", "lateClients_other": "{{count}} paiements clients en retard",
+    "pending10": "{{n}} F de 10 % à verser ou réinvestir (investisseurs)", "loanLate": "Remboursement en retard : prêt {{preteur}}", "loanDue": "Échéance du prêt {{preteur}} le {{d}}",
+    "investorCapital": "Capital des investisseurs", "loansDue": "Prêts à rembourser", "committed": "Capitaux engagés",
     "cash": "Caisses", "cashChair": "Caisse chair", "cashLayers": "Caisse pondeuses", "cashTotal": "Total des caisses", "receivables": "+ {{n}} F à encaisser (crédits)",
     "broilers": "Poulets en élevage", "broilerFlocks": "Bandes en cours", "lastWeight": "Poids moyen actuel",
     "age": "Âge", "days": "{{n}} j", "birds": "Effectif", "weight": "Poids moyen", "saleDate": "Vente prévue", "noBroilers": "Aucune bande en cours.",
@@ -53,7 +55,7 @@
     "reform": "Réformer le lot", "confirmReform": "Marquer le lot {{code}} comme réformé ?"
   },
   "argent": {
-    "tabs": { "caisses": "Caisses", "depenses": "Dépenses", "ventes": "Ventes", "credits": "Créances & dettes" },
+    "tabs": { "caisses": "Caisses", "depenses": "Dépenses", "ventes": "Ventes", "credits": "Créances & dettes", "investisseurs": "Investisseurs", "prets": "Prêts", "verification": "Vérif. caisse" },
     "caisse": { "chair": "Caisse chair", "pondeuse": "Caisse pondeuses" }, "combined": "Total combiné",
     "openingBalance": "Solde initial d’une caisse", "caisseLabel": "Caisse", "amount": "Montant (FCFA)", "lastMoves": "Derniers mouvements de caisse", "noMoves": "Aucun mouvement.",
     "newExpense": "Nouvelle dépense", "portee": { "ferme": "Liée à la ferme", "generale": "Générale" },
@@ -99,6 +101,36 @@
     "layingRate7": "Taux de ponte (7 j)", "eggsTotal": "Œufs collectés (total)", "breakRate": "Taux de casse", "costPerEgg": "Coût par œuf bon", "layingCurve": "Taux de ponte (30 derniers jours)",
     "directCosts": "Charges directes", "overheads": "Charges générales", "netProfit": "Bénéfice net", "withdrawals": "Retraits d’associés",
     "ev": { "arrival": "Arrivée de {{n}} poussins", "arrivalLot": "Arrivée de {{n}} pondeuses", "death": "{{n}} mort(s)", "weight": "Pesée : {{g}} g ({{n}} pesés)", "sale": "Vente de {{n}} {{produit}}" }
+  },
+  "capital": {
+    "pendingTitle": "10 % à verser ou réinvestir", "pendingHint": "Dus à la clôture d’une bande de chair : l’investisseur choisit.",
+    "fromFlock": "Bande {{code}} · {{taux}} % de {{base}}", "payout": "Verser (retrait)", "reinvest": "Réinvestir",
+    "confirmReinvest": "Réinvestir {{n}} dans le capital de {{nom}} ?",
+    "none": "Aucun investisseur enregistré.", "inactive": "inactif",
+    "contributed": "Capital apporté", "reinvested": "Capital réinvesti", "withdrawn": "Capital retiré", "remaining": "Capital restant",
+    "paid10": "10 % versés", "pending10": "10 % en attente", "statement": "Relevé",
+    "newOperation": "Apport ou retrait de capital", "types": { "apport": "Apport", "retrait_capital": "Retrait de capital", "reinvestissement": "Réinvestissement des 10 %" },
+    "investor": "Investisseur", "newInvestor": "Nouvel investisseur", "idDoc": "Pièce d’identité (n°)",
+    "rule": "Règle actuelle : à chaque fin de bande de chair, 10 % du capital restant sont dus à l’investisseur (retrait ou réinvestissement).",
+    "back": "Retour à l’argent", "print": "Imprimer / PDF", "statementTitle": "Relevé d’investissement", "at": "au {{d}}",
+    "operations": "Historique des opérations", "operation": "Opération", "balance": "Capital après",
+    "history10": "Historique des 10 %", "none10": "Aucune distribution pour l’instant.", "base": "Capital de base", "rate": "Taux", "choice": "Choix",
+    "statuts": { "en_attente": "En attente", "retire": "Versé", "reinvesti": "Réinvesti" }
+  },
+  "prets": {
+    "none": "Aucun prêt en cours.", "types": { "banque": "Banque", "particulier": "Particulier" },
+    "amount": "Montant prêté", "interest": "Intérêts", "interestTotal": "Intérêts totaux (FCFA)", "repaid": "Remboursé", "balance": "Reste à payer", "nextDue": "Prochaine échéance",
+    "schedule_one": "Échéancier ({{count}} échéance)", "schedule_other": "Échéancier ({{count}} échéances)",
+    "history_one": "{{count}} remboursement", "history_other": "{{count}} remboursements", "flock": "fin de bande {{code}}",
+    "repay": "Rembourser", "addDue": "Ajouter une échéance", "new": "Nouveau prêt", "lender": "Prêteur", "contact": "Contact",
+    "activity": "Activité concernée", "receivedAs": "Reçu en", "hint": "Le montant prêté entre dans la caisse de l’activité choisie. Les remboursements en sortent.",
+    "dueDatePrompt": "Date de l’échéance (AAAA-MM-JJ) :", "dueAmountPrompt": "Montant de l’échéance (FCFA) :",
+    "linkFlock": "Lier à une fin de bande ? Tapez le code (ou laissez vide). Bandes : {{codes}}"
+  },
+  "verif": {
+    "new": "Vérifier une caisse", "counted": "Argent compté (FCFA)", "theoretical": "Solde du système", "gap": "Écart", "justification": "Justification de l’écart",
+    "adjust": "Ajuster le solde du système sur le montant compté (directeur)", "savedOk": "Caisse conforme.", "savedGap": "Vérification enregistrée : l’écart est signalé au directeur.",
+    "history": "Vérifications précédentes", "none": "Aucune vérification.", "noGap": "Conforme", "adjusted": "ajustée"
   },
   "notifications": { "title": "Notifications", "markRead": "Tout marquer lu", "empty": "Aucune notification." },
   "sync": { "title": "Saisies en attente", "empty": "Tout est synchronisé.", "retry": "Synchroniser", "error": "Erreur", "waiting": "En attente", "discard": "Supprimer", "confirmDiscard": "Supprimer cette saisie refusée ? Elle ne sera pas enregistrée." },

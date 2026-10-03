@@ -88,8 +88,20 @@ function ManagerHome({ stats }) {
   return (
     <>
       {/* ---------- Alerts ---------- */}
-      {(stats.aValider > 0 || stats.stockBas.length > 0 || stats.creances.retard > 0) && (
+      {(stats.aValider > 0 || stats.stockBas.length > 0 || stats.creances.retard > 0 || stats.pretsEnRetard?.length > 0
+        || stats.echeancesProches?.length > 0 || Number(stats.capitaux?.dix_pourcent_en_attente) > 0) && (
         <section className="alerts">
+          {Number(stats.capitaux?.dix_pourcent_en_attente) > 0 && (
+            <Link to="/argent" className="alert warn"><Icon name="users" size={18} />{t('dashboard.pending10', { n: fmt(stats.capitaux.dix_pourcent_en_attente) })}</Link>
+          )}
+          {stats.pretsEnRetard?.map((p) => (
+            <Link key={p} to="/argent" className="alert danger"><Icon name="receipt" size={18} />{t('dashboard.loanLate', { preteur: p })}</Link>
+          ))}
+          {stats.echeancesProches?.map((e) => (
+            <Link key={e.preteur} to="/argent" className="alert warn"><Icon name="calendar" size={18} />
+              {t('dashboard.loanDue', { preteur: e.preteur, d: new Date(`${e.date}T00:00`).toLocaleDateString(lang) })}
+            </Link>
+          ))}
           {stats.aValider > 0 && (
             <Link to="/argent" className="alert warn"><Icon name="clock" size={18} />{t('dashboard.toValidate', { count: stats.aValider })}</Link>
           )}
@@ -112,6 +124,13 @@ function ManagerHome({ stats }) {
         <Kpi icon="wallet" tone="green" label={t('dashboard.cashTotal')} value={`${fmt(stats.soldes.chair + stats.soldes.pondeuse)} F`}
           hint={stats.creances.total ? t('dashboard.receivables', { n: fmt(stats.creances.total) }) : null} />
       </section>
+      {stats.capitaux && (Number(stats.capitaux.capital_investisseurs) > 0 || Number(stats.capitaux.solde_prets) > 0) && (
+        <section className="summary">
+          <div><span>{t('dashboard.investorCapital')}</span><strong>{fmt(stats.capitaux.capital_investisseurs)} F</strong></div>
+          <div><span>{t('dashboard.loansDue')}</span><strong>{fmt(stats.capitaux.solde_prets)} F</strong></div>
+          <div className="main"><span>{t('dashboard.committed')}</span><strong>{fmt(Number(stats.capitaux.capital_investisseurs) + Number(stats.capitaux.solde_prets))} F</strong></div>
+        </section>
+      )}
 
       {/* ---------- Broilers ---------- */}
       <h2 className="section-title"><span className="kpi-icon sky sm"><Icon name="drumstick" size={18} /></span>{t('types.chair_pl')}</h2>

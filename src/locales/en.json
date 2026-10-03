@@ -11,7 +11,7 @@
   "produits": { "poulets": "Chickens", "oeufs": "Eggs", "plateaux": "Egg trays", "poules_reformees": "Culled hens", "fientes": "Manure", "autre": "Other" },
   "categories": { "poussins": "Chicks", "aliment": "Feed", "medicament": "Medicines", "main_oeuvre": "Casual labour", "transport": "Transport", "entretien": "Maintenance", "autre_ferme": "Other (farm)", "loyer": "Rent", "charges": "Utilities", "salaires": "Salaries", "fonctionnement": "Running costs", "retrait_associe": "Partner withdrawal", "autre_general": "Other (general)" },
   "retraits": { "avance_benefice": "Profit advance", "depense_personnelle": "Personal expense", "frais_medicaux": "Medical costs", "urgence_familiale": "Family emergency", "autre": "Other" },
-  "natures": { "vente": "Sale", "encaissement_creance": "Customer payment", "depense": "Expense", "paiement_fournisseur": "Supplier payment", "solde_initial": "Opening balance", "correction": "Correction", "annulation": "Cancellation" },
+  "natures": { "vente": "Sale", "encaissement_creance": "Customer payment", "depense": "Expense", "paiement_fournisseur": "Supplier payment", "solde_initial": "Opening balance", "correction": "Correction", "annulation": "Cancellation", "apport_investisseur": "Investor contribution", "retrait_investisseur": "Investor withdrawal", "versement_investisseur": "10 % paid", "pret_recu": "Loan received", "remboursement_pret": "Loan repayment", "ajustement_caisse": "Cash adjustment" },
   "articleCategories": { "aliment": "Feed", "medicament": "Medicine", "autre": "Other" },
   "tiersTypes": { "client": "Customer", "fournisseur": "Supplier", "client_fournisseur": "Customer and supplier" },
   "dashboard": {
@@ -20,6 +20,8 @@
     "toValidate_one": "{{count}} expense to approve", "toValidate_other": "{{count}} expenses to approve",
     "lowStock": "Low stock: {{nom}} ({{stock}} {{unite}})",
     "lateClients_one": "{{count}} late customer payment", "lateClients_other": "{{count}} late customer payments",
+    "pending10": "{{n}} F of 10 % to pay out or reinvest (investors)", "loanLate": "Late repayment: loan {{preteur}}", "loanDue": "Loan {{preteur}} due on {{d}}",
+    "investorCapital": "Investor capital", "loansDue": "Loans to repay", "committed": "Committed capital",
     "cash": "Cash", "cashChair": "Broiler cash", "cashLayers": "Layer cash", "cashTotal": "Total cash", "receivables": "+ {{n}} F receivable (credit)",
     "broilers": "Broilers in stock", "broilerFlocks": "Active flocks", "lastWeight": "Current avg. weight",
     "age": "Age", "days": "{{n}} d", "birds": "Birds", "weight": "Avg. weight", "saleDate": "Planned sale", "noBroilers": "No active flock.",
@@ -53,7 +55,7 @@
     "reform": "Cull flock", "confirmReform": "Mark flock {{code}} as culled?"
   },
   "argent": {
-    "tabs": { "caisses": "Cash", "depenses": "Expenses", "ventes": "Sales", "credits": "Credit & debts" },
+    "tabs": { "caisses": "Cash", "depenses": "Expenses", "ventes": "Sales", "credits": "Credit & debts", "investisseurs": "Investors", "prets": "Loans", "verification": "Cash check" },
     "caisse": { "chair": "Broiler cash", "pondeuse": "Layer cash" }, "combined": "Combined total",
     "openingBalance": "Opening balance of a cash box", "caisseLabel": "Cash box", "amount": "Amount (FCFA)", "lastMoves": "Latest cash movements", "noMoves": "No movement.",
     "newExpense": "New expense", "portee": { "ferme": "Farm-related", "generale": "General" },
@@ -99,6 +101,36 @@
     "layingRate7": "Laying rate (7 d)", "eggsTotal": "Eggs collected (total)", "breakRate": "Breakage rate", "costPerEgg": "Cost per good egg", "layingCurve": "Laying rate (last 30 days)",
     "directCosts": "Direct costs", "overheads": "Overheads", "netProfit": "Net profit", "withdrawals": "Partner withdrawals",
     "ev": { "arrival": "{{n}} chicks arrived", "arrivalLot": "{{n}} layers arrived", "death": "{{n}} dead", "weight": "Weighing: {{g}} g ({{n}} weighed)", "sale": "Sale of {{n}} {{produit}}" }
+  },
+  "capital": {
+    "pendingTitle": "10 % to pay out or reinvest", "pendingHint": "Due at the closure of a broiler flock: the investor chooses.",
+    "fromFlock": "Flock {{code}} · {{taux}}% of {{base}}", "payout": "Pay out", "reinvest": "Reinvest",
+    "confirmReinvest": "Reinvest {{n}} into {{nom}}'s capital?",
+    "none": "No investor yet.", "inactive": "inactive",
+    "contributed": "Capital contributed", "reinvested": "Capital reinvested", "withdrawn": "Capital withdrawn", "remaining": "Remaining capital",
+    "paid10": "10 % paid", "pending10": "10 % pending", "statement": "Statement",
+    "newOperation": "Capital contribution or withdrawal", "types": { "apport": "Contribution", "retrait_capital": "Capital withdrawal", "reinvestissement": "10 % reinvested" },
+    "investor": "Investor", "newInvestor": "New investor", "idDoc": "ID document (no.)",
+    "rule": "Current rule: at each broiler flock closure, 10 % of the remaining capital is due to the investor (payout or reinvestment).",
+    "back": "Back to money", "print": "Print / PDF", "statementTitle": "Investment statement", "at": "as of {{d}}",
+    "operations": "Operations", "operation": "Operation", "balance": "Capital after",
+    "history10": "History of the 10 %", "none10": "No distribution yet.", "base": "Base capital", "rate": "Rate", "choice": "Choice",
+    "statuts": { "en_attente": "Pending", "retire": "Paid out", "reinvesti": "Reinvested" }
+  },
+  "prets": {
+    "none": "No loan.", "types": { "banque": "Bank", "particulier": "Private" },
+    "amount": "Amount lent", "interest": "Interest", "interestTotal": "Total interest (FCFA)", "repaid": "Repaid", "balance": "Remaining", "nextDue": "Next due date",
+    "schedule_one": "Schedule ({{count}} due date)", "schedule_other": "Schedule ({{count}} due dates)",
+    "history_one": "{{count}} repayment", "history_other": "{{count}} repayments", "flock": "end of flock {{code}}",
+    "repay": "Repay", "addDue": "Add due date", "new": "New loan", "lender": "Lender", "contact": "Contact",
+    "activity": "Activity", "receivedAs": "Received as", "hint": "The loan goes into the chosen activity's cash box. Repayments come out of it.",
+    "dueDatePrompt": "Due date (YYYY-MM-DD):", "dueAmountPrompt": "Amount due (FCFA):",
+    "linkFlock": "Link to the end of a flock? Type its code (or leave empty). Flocks: {{codes}}"
+  },
+  "verif": {
+    "new": "Check a cash box", "counted": "Money counted (FCFA)", "theoretical": "System balance", "gap": "Gap", "justification": "Reason for the gap",
+    "adjust": "Adjust the system balance to the counted amount (director)", "savedOk": "Cash box matches.", "savedGap": "Check saved: the gap is reported to the director.",
+    "history": "Previous checks", "none": "No check yet.", "noGap": "Matches", "adjusted": "adjusted"
   },
   "notifications": { "title": "Notifications", "markRead": "Mark all read", "empty": "No notification." },
   "sync": { "title": "Pending entries", "empty": "Everything is synced.", "retry": "Sync now", "error": "Error", "waiting": "Waiting", "discard": "Delete", "confirmDiscard": "Delete this refused entry? It will not be saved." },

@@ -34,7 +34,7 @@ async function loadEmployee() {
 async function loadManager(role) {
   const since = new Date()
   since.setDate(since.getDate() - 6)
-  const [bandes, lots, pontes, pesees, caisses, stock, aValider, creances] = await Promise.all([
+  const [bandes, lots, pontes, pesees, caisses, stock, aValider, creances, capitaux, prets] = await Promise.all([
     supabase.from('effectif_bandes').select('bande_id, code, statut, age_jours, restants, date_vente_prevue')
       .neq('statut', 'cloturee').order('date_arrivee'),
     supabase.from('effectif_lots').select('lot_id, code, effectif').eq('statut', 'en_production'),
@@ -43,8 +43,14 @@ async function loadManager(role) {
     supabase.from('soldes_caisses').select('activite, mode, solde'),
     supabase.from('stock_articles').select('nom, unite, stock, seuil_minimum, autonomie_jours').eq('actif', true),
     supabase.from('depenses').select('id', { count: 'exact', head: true }).eq('statut', 'a_valider').eq('annulee', false),
-    supabase.from('creances_clients').select('reste, en_retard')
+    supabase.from('creances_clients').select('reste, en_retard'),
+    supabase.from('capitaux_engages').select('*').maybeSingle(),
+    supabase.from('situation_prets').select('preteur, solde, prochaine_echeance, en_retard')
   ])
+  const today = localDate()
+  const inAWeek = new Date()
+  inAWeek.setDate(inAWeek.getDate() + 7)
+  const pretRows = must(prets)
 
   // Broilers: latest weight per flock
   const lastWeight = {}
@@ -79,6 +85,10 @@ async function loadManager(role) {
     creances: {
       total: creanceRows.reduce((s, c) => s + Number(c.reste), 0),
       retard: creanceRows.filter((c) => c.en_retard).length
-    }
+    },
+    capitaux: must(capitaux),
+    pretsEnRetard: pretRows.filter((p) => p.en_retard).map((p) => p.preteur),
+    echeancesProches: pretRows.filter((p) => !p.en_retard && p.prochaine_echeance && p.prochaine_echeance >= today
+      && p.prochaine_echeance <= localDate(inAWeek)).map((p) => ({ preteur: p.preteur, date: p.prochaine_echeance }))
   }
 }

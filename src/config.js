@@ -54,7 +54,11 @@ export const PERMISSIONS = {
   'tiers.edit': [D, X, F],
   'prix.set': [D, X, F],
   'article.edit': [D, X, F],
-  'stock.manual': [D, X]
+  'stock.manual': [D, X],
+  'capital.manage': [D, F],      // investors, contributions, withdrawals, 10 % decisions
+  'pret.manage': [D, F],
+  'caisse.verify': [D, F],
+  'caisse.adjust': [D]
 }
 
 export const canAccess = (role, section) => !!role && ACCESS[section]?.includes(role)

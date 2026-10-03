@@ -7,23 +7,35 @@ import { can, CATEGORIES_DEPENSE, CATEGORIES_RETRAIT, MODES_PAIEMENT, TABLES } f
 import { localDate } from '../lib/stats'
 import Icon from '../components/Icon'
 import { askReason, day, Empty, Field, FormCard, Loading, money, Panel, Tabs } from '../components/ui'
+import Investisseurs from './argent/Investisseurs'
+import Prets from './argent/Prets'
+import Verification from './argent/Verification'
 
 // Money: cash boxes, sales, expenses, receivables and payables.
 // Financial records are never edited: only validated, rejected or cancelled (database rules).
 export default function Argent() {
-  const [tab, setTab] = useState('caisses')
+  const [tab, setTab] = useState(() => {
+    try { return sessionStorage.getItem('henzo.argent.tab') || 'caisses' } catch { return 'caisses' }
+  })
+  const choose = (k) => { setTab(k); try { sessionStorage.setItem('henzo.argent.tab', k) } catch {} }
   return (
     <div className="stack">
-      <Tabs value={tab} onChange={setTab} tabs={[
+      <Tabs value={tab} onChange={choose} tabs={[
         { id: 'caisses', label: 'argent.tabs.caisses', icon: 'wallet' },
         { id: 'depenses', label: 'argent.tabs.depenses', icon: 'receipt' },
         { id: 'ventes', label: 'argent.tabs.ventes', icon: 'cart' },
-        { id: 'credits', label: 'argent.tabs.credits', icon: 'users' }
+        { id: 'credits', label: 'argent.tabs.credits', icon: 'users' },
+        { id: 'investisseurs', label: 'argent.tabs.investisseurs', icon: 'users' },
+        { id: 'prets', label: 'argent.tabs.prets', icon: 'receipt' },
+        { id: 'verification', label: 'argent.tabs.verification', icon: 'check' }
       ]} />
       {tab === 'caisses' && <Caisses />}
       {tab === 'depenses' && <Depenses />}
       {tab === 'ventes' && <Ventes />}
       {tab === 'credits' && <Credits />}
+      {tab === 'investisseurs' && <Investisseurs />}
+      {tab === 'prets' && <Prets />}
+      {tab === 'verification' && <Verification />}
     </div>
   )
 }
