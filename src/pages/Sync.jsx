@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { listOutbox, onQueueChange, syncOutbox } from '../lib/offlineQueue'
 import { useOnline } from '../hooks'
+import Icon from '../components/Icon'
 
 export default function Sync() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const online = useOnline()
   const [items, setItems] = useState([])
 
@@ -15,18 +16,32 @@ export default function Sync() {
   }, [])
 
   return (
-    <section className="card">
-      <div className="row">
+    <section className="panel">
+      <div className="panel-head">
+        <span className="kpi-icon sky"><Icon name="sync" size={22} /></span>
         <h2>{t('sync.title')}</h2>
         <span className="spacer" />
-        <button disabled={!online || items.length === 0} onClick={syncOutbox}>{t('sync.retry')}</button>
+        <button className="btn primary" disabled={!online || items.length === 0} onClick={syncOutbox}>
+          <Icon name="sync" size={16} />{t('sync.retry')}
+        </button>
       </div>
-      {items.length === 0 ? <p className="muted">{t('sync.empty')}</p> : (
+      {items.length === 0 ? (
+        <div className="empty">
+          <span className="empty-icon"><Icon name="check" size={28} /></span>
+          <p>{t('sync.empty')}</p>
+        </div>
+      ) : (
         <ul className="list">
           {items.map((it) => (
             <li key={it.seq}>
-              <code>{it.table}</code> · {new Date(it.createdAt).toLocaleString()}
-              {it.error && <div className="error">{t('sync.error')} : {it.error}</div>}
+              <div>
+                <strong>{t(`tables.${it.table}`, it.table)}</strong>
+                <span className="muted"> · {new Date(it.createdAt).toLocaleString(i18n.resolvedLanguage)}</span>
+                {it.error && <div className="error small">{t('sync.error')} : {it.error}</div>}
+              </div>
+              <span className={`tag ${it.error ? 'danger' : 'warn'}`}>
+                {it.error ? t('sync.error') : t('sync.waiting')}
+              </span>
             </li>
           ))}
         </ul>

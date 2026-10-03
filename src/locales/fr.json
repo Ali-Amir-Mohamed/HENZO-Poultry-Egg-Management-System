@@ -1,11 +1,12 @@
 {
   "app": { "name": "HENZO", "tagline": "Gestion de ferme avicole" },
-  "nav": { "dashboard": "Tableau de bord", "saisie": "Saisie", "production": "Production", "finance": "Finance", "sync": "Synchronisation", "logout": "Déconnexion" },
+  "nav": { "dashboard": "Accueil", "saisie": "Saisie", "production": "Production", "finance": "Finance", "sync": "Synchro", "logout": "Déconnexion" },
   "roles": { "directeur": "Directeur", "exploitation": "Exploitation", "finance": "Finance", "employe": "Employé" },
-  "auth": { "title": "Connexion", "email": "E-mail", "password": "Mot de passe", "submit": "Se connecter", "error": "Identifiants incorrects", "offline": "Connexion impossible hors ligne. Reconnectez-vous une première fois avec internet.", "noProfile": "Aucun rôle n’est attribué à ce compte. Contactez le directeur." },
-  "status": { "online": "En ligne", "offline": "Hors ligne", "pending": "{{count}} saisie(s) en attente", "install": "Installer l’application" },
-  "dashboard": { "welcome": "Bienvenue, {{name}}", "role": "Rôle : {{role}}" },
-  "saisie": { "title": "Ramassage d’œufs", "date": "Date", "bande": "Bande", "choose": "Choisir une bande", "noBande": "Aucune bande active (connectez-vous une fois en ligne)", "eggs": "Œufs ramassés", "broken": "Œufs cassés", "notes": "Remarques", "save": "Enregistrer", "saved": "Enregistré. Envoi automatique dès que la connexion revient." },
-  "sync": { "title": "Saisies en attente", "empty": "Tout est synchronisé.", "retry": "Synchroniser maintenant", "error": "Erreur" },
-  "common": { "comingSoon": "Module à venir (étape suivante).", "forbidden": "Accès non autorisé pour votre rôle.", "loading": "Chargement…" }
+  "auth": { "title": "Connexion", "subtitle": "Entrez vos identifiants pour accéder à la ferme.", "email": "E-mail", "password": "Mot de passe", "submit": "Se connecter", "error": "E-mail ou mot de passe incorrect", "offline": "Connexion impossible hors ligne. Connectez-vous une première fois avec internet.", "noProfile": "Aucun rôle n’est attribué à ce compte. Contactez le directeur." },
+  "status": { "online": "En ligne", "offline": "Hors ligne", "pending": "{{count}} saisie(s) en attente", "install": "Installer" },
+  "dashboard": { "welcome": "Bonjour {{name}} 👋", "newEntry": "Nouvelle saisie", "eggsToday": "Œufs aujourd’hui", "broken": "Cassés aujourd’hui", "rate": "{{rate}} % du ramassage", "flock": "Poules en élevage", "pending": "En attente d’envoi", "last7": "Production des 7 derniers jours", "total": "{{n}} œufs au total", "noData": "Connectez-vous à internet pour charger les chiffres.", "cached": "Hors ligne : chiffres du {{date}}" },
+  "saisie": { "title": "Ramassage d’œufs", "subtitle": "Fonctionne aussi sans internet.", "date": "Date", "bande": "Bande", "choose": "Choisir une bande", "noBande": "Aucune bande active (connectez-vous une fois en ligne)", "eggs": "Œufs ramassés", "broken": "Œufs cassés", "notes": "Remarques", "save": "Enregistrer", "saved": "Enregistré ! Envoi automatique dès que la connexion revient." },
+  "sync": { "title": "Saisies en attente", "empty": "Tout est synchronisé.", "retry": "Synchroniser", "error": "Erreur", "waiting": "En attente" },
+  "tables": { "ramassages_oeufs": "Ramassage d’œufs", "mortalites": "Mortalité", "mouvements_aliment": "Aliment", "ventes": "Vente", "depenses": "Dépense" },
+  "common": { "comingSoon": "Ce module arrive à la prochaine étape.", "forbidden": "Accès non autorisé pour votre rôle.", "loading": "Chargement…" }
 }

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/AuthProvider'
 import LanguageSwitch from '../components/LanguageSwitch'
+import Icon, { Logo } from '../components/Icon'
 
 export default function Login() {
   const { t } = useTranslation()
@@ -15,29 +16,39 @@ export default function Login() {
     e.preventDefault()
     if (!navigator.onLine) return setError(t('auth.offline'))
     setBusy(true)
+    setError(null)
     const { error } = await signIn(email, password)
     setBusy(false)
     if (error) setError(t('auth.error'))
   }
 
   return (
-    <div className="center">
-      <form className="card login" onSubmit={submit}>
-        <div className="row">
-          <h1>{t('app.name')}</h1>
-          <span className="spacer" />
-          <LanguageSwitch />
-        </div>
-        <p className="muted">{t('app.tagline')}</p>
-        <label>{t('auth.email')}
-          <input type="email" autoComplete="username" required value={email} onChange={(e) => setEmail(e.target.value)} />
+    <div className="login-page">
+      <div className="login-lang"><LanguageSwitch className="icon-btn light" /></div>
+      <div className="login-hero">
+        <Logo size={72} />
+        <h1>{t('app.name')}</h1>
+        <p>{t('app.tagline')}</p>
+      </div>
+      <form className="login-card" onSubmit={submit}>
+        <h2>{t('auth.title')}</h2>
+        <p className="muted">{t('auth.subtitle')}</p>
+        <label className="field">
+          <span>{t('auth.email')}</span>
+          <input type="email" autoComplete="username" required value={email}
+            onChange={(e) => setEmail(e.target.value)} placeholder="nom@exemple.com" />
         </label>
-        <label>{t('auth.password')}
-          <input type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+        <label className="field">
+          <span>{t('auth.password')}</span>
+          <input type="password" autoComplete="current-password" required value={password}
+            onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
         </label>
-        {error && <p className="error">{error}</p>}
-        <button type="submit" disabled={busy}>{t('auth.submit')}</button>
+        {error && <div className="alert danger"><Icon name="alert" size={18} />{error}</div>}
+        <button type="submit" className="btn primary block" disabled={busy}>
+          {busy ? t('common.loading') : t('auth.submit')}
+        </button>
       </form>
+      <p className="login-foot">© {new Date().getFullYear()} HENZO</p>
     </div>
   )
 }

@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { enqueue } from '../lib/offlineQueue'
 import { loadBandesActives } from '../lib/referenceData'
+import { localDate } from '../lib/stats'
 import { TABLES } from '../config'
+import Icon from '../components/Icon'
 
-const today = () => new Date().toISOString().slice(0, 10)
-const empty = (bande_id = '') => ({ bande_id, date_ramassage: today(), oeufs_ramasses: '', oeufs_casses: '0', notes: '' })
+const empty = (bande_id = '') => ({ bande_id, date_ramassage: localDate(), oeufs_ramasses: '', oeufs_casses: '0', notes: '' })
 
 // Offline-first egg collection form (table ramassages_oeufs).
 // saisi_par is filled by the database default (auth.uid()).
@@ -32,28 +33,51 @@ export default function Saisie() {
   }
 
   return (
-    <form className="card" onSubmit={submit}>
-      <h2>{t('saisie.title')}</h2>
-      <label>{t('saisie.date')}
-        <input type="date" required value={form.date_ramassage} onChange={set('date_ramassage')} />
-      </label>
-      <label>{t('saisie.bande')}
-        <select required value={form.bande_id} onChange={set('bande_id')}>
-          <option value="" disabled>{bandes.length ? t('saisie.choose') : t('saisie.noBande')}</option>
-          {bandes.map((b) => <option key={b.id} value={b.id}>{b.code}</option>)}
-        </select>
-      </label>
-      <label>{t('saisie.eggs')}
-        <input type="number" inputMode="numeric" min="0" required value={form.oeufs_ramasses} onChange={set('oeufs_ramasses')} />
-      </label>
-      <label>{t('saisie.broken')}
-        <input type="number" inputMode="numeric" min="0" required value={form.oeufs_casses} onChange={set('oeufs_casses')} />
-      </label>
-      <label>{t('saisie.notes')}
+    <form className="panel form" onSubmit={submit}>
+      <div className="panel-head">
+        <span className="kpi-icon yolk"><Icon name="egg" size={22} /></span>
+        <div>
+          <h2>{t('saisie.title')}</h2>
+          <p className="muted">{t('saisie.subtitle')}</p>
+        </div>
+      </div>
+
+      <div className="grid-2">
+        <label className="field">
+          <span>{t('saisie.date')}</span>
+          <input type="date" required value={form.date_ramassage} onChange={set('date_ramassage')} />
+        </label>
+        <label className="field">
+          <span>{t('saisie.bande')}</span>
+          <select required value={form.bande_id} onChange={set('bande_id')}>
+            <option value="" disabled>{bandes.length ? t('saisie.choose') : t('saisie.noBande')}</option>
+            {bandes.map((b) => <option key={b.id} value={b.id}>{b.code}</option>)}
+          </select>
+        </label>
+      </div>
+
+      <div className="grid-2">
+        <label className="field big">
+          <span>{t('saisie.eggs')}</span>
+          <input type="number" inputMode="numeric" min="0" required placeholder="0"
+            value={form.oeufs_ramasses} onChange={set('oeufs_ramasses')} />
+        </label>
+        <label className="field big">
+          <span>{t('saisie.broken')}</span>
+          <input type="number" inputMode="numeric" min="0" required
+            value={form.oeufs_casses} onChange={set('oeufs_casses')} />
+        </label>
+      </div>
+
+      <label className="field">
+        <span>{t('saisie.notes')}</span>
         <textarea rows="2" value={form.notes} onChange={set('notes')} />
       </label>
-      <button type="submit">{t('saisie.save')}</button>
-      {saved && <p className="success">{t('saisie.saved')}</p>}
+
+      {saved && <div className="alert success"><Icon name="check" size={18} />{t('saisie.saved')}</div>}
+      <button type="submit" className="btn primary block">
+        <Icon name="check" size={18} />{t('saisie.save')}
+      </button>
     </form>
   )
 }
