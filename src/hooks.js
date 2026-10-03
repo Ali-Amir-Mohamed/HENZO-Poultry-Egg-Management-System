@@ -1,5 +1,21 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { onQueueChange, pendingCount } from './lib/offlineQueue'
+
+// Runs an async loader (online data for office screens) and exposes reload().
+export function useQuery(loader, deps = []) {
+  const [state, setState] = useState({ data: null, error: null, loading: true })
+  const run = useCallback(() => {
+    setState((s) => ({ ...s, loading: true }))
+    return loader()
+      .then((data) => setState({ data, error: null, loading: false }))
+      .catch((e) => setState((s) => ({ data: s.data, error: e.message, loading: false })))
+  }, deps) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { run() }, [run])
+  return { ...state, reload: run }
+}
+
+// Throws Supabase errors so callers can show them
+export const must = (r) => { if (r.error) throw r.error; return r.data }
 
 export function useOnline() {
   const [online, setOnline] = useState(navigator.onLine)

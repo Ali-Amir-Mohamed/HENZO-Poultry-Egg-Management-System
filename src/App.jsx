@@ -7,8 +7,12 @@ import { Logo } from './components/Icon'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Saisie from './pages/Saisie'
+import Ferme from './pages/Ferme'
+import Argent from './pages/Argent'
+import Stock from './pages/Stock'
+import Reglages from './pages/Reglages'
 import Sync from './pages/Sync'
-import Placeholder from './pages/Placeholder'
+import Plus from './pages/Plus'
 
 function Guard({ section, children }) {
   const { role } = useAuth()
@@ -39,9 +43,12 @@ export default function App() {
       <Route element={<Layout />}>
         <Route index element={<Dashboard />} />
         <Route path="saisie" element={<Guard section="saisie"><Saisie /></Guard>} />
-        <Route path="production" element={<Guard section="production"><Placeholder title="nav.production" icon="chart" /></Guard>} />
-        <Route path="finance" element={<Guard section="finance"><Placeholder title="nav.finance" icon="wallet" /></Guard>} />
+        <Route path="ferme" element={<Guard section="ferme"><Ferme /></Guard>} />
+        <Route path="argent" element={<Guard section="argent"><Argent /></Guard>} />
+        <Route path="stock" element={<Guard section="stock"><Stock /></Guard>} />
+        <Route path="reglages" element={<Guard section="reglages"><Reglages /></Guard>} />
         <Route path="sync" element={<Guard section="sync"><Sync /></Guard>} />
+        <Route path="plus" element={<Plus />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

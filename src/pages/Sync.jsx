@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { listOutbox, onQueueChange, syncOutbox } from '../lib/offlineQueue'
+import { discardOutboxItem, listOutbox, onQueueChange, syncOutbox } from '../lib/offlineQueue'
 import { useOnline } from '../hooks'
 import Icon from '../components/Icon'
 
@@ -14,6 +14,10 @@ export default function Sync() {
     refresh()
     return onQueueChange(refresh)
   }, [])
+
+  const discard = (it) => {
+    if (window.confirm(t('sync.confirmDiscard'))) discardOutboxItem(it.seq)
+  }
 
   return (
     <section className="panel">
@@ -34,10 +38,17 @@ export default function Sync() {
         <ul className="list">
           {items.map((it) => (
             <li key={it.seq}>
-              <div>
+              <div className="grow">
                 <strong>{t(`tables.${it.table}`, it.table)}</strong>
                 <span className="muted"> · {new Date(it.createdAt).toLocaleString(i18n.resolvedLanguage)}</span>
-                {it.error && <div className="error small">{t('sync.error')} : {it.error}</div>}
+                {it.error && (
+                  <>
+                    <div className="error small">{t('sync.error')} : {it.error}</div>
+                    <div className="row-actions">
+                      <button className="btn ghost sm" onClick={() => discard(it)}><Icon name="trash" size={14} />{t('sync.discard')}</button>
+                    </div>
+                  </>
+                )}
               </div>
               <span className={`tag ${it.error ? 'danger' : 'warn'}`}>
                 {it.error ? t('sync.error') : t('sync.waiting')}

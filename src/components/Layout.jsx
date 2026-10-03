@@ -4,15 +4,21 @@ import { useAuth } from '../auth/AuthProvider'
 import { canAccess } from '../config'
 import { useInstallPrompt, useOnline, usePendingCount } from '../hooks'
 import LanguageSwitch from './LanguageSwitch'
+import Notifications from './Notifications'
 import Icon, { Logo } from './Icon'
 
-const SECTIONS = [
+export const SECTIONS = [
   { to: '/', key: 'dashboard', icon: 'home' },
-  { to: '/saisie', key: 'saisie', icon: 'egg' },
-  { to: '/production', key: 'production', icon: 'chart' },
-  { to: '/finance', key: 'finance', icon: 'wallet' },
+  { to: '/saisie', key: 'saisie', icon: 'plus' },
+  { to: '/ferme', key: 'ferme', icon: 'hen' },
+  { to: '/argent', key: 'argent', icon: 'wallet' },
+  { to: '/stock', key: 'stock', icon: 'box' },
+  { to: '/reglages', key: 'reglages', icon: 'settings' },
   { to: '/sync', key: 'sync', icon: 'sync' }
 ]
+
+// On phones the bottom bar shows at most 4 sections + "More"
+const MOBILE_SLOTS = 4
 
 export default function Layout() {
   const { t } = useTranslation()
@@ -20,6 +26,8 @@ export default function Layout() {
   const online = useOnline()
   const pending = usePendingCount()
   const install = useInstallPrompt()
+  const sections = SECTIONS.filter((s) => canAccess(role, s.key))
+  const needsMore = sections.length > MOBILE_SLOTS + 1
 
   return (
     <div className="shell">
@@ -34,13 +42,14 @@ export default function Layout() {
           </div>
           <div className="topbar-actions">
             <span className={`status ${online ? 'on' : 'off'}`}>
-              <span className="dot" />{online ? t('status.online') : t('status.offline')}
+              <span className="dot" /><span className="hide-xs">{online ? t('status.online') : t('status.offline')}</span>
             </span>
             {install && (
               <button className="icon-btn" onClick={install} title={t('status.install')}>
                 <Icon name="download" size={18} /><span className="hide-sm">{t('status.install')}</span>
               </button>
             )}
+            {role !== 'employe' && <Notifications />}
             <LanguageSwitch />
             <button className="icon-btn" onClick={signOut} title={t('nav.logout')} aria-label={t('nav.logout')}>
               <Icon name="logout" size={18} />
@@ -48,8 +57,9 @@ export default function Layout() {
           </div>
         </div>
         <nav className="nav">
-          {SECTIONS.filter((s) => canAccess(role, s.key)).map((s) => (
-            <NavLink key={s.key} to={s.to} end={s.to === '/'} className="nav-item">
+          {sections.map((s, i) => (
+            <NavLink key={s.key} to={s.to} end={s.to === '/'}
+              className={`nav-item ${needsMore && i >= MOBILE_SLOTS ? 'desktop-only' : ''}`}>
               <span className="nav-icon">
                 <Icon name={s.icon} size={20} />
                 {s.key === 'sync' && pending > 0 && <span className="bubble">{pending}</span>}
@@ -57,6 +67,15 @@ export default function Layout() {
               <span>{t(`nav.${s.key}`)}</span>
             </NavLink>
           ))}
+          {needsMore && (
+            <NavLink to="/plus" className="nav-item mobile-only">
+              <span className="nav-icon">
+                <Icon name="more" size={20} />
+                {pending > 0 && <span className="bubble">{pending}</span>}
+              </span>
+              <span>{t('nav.plus')}</span>
+            </NavLink>
+          )}
         </nav>
       </header>
       <main className="content"><Outlet /></main>

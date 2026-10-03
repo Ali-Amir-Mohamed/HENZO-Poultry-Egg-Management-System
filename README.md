@@ -14,22 +14,27 @@ npm run dev
 
 | Chemin | Rôle |
 |---|---|
-| `src/config.js` | Noms des tables, rôles, droits d'accès par section |
+| `src/config.js` | Tables, rôles, accès aux sections et permissions des actions |
 | `src/lib/supabase.js` | Client Supabase |
 | `src/lib/offlineQueue.js` | File d'attente IndexedDB (Dexie) + synchronisation automatique |
-| `src/lib/referenceData.js` | Listes de référence (bandes actives) mises en cache pour le hors-ligne |
+| `src/lib/referenceData.js` | Bandes, lots, produits, clients, prix mis en cache pour le hors-ligne |
+| `src/lib/stats.js` | Chiffres du tableau de bord (mis en cache) |
+| `src/pages/` | Accueil, Saisie (terrain, hors ligne), Ferme, Argent, Stock, Réglages, Synchro |
 | `src/auth/AuthProvider.jsx` | Session et profil (rôle), profil mis en cache pour l'usage hors ligne |
 | `src/locales/{fr,en}.json` | Traductions |
-| `supabase/migrations/` | Schéma SQL |
+| `supabase/migrations/` | Schéma SQL — `supabase/tests/` : test automatique (`npm run test:db`) |
 
 ## Rôles
 
 | Rôle | Titulaire | Accès |
 |---|---|---|
-| `directeur` | — | tout |
-| `exploitation` | Kenfack Dirand | saisie, production |
-| `finance` | Dahirou Bachar | saisie, finance |
-| `employe` | — | saisie |
+| `directeur` | Ali Amir Mohamed | tout ; seul à annuler / corriger une opération financière et à gérer les comptes |
+| `exploitation` | Kenfack Dirand | ferme, saisie, ventes, dépenses liées à la ferme, crédit client, prix ; lecture des caisses |
+| `finance` | Dahirou Bachar | lecture de la ferme ; toutes les dépenses, validations, caisses, encaissements, prix |
+| `employe` | — | saisie de terrain et ventes ; ne voit que ses propres saisies |
+
+Dépenses de l'exploitation au-delà de 50 000 FCFA et retraits d'associés : à valider.
+Clôture d'une bande : demandée par l'exploitation, validée par la finance.
 
 ## Comptes
 

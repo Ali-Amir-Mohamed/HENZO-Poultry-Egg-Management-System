@@ -2,18 +2,24 @@
 
 | Fichier | Contenu |
 |---|---|
-| `0001_schema_etape1.sql` | Rôles, profils, bâtiments, bandes, ramassages d'œufs, mortalités, aliment, ventes, dépenses, vues et règles RLS |
-| `0002_chair_et_pondeuses.sql` | Type de bande (chair / pondeuse), pesées, vaccins et soins, ventes de poulets (pièce ou kg), vues croissance et rentabilité par bande |
+| `0001_schema_etape1.sql` | Rôles, profils, fonction `role_actuel()` (les tables provisoires sont remplacées par 0002) |
+| `0002_refonte_phase_a.sql` | Base conforme au cahier des charges : fermes, bandes de chair et lots de pondeuses, saisies de terrain, clients/fournisseurs, prix, stock, caisses, registre d'écritures non modifiable, ventes, dépenses, validations, notifications, journal, sécurité par rôle |
 
 ## Installation
 
-1. Supabase > **SQL Editor** > coller le contenu de `0001_schema_etape1.sql` > **Run**.
-2. **Authentication > Users > Add user** : créer les comptes (directeur, Kenfack Dirand, Dahirou Bachar, employés).
-3. Attribuer les rôles avec les requêtes `update` indiquées en fin de fichier
-   (chaque nouveau compte est « employe » par défaut).
+1. Supabase > **SQL Editor** > coller le fichier > **Run** (dans l'ordre : 0001 puis 0002).
+2. **Authentication > Users > Add user** : `<nom>@henzo.local` + mot de passe, « Auto Confirm User » coché.
+3. Attribuer le rôle (chaque nouveau compte est « employe ») :
+   `update public.profiles p set role = 'exploitation', nom_complet = '…' from auth.users u where u.id = p.id and u.email = '…@henzo.local';`
 
-## Règles à respecter pour les prochaines tables
+## Tester avant d'appliquer
+
+`npm run test:db` exécute les migrations dans une base PostgreSQL locale (PGlite) et vérifie
+les droits de chaque rôle et les règles de gestion (94 vérifications).
+
+## Règles pour les prochaines tables
 
 - clé primaire `id uuid default gen_random_uuid()` : l'appli génère l'`id` hors connexion ;
-- colonne `saisi_par uuid default auth.uid()` pour les saisies ;
-- RLS activée, avec au minimum une règle `insert` pour les rôles qui saisissent.
+- `ferme_id uuid not null default public.ferme_actuelle()` et `saisi_par uuid default auth.uid()` ;
+- RLS activée ; utiliser `public.a_role('directeur', …)` dans les règles ;
+- opération financière : pas de modification ni suppression, annulation par le directeur uniquement.
