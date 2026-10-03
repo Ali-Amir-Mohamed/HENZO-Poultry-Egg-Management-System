@@ -1,6 +1,6 @@
 {
   "app": { "name": "HENZO", "tagline": "Gestion de ferme avicole" },
-  "nav": { "dashboard": "Accueil", "saisie": "Saisie", "ferme": "Ferme", "argent": "Argent", "stock": "Stock", "reglages": "Réglages", "sync": "Synchro", "plus": "Plus", "logout": "Déconnexion" },
+  "nav": { "dashboard": "Accueil", "saisie": "Saisie", "ferme": "Ferme", "planning": "Planning", "argent": "Argent", "stock": "Stock", "reglages": "Réglages", "sync": "Synchro", "plus": "Plus", "logout": "Déconnexion" },
   "roles": { "directeur": "Directeur", "exploitation": "Exploitation", "finance": "Finance", "employe": "Employé" },
   "auth": { "title": "Connexion", "subtitle": "Entrez vos identifiants pour accéder à la ferme.", "username": "Nom d’utilisateur", "usernamePlaceholder": "ex. kenfack", "password": "Mot de passe", "submit": "Se connecter", "error": "Nom d’utilisateur ou mot de passe incorrect", "offline": "Connexion impossible hors ligne. Connectez-vous une première fois avec internet.", "noProfile": "Aucun rôle n’est attribué à ce compte. Contactez le directeur." },
   "status": { "online": "En ligne", "offline": "Hors ligne", "pending": "{{count}} saisie(s) en attente d’envoi", "install": "Installer" },
@@ -132,8 +132,36 @@
     "adjust": "Ajuster le solde du système sur le montant compté (directeur)", "savedOk": "Caisse conforme.", "savedGap": "Vérification enregistrée : l’écart est signalé au directeur.",
     "history": "Vérifications précédentes", "none": "Aucune vérification.", "noGap": "Conforme", "adjusted": "ajustée"
   },
+  "planning": {
+    "tabs": { "taches": "Tâches", "programmes": "Programmes" },
+    "types": { "vaccination": "Vaccination", "traitement": "Traitement", "pesee": "Pesée", "achat_aliment": "Achat d’aliment", "remboursement": "Remboursement", "arrivee_poussins": "Arrivée de poussins", "vente_prevue": "Vente prévue", "nettoyage": "Nettoyage / désinfection", "autre": "Autre" },
+    "groups": { "late": "En retard", "today": "Aujourd’hui", "week": "7 prochains jours", "later": "Plus tard" },
+    "newTask": "Nouvelle tâche", "title": "Titre", "titlePh": "ex. Vaccin Gumboro bande C1", "type": "Type", "date": "Date prévue",
+    "assignee": "Attribuée à", "everyone": "Tout le monde", "product": "Produit / vaccin", "repeat": "Répéter tous les … jours", "repeatPh": "vide = une seule fois", "description": "Consignes",
+    "empty": "Aucune tâche prévue.", "markDone": "Fait", "done": "Fait", "postpone": "Reporter", "newDate": "Nouvelle date (AAAA-MM-JJ) :",
+    "confirmCancel": "Annuler la tâche « {{titre}} » ?", "every": "tous les {{n}} j", "recentlyDone": "Faites récemment",
+    "todayTasks": "Mes tâches du jour", "noTaskToday": "Aucune tâche prévue aujourd’hui.", "lateSince": "en retard depuis le {{d}}",
+    "upcomingForFlock": "Tâches à venir pour cette bande",
+    "programmesHint": "À la création d’une bande ou d’un lot, ces étapes deviennent des tâches datées selon l’âge des oiseaux. Programme de départ indicatif : faites-le valider par votre vétérinaire.",
+    "dayN": "J{{n}}", "disable": "Désactiver", "enable": "Activer", "disabled": "désactivé", "newStep": "Nouvelle étape de programme", "production": "Production", "ageDay": "Âge des oiseaux (jours)"
+  },
+  "alertes": {
+    "mortalite": "Mortalité anormale : {{morts}} morts dans {{code}} ({{pct}} %) le {{date}}",
+    "stock_bas": "Stock bas : {{nom}} ({{stock}} {{unite}})",
+    "rupture": "Risque de rupture : {{nom}}, environ {{jours}} jours de stock",
+    "soin_proche": "{{titre}} ({{code}}) prévu le {{date}}",
+    "soin_en_retard": "En retard : {{titre}} ({{code}}) prévu le {{date}}",
+    "tache_en_retard": "Tâche en retard : {{titre}} (prévue le {{date}})",
+    "client_retard": "Paiement en retard : {{client}} doit {{reste}} F (échéance {{date}})",
+    "dette_retard": "Dette échue : {{fournisseur}}, {{reste}} F (échéance {{date}})",
+    "dette_proche": "À payer bientôt : {{fournisseur}}, {{reste}} F le {{date}}",
+    "pret_retard": "Remboursement en retard : prêt {{preteur}} (reste {{solde}} F)",
+    "pret_proche": "Échéance du prêt {{preteur}} le {{date}}",
+    "depenses_a_valider": "{{nombre}} dépense(s) à valider",
+    "dix_pourcent": "{{montant}} F de 10 % à verser ou réinvestir (investisseurs)"
+  },
   "notifications": { "title": "Notifications", "markRead": "Tout marquer lu", "empty": "Aucune notification." },
   "sync": { "title": "Saisies en attente", "empty": "Tout est synchronisé.", "retry": "Synchroniser", "error": "Erreur", "waiting": "En attente", "discard": "Supprimer", "confirmDiscard": "Supprimer cette saisie refusée ? Elle ne sera pas enregistrée." },
-  "tables": { "pontes": "Ponte", "mortalites": "Mortalité", "pesees": "Pesée", "mouvements_stock": "Aliment utilisé", "ventes": "Vente", "observations": "Observation" },
+  "tables": { "taches_realisations": "Tâche faite", "pontes": "Ponte", "mortalites": "Mortalité", "pesees": "Pesée", "mouvements_stock": "Aliment utilisé", "ventes": "Vente", "observations": "Observation" },
   "common": { "forbidden": "Accès non autorisé pour votre rôle.", "loading": "Chargement…", "saved": "Enregistré.", "save": "Enregistrer", "close": "Fermer" }
 }

@@ -15,7 +15,10 @@ export const TABLES = {
   tiers: 'tiers',
   articles: 'articles',
   prix: 'prix_vente',
-  notifications: 'notifications'
+  notifications: 'notifications',
+  taches: 'taches',
+  realisations: 'taches_realisations',   // ticking a task (insert-only: works offline)
+  modeles: 'modeles_taches'
 }
 
 export const ROLES = {
@@ -32,6 +35,7 @@ export const ACCESS = {
   dashboard: [D, X, F, E],
   saisie: [D, X, E],
   ferme: [D, X, F],
+  planning: [D, X, F],
   argent: [D, X, F],
   stock: [D, X, F],
   reglages: [D, X, F],
@@ -58,8 +62,12 @@ export const PERMISSIONS = {
   'capital.manage': [D, F],      // investors, contributions, withdrawals, 10 % decisions
   'pret.manage': [D, F],
   'caisse.verify': [D, F],
-  'caisse.adjust': [D]
+  'caisse.adjust': [D],
+  'tache.plan': [D, X, F],
+  'programme.edit': [D, X]
 }
+
+export const TYPES_TACHE = ['vaccination', 'traitement', 'pesee', 'achat_aliment', 'remboursement', 'arrivee_poussins', 'vente_prevue', 'nettoyage', 'autre']
 
 export const canAccess = (role, section) => !!role && ACCESS[section]?.includes(role)
 export const can = (role, action) => !!role && PERMISSIONS[action]?.includes(role)

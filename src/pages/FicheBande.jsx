@@ -16,7 +16,7 @@ export default function FicheBande() {
   const n = (v, d = 0) => (v == null ? '—' : Number(v).toLocaleString(lang, { maximumFractionDigits: d }))
 
   const q = useQuery(async () => {
-    const [bande, ind, bilan, morts, pesees, conso, ventes, depenses] = await Promise.all([
+    const [bande, ind, bilan, morts, pesees, conso, ventes, depenses, taches] = await Promise.all([
       supabase.from(TABLES.bandes).select('*, fournisseur:tiers(nom)').eq('id', id).single(),
       supabase.from('indicateurs_bandes').select('*').eq('bande_id', id).maybeSingle(),
       supabase.from('bilans_bandes').select('*').eq('bande_id', id).maybeSingle(),
@@ -24,16 +24,18 @@ export default function FicheBande() {
       supabase.from(TABLES.pesees).select('id, date_pesee, poids_moyen_g, nombre_peses, created_at').eq('bande_id', id).order('date_pesee'),
       supabase.from(TABLES.mouvementsStock).select('id, date_mouvement, quantite, created_at, article:articles(nom, unite)').eq('bande_id', id).eq('type_mouvement', 'sortie'),
       supabase.from(TABLES.ventes).select('id, date_vente, produit, unite, quantite, prix_unitaire, montant, nombre_sujets, annulee, created_at, client:tiers(nom)').eq('bande_id', id),
-      supabase.from(TABLES.depenses).select('id, date_depense, categorie, libelle, montant, statut, annulee, created_at').eq('bande_id', id)
+      supabase.from(TABLES.depenses).select('id, date_depense, categorie, libelle, montant, statut, annulee, created_at').eq('bande_id', id),
+      supabase.from(TABLES.taches).select('id, titre, type_tache, date_prevue, statut, fait_le, produit').eq('bande_id', id).neq('statut', 'annule').order('date_prevue')
     ])
     return {
       bande: must(bande), ind: must(ind), bilan: must(bilan), morts: must(morts), pesees: must(pesees),
-      conso: must(conso), ventes: must(ventes), depenses: must(depenses)
+      conso: must(conso), ventes: must(ventes), depenses: must(depenses), taches: must(taches)
     }
   }, [id])
 
   if (!q.data) return <Loading error={q.error} />
-  const { bande, bilan, morts, pesees, conso, ventes, depenses } = q.data
+  const { bande, bilan, morts, pesees, conso, ventes, depenses, taches } = q.data
+  const aVenir = taches.filter((x) => x.statut === 'a_faire')
   // Closed flock: show the frozen report ; otherwise live figures
   const ind = bilan ?? q.data.ind
 
@@ -46,6 +48,7 @@ export default function FicheBande() {
       text: `${t('fiche.ev.sale', { n: v.nombre_sujets ?? n(v.quantite, 2), produit: t(`produits.${v.produit}`) })} · ${money(v.montant, lang)}${v.client ? ` · ${v.client.nom}` : ''}` })),
     ...depenses.map((d) => ({ date: d.date_depense, icon: 'receipt', tone: 'rose', cancelled: d.annulee || d.statut === 'rejetee',
       text: `${d.libelle} · ${money(d.montant, lang)}${d.statut === 'a_valider' ? ` (${t('statuts.a_valider')})` : ''}` })),
+    ...taches.filter((x) => x.statut === 'fait').map((x) => ({ date: x.fait_le.slice(0, 10), icon: 'check', tone: 'green', text: `${x.titre}${x.produit ? ` · ${x.produit}` : ''}` })),
     ...(bande.date_cloture ? [{ date: bande.date_cloture, icon: 'flag', tone: 'yolk', text: t(`statuts.${bande.statut}`) }] : [])
   ]
 
@@ -102,6 +105,19 @@ export default function FicheBande() {
             {!bilan && <p className="note"><Icon name="clock" size={16} />{t('fiche.liveNote')}</p>}
           </Panel>
         </>
+      )}
+
+      {aVenir.length > 0 && (
+        <Panel icon="calendar" tone="yolk" title={t('planning.upcomingForFlock')} actions={<Link to="/planning" className="btn ghost sm">{t('nav.planning')}</Link>}>
+          <ul className="list">
+            {aVenir.slice(0, 8).map((x) => (
+              <li key={x.id}>
+                <div className="grow"><strong>{x.titre}</strong>{x.produit && <div className="muted small">{x.produit}</div>}</div>
+                <span className={`tag ${x.date_prevue < new Date().toLocaleDateString('en-CA') ? 'danger' : 'warn'}`}>{day(x.date_prevue, lang)}</span>
+              </li>
+            ))}
+          </ul>
+        </Panel>
       )}
 
       {pesees.length > 1 && (

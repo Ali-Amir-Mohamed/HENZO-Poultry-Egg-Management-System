@@ -1,6 +1,6 @@
 {
   "app": { "name": "HENZO", "tagline": "Poultry farm management" },
-  "nav": { "dashboard": "Home", "saisie": "Entry", "ferme": "Farm", "argent": "Money", "stock": "Stock", "reglages": "Settings", "sync": "Sync", "plus": "More", "logout": "Log out" },
+  "nav": { "dashboard": "Home", "saisie": "Entry", "ferme": "Farm", "planning": "Planning", "argent": "Money", "stock": "Stock", "reglages": "Settings", "sync": "Sync", "plus": "More", "logout": "Log out" },
   "roles": { "directeur": "Director", "exploitation": "Operations", "finance": "Finance", "employe": "Employee" },
   "auth": { "title": "Sign in", "subtitle": "Enter your credentials to access the farm.", "username": "Username", "usernamePlaceholder": "e.g. kenfack", "password": "Password", "submit": "Sign in", "error": "Wrong username or password", "offline": "Cannot sign in while offline. Sign in once with internet first.", "noProfile": "No role is assigned to this account. Contact the director." },
   "status": { "online": "Online", "offline": "Offline", "pending": "{{count}} entry(ies) waiting to be sent", "install": "Install" },
@@ -132,8 +132,36 @@
     "adjust": "Adjust the system balance to the counted amount (director)", "savedOk": "Cash box matches.", "savedGap": "Check saved: the gap is reported to the director.",
     "history": "Previous checks", "none": "No check yet.", "noGap": "Matches", "adjusted": "adjusted"
   },
+  "planning": {
+    "tabs": { "taches": "Tasks", "programmes": "Programmes" },
+    "types": { "vaccination": "Vaccination", "traitement": "Treatment", "pesee": "Weighing", "achat_aliment": "Feed purchase", "remboursement": "Repayment", "arrivee_poussins": "Chick arrival", "vente_prevue": "Planned sale", "nettoyage": "Cleaning / disinfection", "autre": "Other" },
+    "groups": { "late": "Late", "today": "Today", "week": "Next 7 days", "later": "Later" },
+    "newTask": "New task", "title": "Title", "titlePh": "e.g. Gumboro vaccine flock C1", "type": "Type", "date": "Planned date",
+    "assignee": "Assigned to", "everyone": "Everyone", "product": "Product / vaccine", "repeat": "Repeat every … days", "repeatPh": "empty = once", "description": "Instructions",
+    "empty": "No task planned.", "markDone": "Done", "done": "Done", "postpone": "Postpone", "newDate": "New date (YYYY-MM-DD):",
+    "confirmCancel": "Cancel the task “{{titre}}”?", "every": "every {{n}} d", "recentlyDone": "Recently done",
+    "todayTasks": "My tasks today", "noTaskToday": "No task planned today.", "lateSince": "late since {{d}}",
+    "upcomingForFlock": "Upcoming tasks for this flock",
+    "programmesHint": "When a flock is created, these steps become dated tasks according to the birds' age. The starting programme is indicative: have it checked by your vet.",
+    "dayN": "D{{n}}", "disable": "Disable", "enable": "Enable", "disabled": "disabled", "newStep": "New programme step", "production": "Production", "ageDay": "Birds' age (days)"
+  },
+  "alertes": {
+    "mortalite": "Abnormal mortality: {{morts}} dead in {{code}} ({{pct}}%) on {{date}}",
+    "stock_bas": "Low stock: {{nom}} ({{stock}} {{unite}})",
+    "rupture": "Stock-out risk: {{nom}}, about {{jours}} days left",
+    "soin_proche": "{{titre}} ({{code}}) planned on {{date}}",
+    "soin_en_retard": "Late: {{titre}} ({{code}}) planned on {{date}}",
+    "tache_en_retard": "Late task: {{titre}} (planned on {{date}})",
+    "client_retard": "Late payment: {{client}} owes {{reste}} F (due {{date}})",
+    "dette_retard": "Overdue debt: {{fournisseur}}, {{reste}} F (due {{date}})",
+    "dette_proche": "To pay soon: {{fournisseur}}, {{reste}} F on {{date}}",
+    "pret_retard": "Late repayment: loan {{preteur}} ({{solde}} F left)",
+    "pret_proche": "Loan {{preteur}} due on {{date}}",
+    "depenses_a_valider": "{{nombre}} expense(s) to approve",
+    "dix_pourcent": "{{montant}} F of 10 % to pay out or reinvest (investors)"
+  },
   "notifications": { "title": "Notifications", "markRead": "Mark all read", "empty": "No notification." },
   "sync": { "title": "Pending entries", "empty": "Everything is synced.", "retry": "Sync now", "error": "Error", "waiting": "Waiting", "discard": "Delete", "confirmDiscard": "Delete this refused entry? It will not be saved." },
-  "tables": { "pontes": "Laying", "mortalites": "Mortality", "pesees": "Weighing", "mouvements_stock": "Feed used", "ventes": "Sale", "observations": "Observation" },
+  "tables": { "taches_realisations": "Task done", "pontes": "Laying", "mortalites": "Mortality", "pesees": "Weighing", "mouvements_stock": "Feed used", "ventes": "Sale", "observations": "Observation" },
   "common": { "forbidden": "Your role does not have access.", "loading": "Loading…", "saved": "Saved.", "save": "Save", "close": "Close" }
 }

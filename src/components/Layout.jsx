@@ -12,6 +12,7 @@ export const SECTIONS = [
   { to: '/saisie', key: 'saisie', icon: 'plus' },
   { to: '/ferme', key: 'ferme', icon: 'hen' },
   { to: '/argent', key: 'argent', icon: 'wallet' },
+  { to: '/planning', key: 'planning', icon: 'calendar' },
   { to: '/stock', key: 'stock', icon: 'box' },
   { to: '/reglages', key: 'reglages', icon: 'settings' },
   { to: '/sync', key: 'sync', icon: 'sync' }

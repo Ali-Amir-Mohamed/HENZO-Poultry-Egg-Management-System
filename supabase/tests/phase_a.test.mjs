@@ -316,6 +316,41 @@ ok('cash gap notified to directeur', (await as('ali', `select * from public.noti
 const cap = await one('kenfack', `select * from public.capitaux_engages`)
 ok('committed capital = 1550000, no loan', Number(cap.capital_investisseurs) === 1550000 && Number(cap.solde_prets) === 0, JSON.stringify(cap))
 
+// ---------- Phase D: planning, employee tasks, alerts ----------
+try {
+  await db.exec(readFileSync(new URL('0005_phase_d_organisation.sql', MIG), 'utf8'))
+  ok('migration 0005 runs', true)
+} catch (e) { ok('migration 0005 runs', false, e.message); process.exit(1) }
+
+ok('default programme seeded', (await as('kenfack', `select * from public.modeles_taches`)).rows.length === 5)
+await expectOk('kenfack creates bande C6 with planned sale', 'kenfack', `insert into public.bandes (code, date_arrivee, nombre_initial, date_vente_prevue) values ('C6', current_date - 3, 200, current_date + 40)`)
+const C6 = (await db.query(`select id from public.bandes where code = 'C6'`)).rows[0].id
+const t6 = (await as('kenfack', `select titre, date_prevue - current_date as dans, assigne_role from public.taches where bande_id = $1 order by date_prevue`, [C6])).rows
+ok('5 tasks generated for C6', t6.length === 5, JSON.stringify(t6.map((t) => `${t.titre}@${t.dans}`)))
+ok('Newcastle planned at day 7 (in 3 days)', t6.some((t) => t.titre === 'Vaccin Newcastle' && t.dans === 3))
+ok('employe sees only his tasks', (await as('employe', `select * from public.taches where bande_id = $1`, [C6])).rows.length === 4)
+const pesee6 = (await db.query(`select id, date_prevue from public.taches where bande_id = $1 and type_tache = 'pesee'`, [C6])).rows[0]
+await expectOk('employe ticks the weighing', 'employe', `insert into public.taches_realisations (tache_id, note) values ($1, 'ok')`, [pesee6.id])
+ok('task marked done', (await one('kenfack', `select statut from public.taches where id = '${pesee6.id}'`)).statut === 'fait')
+ok('next weighing created 7 days later', (await as('kenfack', `select * from public.taches where bande_id = $1 and type_tache = 'pesee' and statut = 'a_faire' and date_prevue = $2::date + 7`, [C6, pesee6.date_prevue])).rows.length === 1)
+await expectErr('task cannot be ticked twice', 'employe', `insert into public.taches_realisations (tache_id) values ($1)`, [pesee6.id], 'plus à faire')
+const vente6 = (await db.query(`select id from public.taches where bande_id = $1 and type_tache = 'vente_prevue'`, [C6])).rows[0].id
+await expectErr('employe cannot tick an exploitation task', 'employe', `insert into public.taches_realisations (tache_id) values ($1)`, [vente6], 'attribuée')
+await expectErr('employe cannot plan tasks', 'employe', `insert into public.taches (titre, type_tache, date_prevue) values ('x', 'autre', current_date)`)
+await expectOk('kenfack plans a treatment tomorrow', 'kenfack', `insert into public.taches (titre, type_tache, date_prevue, bande_id, assigne_role) values ('Vitamines', 'traitement', current_date + 1, $1, 'employe')`, [C6])
+
+await expectOk('employe records 3 deaths (1.5 %)', 'employe', `insert into public.mortalites (bande_id, nombre) values ($1, 3)`, [C6])
+await expectOk('employe records 1 more death', 'employe', `insert into public.mortalites (bande_id, nombre) values ($1, 1)`, [C6])
+ok('abnormal mortality notified once to exploitation', (await as('kenfack', `select * from public.notifications where type_notification = 'mortalite_anormale'`)).rows.length === 1)
+const al = (await as('kenfack', `select type_alerte from public.alertes_responsables`)).rows.map((r) => r.type_alerte)
+ok('alerts include mortality and upcoming care', al.includes('mortalite') && al.includes('soin_proche'), JSON.stringify(al))
+ok('employe sees no alerts', (await as('employe', `select * from public.alertes_responsables`)).rows.length === 0)
+await expectErr('raw alert view not exposed', 'kenfack', `select * from public.alertes`, [], 'permission denied')
+
+await as('kenfack', `update public.bandes set statut = 'cloture_demandee' where code = 'C6'`)
+await as('dahirou', `update public.bandes set statut = 'cloturee' where code = 'C6'`)
+ok('closure cancels remaining tasks', (await as('kenfack', `select * from public.taches where bande_id = $1 and statut = 'a_faire'`, [C6])).rows.length === 0)
+
 // ---------- Journal ----------
 ok('journal visible to directeur', (await as('ali', `select * from public.journal_activite`)).rows.length > 10)
 ok('journal hidden from finance', (await as('dahirou', `select * from public.journal_activite`)).rows.length === 0)

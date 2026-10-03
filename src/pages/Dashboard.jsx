@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/AuthProvider'
 import { usePendingCount } from '../hooks'
-import { loadStats, readCachedStats } from '../lib/stats'
-import { canAccess } from '../config'
+import { loadStats, readCachedStats, saveCachedStats } from '../lib/stats'
+import { enqueue } from '../lib/offlineQueue'
+import { canAccess, TABLES } from '../config'
 import Icon from '../components/Icon'
 
 export default function Dashboard() {
@@ -58,7 +59,67 @@ export default function Dashboard() {
   )
 }
 
+const ALERT_ICONS = {
+  mortalite: 'alert', stock_bas: 'box', rupture: 'box', soin_proche: 'syringe', soin_en_retard: 'syringe',
+  tache_en_retard: 'calendar', client_retard: 'users', dette_retard: 'receipt', dette_proche: 'receipt',
+  pret_retard: 'receipt', pret_proche: 'calendar', depenses_a_valider: 'clock', dix_pourcent: 'users'
+}
+
+// Formats the raw parameters of an alert (amounts, dates, units) for display
+function alertParams(params, t, lang) {
+  const out = { ...params }
+  for (const k of ['reste', 'solde', 'montant']) if (k in out) out[k] = Number(out[k]).toLocaleString(lang)
+  if ('stock' in out) out.stock = Number(out.stock).toLocaleString(lang, { maximumFractionDigits: 2 })
+  if (out.date) out.date = new Date(`${String(out.date).slice(0, 10)}T00:00`).toLocaleDateString(lang)
+  if (out.unite) out.unite = t(`unites.${out.unite}`)
+  return out
+}
+
 function EmployeeHome({ stats }) {
+  const { t, i18n } = useTranslation()
+  const lang = i18n.resolvedLanguage
+  const [done, setDone] = useState(() => new Set())
+  const today = new Date().toLocaleDateString('en-CA')
+
+  // Ticking works offline: the confirmation goes through the outbox
+  const tick = async (tache) => {
+    await enqueue(TABLES.realisations, { tache_id: tache.id })
+    setDone((s) => new Set(s).add(tache.id))
+    saveCachedStats({ ...stats, taches: stats.taches.filter((x) => x.id !== tache.id) })
+  }
+  const taches = stats.taches ?? []
+
+  return (
+    <>
+      <section className="panel">
+        <div className="panel-head"><h2>{t('planning.todayTasks')}</h2></div>
+        {taches.length === 0 ? <p className="muted">{t('planning.noTaskToday')}</p> : (
+          <ul className="list">
+            {taches.map((tc) => (
+              <li key={tc.id} className={done.has(tc.id) ? 'read' : ''}>
+                <div className="grow">
+                  <strong>{tc.titre}</strong>
+                  <div className="muted small">
+                    {tc.bande?.code ?? tc.lot?.code ?? t('saisie.toute')}
+                    {tc.produit ? ` · ${tc.produit}` : ''}
+                    {tc.date_prevue < today ? ` · ${t('planning.lateSince', { d: new Date(`${tc.date_prevue}T00:00`).toLocaleDateString(lang) })}` : ''}
+                  </div>
+                  {tc.description && <div className="small">{tc.description}</div>}
+                </div>
+                {done.has(tc.id)
+                  ? <span className="tag ok"><Icon name="check" size={12} /> {t('planning.done')}</span>
+                  : <button className="btn primary sm" onClick={() => tick(tc)}><Icon name="check" size={14} />{t('planning.markDone')}</button>}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+      <EmployeeRoutine stats={stats} />
+    </>
+  )
+}
+
+function EmployeeRoutine({ stats }) {
   const { t } = useTranslation()
   return (
     <section className="panel">
@@ -87,32 +148,15 @@ function ManagerHome({ stats }) {
 
   return (
     <>
-      {/* ---------- Alerts ---------- */}
-      {(stats.aValider > 0 || stats.stockBas.length > 0 || stats.creances.retard > 0 || stats.pretsEnRetard?.length > 0
-        || stats.echeancesProches?.length > 0 || Number(stats.capitaux?.dix_pourcent_en_attente) > 0) && (
+      {/* ---------- Alerts (computed by the database) ---------- */}
+      {stats.alertes?.length > 0 && (
         <section className="alerts">
-          {Number(stats.capitaux?.dix_pourcent_en_attente) > 0 && (
-            <Link to="/argent" className="alert warn"><Icon name="users" size={18} />{t('dashboard.pending10', { n: fmt(stats.capitaux.dix_pourcent_en_attente) })}</Link>
-          )}
-          {stats.pretsEnRetard?.map((p) => (
-            <Link key={p} to="/argent" className="alert danger"><Icon name="receipt" size={18} />{t('dashboard.loanLate', { preteur: p })}</Link>
-          ))}
-          {stats.echeancesProches?.map((e) => (
-            <Link key={e.preteur} to="/argent" className="alert warn"><Icon name="calendar" size={18} />
-              {t('dashboard.loanDue', { preteur: e.preteur, d: new Date(`${e.date}T00:00`).toLocaleDateString(lang) })}
+          {stats.alertes.map((a, i) => (
+            <Link key={i} to={a.lien} className={`alert ${a.niveau}`}>
+              <Icon name={ALERT_ICONS[a.type_alerte] ?? 'alert'} size={18} />
+              {t(`alertes.${a.type_alerte}`, alertParams(a.params, t, lang))}
             </Link>
           ))}
-          {stats.aValider > 0 && (
-            <Link to="/argent" className="alert warn"><Icon name="clock" size={18} />{t('dashboard.toValidate', { count: stats.aValider })}</Link>
-          )}
-          {stats.stockBas.map((s) => (
-            <Link key={s.nom} to="/stock" className="alert danger"><Icon name="box" size={18} />
-              {t('dashboard.lowStock', { nom: s.nom, stock: fmt(s.stock), unite: t(`unites.${s.unite}`) })}
-            </Link>
-          ))}
-          {stats.creances.retard > 0 && (
-            <Link to="/argent" className="alert danger"><Icon name="alert" size={18} />{t('dashboard.lateClients', { count: stats.creances.retard })}</Link>
-          )}
         </section>
       )}
 

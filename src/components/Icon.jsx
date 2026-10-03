@@ -30,7 +30,8 @@ const PATHS = {
   bell: 'M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0',
   flag: 'M4 22V4M4 4h13l-2 4 2 4H4',
   chevron: 'M9 18l6-6-6-6',
-  trash: 'M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14'
+  trash: 'M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14',
+  syringe: 'M18 2l4 4M17 7l3-3M19 9 9 19l-4 1 1-4L16 6zM14 8l2 2M11 11l2 2M5 19l-3 3'
 }
 
 export default function Icon({ name, size = 20, ...props }) {
