@@ -43,8 +43,7 @@ export default function Login() {
         <label className="field">
           <span>{t('auth.username')}</span>
           <input type="text" autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck="false"
-            required value={username} onChange={(e) => setUsername(e.target.value)}
-            placeholder={t('auth.usernamePlaceholder')} />
+            required value={username} onChange={(e) => setUsername(e.target.value)} />
         </label>
         <label className="field">
           <span>{t('auth.password')}</span>

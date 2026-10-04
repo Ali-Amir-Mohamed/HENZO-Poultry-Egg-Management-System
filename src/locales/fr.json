@@ -26,7 +26,6 @@
     "title": "Connexion",
     "subtitle": "Entrez vos identifiants pour accéder à la ferme.",
     "username": "Nom d’utilisateur",
-    "usernamePlaceholder": "ex. kenfack",
     "password": "Mot de passe",
     "submit": "Se connecter",
     "error": "Nom d’utilisateur ou mot de passe incorrect",

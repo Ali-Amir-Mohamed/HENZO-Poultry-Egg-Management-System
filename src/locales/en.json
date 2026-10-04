@@ -26,7 +26,6 @@
     "title": "Sign in",
     "subtitle": "Enter your credentials to access the farm.",
     "username": "Username",
-    "usernamePlaceholder": "e.g. kenfack",
     "password": "Password",
     "submit": "Sign in",
     "error": "Wrong username or password",

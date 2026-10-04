@@ -69,7 +69,7 @@ export default function Comptes() {
   // An account that already exists in another farm (e.g. Kenfack) can be added to this farm
   const addExisting = async () => {
     const v = await ask.form({ title: t('comptes.addExisting'), icon: 'users', submit: t('comptes.add'), fields: [
-      { name: 'identifiant', label: t('comptes.username'), type: 'text', required: true, placeholder: 'ex. kenfack' },
+      { name: 'identifiant', label: t('comptes.username'), type: 'text', required: true },
       { name: 'role', label: t('comptes.roleHere'), type: 'select', value: 'employe', options: roleOptions }] })
     if (v) await run(supabase.rpc('ajouter_membre', { p_identifiant: v.identifiant, p_role: v.role }), list.reload)
   }
