@@ -506,6 +506,25 @@ await expectOk('order cancelled before delivery', 'kenfack', `select public.annu
 ok('cancelled order status', (await one('kenfack', `select statut from public.commandes_poussins where code_bande = 'CMD2'`)).statut === 'annulee')
 await expectErr('internal planning function not callable', 'kenfack', `select public.prevoir_livraison(null, 1, current_date, null)`, [], 'permission denied')
 
+// ---------- 0012: one order for several flocks ----------
+try {
+  await db.exec(readFileSync(new URL('0012_commandes_multi_bandes.sql', MIG), 'utf8'))
+  ok('migration 0012 runs', true)
+} catch (e) { ok('migration 0012 runs', false, e.message); process.exit(1) }
+ok('existing orders got a reference', (await as('kenfack', `select * from public.commandes_poussins where reference is null`)).rows.length === 0)
+await expectOk('one order for 3 flocks', 'kenfack', `insert into public.commandes_poussins (reference, fournisseur_id, code_bande, nombre_commande, date_livraison_prevue) values
+  ('CMD-TRIO', $1, 'T1', 1000, current_date), ('CMD-TRIO', $1, 'T2', 1000, current_date), ('CMD-TRIO', $1, 'T3', 1000, current_date)`, [FOU])
+ok('3 planned deliveries for the order', (await as('kenfack', `select l.* from public.livraisons_poussins l join public.commandes_poussins c on c.id = l.commande_id where c.reference = 'CMD-TRIO' and l.statut = 'prevue'`)).rows.length === 3)
+const lt1 = await one('kenfack', `select l.id from public.livraisons_poussins l join public.commandes_poussins c on c.id = l.commande_id where c.code_bande = 'T1'`)
+const lt2 = await one('kenfack', `select l.id from public.livraisons_poussins l join public.commandes_poussins c on c.id = l.commande_id where c.code_bande = 'T2'`)
+await expectOk('T1 fully delivered', 'kenfack', `select public.receptionner_livraison($1, 1000, current_date, null)`, [lt1.id])
+await expectOk('T2 half delivered, rest later', 'kenfack', `select public.receptionner_livraison($1, 500, current_date, current_date + 4)`, [lt2.id])
+const trio = (await as('kenfack', `select code_bande, statut from public.commandes_poussins where reference = 'CMD-TRIO' order by code_bande`)).rows.map((r) => `${r.code_bande}:${r.statut}`).join(',')
+ok('each flock of the order has its own status', trio === 'T1:livree,T2:partielle,T3:en_attente', trio)
+ok('flocks T1 and T2 created', (await as('kenfack', `select code from public.bandes where code in ('T1', 'T2', 'T3') order by code`)).rows.map((r) => r.code).join(',') === 'T1,T2')
+await expectErr('code already used by a flock refused', 'kenfack', `insert into public.commandes_poussins (reference, code_bande, nombre_commande, date_livraison_prevue) values ('X', 't1', 10, current_date)`, [], 'déjà utilisé')
+await expectErr('code already planned refused', 'kenfack', `insert into public.commandes_poussins (reference, code_bande, nombre_commande, date_livraison_prevue) values ('X', 'T3', 10, current_date)`, [], 'déjà prévu')
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))

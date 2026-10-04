@@ -870,6 +870,11 @@
       "partielle": "Partly delivered",
       "livree": "Delivered",
       "annulee": "Cancelled"
-    }
+    },
+    "orderOf": "Order of {{d}}",
+    "groupSummary": "{{flocks}} flock(s) · {{recus}} / {{total}} chicks received",
+    "flocksOfOrder": "Flocks of this order (one line per flock)",
+    "addFlock": "Add a flock to the order",
+    "totalOrdered": "Total ordered"
   }
 }

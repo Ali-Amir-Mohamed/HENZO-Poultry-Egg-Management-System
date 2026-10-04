@@ -13,6 +13,7 @@
 | `0009_alerte_stock.sql` | Alerte « stock bas » seulement si un seuil est fixé |
 | `0010_livraisons_poussins.sql` | Livraisons de poussins en plusieurs fois (nombre initial = somme des livraisons) |
 | `0011_commandes_poussins.sql` | Commandes de poussins, livraisons prévues, réception « Livré », report et annulation |
+| `0012_commandes_multi_bandes.sql` | Une commande pour plusieurs bandes (référence commune), code de bande unique |
 
 Le Security Advisor signale encore « Security Definer View » sur les vues de calcul (effectifs,
 indicateurs, résultats, alertes) : c'est voulu, chacune filtre elle-même la ferme et les rôles.

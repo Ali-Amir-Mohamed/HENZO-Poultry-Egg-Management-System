@@ -29,19 +29,27 @@ export default function Commandes({ onChange }) {
   })
   const reload = () => { q.reload(); onChange?.() }
 
-  const empty = { code_bande: '', fournisseur_id: '', souche: '', nombre_commande: '', date_livraison_prevue: today, prix_unitaire: '', notes: '' }
+  // One order to the hatchery can cover several flocks started at the same time
+  const empty = { fournisseur_id: '', souche: '', date_livraison_prevue: today, prix_unitaire: '', notes: '', lignes: [{ code_bande: '', nombre_commande: '' }] }
   const [form, setForm] = useState(empty)
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
+  const setLigne = (i, k) => (e) => setForm({ ...form, lignes: form.lignes.map((l, j) => (j === i ? { ...l, [k]: e.target.value } : l)) })
+  const addLigne = () => setForm({ ...form, lignes: [...form.lignes, { code_bande: '', nombre_commande: '' }] })
+  const removeLigne = (i) => setForm({ ...form, lignes: form.lignes.filter((_, j) => j !== i) })
+  const total = form.lignes.reduce((s, l) => s + (Number(l.nombre_commande) || 0), 0)
 
   const commander = async () => {
-    must(await supabase.from('commandes_poussins').insert({
-      ...form,
-      nombre_commande: Number(form.nombre_commande),
+    const reference = `CMD-${today.replaceAll('-', '')}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`
+    must(await supabase.from('commandes_poussins').insert(form.lignes.map((l) => ({
+      reference,
+      code_bande: l.code_bande,
+      nombre_commande: Number(l.nombre_commande),
+      date_livraison_prevue: form.date_livraison_prevue,
       fournisseur_id: form.fournisseur_id || null,
       souche: form.souche || null,
       prix_unitaire: form.prix_unitaire ? Number(form.prix_unitaire) : null,
       notes: form.notes || null
-    }))
+    }))))
     setForm(empty)
     reload()
     return t('commandes.created')
@@ -74,26 +82,39 @@ export default function Commandes({ onChange }) {
   }
 
   if (!q.data) return <Loading error={q.error} />
-  const enCours = q.data.commandes.filter((c) => ['en_attente', 'partielle'].includes(c.statut))
-  const terminees = q.data.commandes.filter((c) => !['en_attente', 'partielle'].includes(c.statut)).slice(0, 5)
+  // Group the flock lines by order reference
+  const groupes = Object.values(q.data.commandes.reduce((acc, c) => {
+    (acc[c.reference] ??= { reference: c.reference, fournisseur: c.fournisseur, date: c.date_commande, lignes: [] }).lignes.push(c)
+    return acc
+  }, {}))
+  const actif = (g) => g.lignes.some((c) => ['en_attente', 'partielle'].includes(c.statut))
+  const enCours = groupes.filter(actif)
+  const terminees = groupes.filter((g) => !actif(g)).slice(0, 5)
+  const recus = (c) => c.livraisons.filter((l) => l.statut === 'livree').reduce((s, l) => s + l.nombre, 0)
 
   return (
     <>
-      {enCours.length > 0 && (
-        <Panel icon="drumstick" tone="yolk" title={t('commandes.title', { count: enCours.length })}>
+      {enCours.map((g) => (
+        <Panel key={g.reference} icon="drumstick" tone="yolk"
+          title={`${t('commandes.orderOf', { d: day(g.date, lang) })}${g.fournisseur ? ` · ${g.fournisseur.nom}` : ''}`}
+          subtitle={t('commandes.groupSummary', {
+            flocks: g.lignes.length,
+            total: g.lignes.reduce((s, c) => s + c.nombre_commande, 0).toLocaleString(lang),
+            recus: g.lignes.reduce((s, c) => s + recus(c), 0).toLocaleString(lang)
+          })}>
           <ul className="list">
-            {enCours.map((c) => {
-              const recus = c.livraisons.filter((l) => l.statut === 'livree').reduce((s, l) => s + l.nombre, 0)
+            {g.lignes.map((c) => {
+              const nRecus = recus(c)
               return (
                 <li key={c.id} className="commande">
                   <div className="grow">
-                    <strong>{c.code_bande} · {t('commandes.ordered', { n: c.nombre_commande })}</strong>
+                    <strong>{t('saisie.bande')} {c.code_bande} · {t('commandes.ordered', { n: c.nombre_commande })}</strong>
                     <div className="muted small">
-                      {c.fournisseur?.nom ?? t('commandes.noSupplier')}{c.souche ? ` · ${c.souche}` : ''}
-                      {` · ${t('commandes.received', { n: recus, total: c.nombre_commande })}`}
+                      {t('commandes.received', { n: nRecus, total: c.nombre_commande })}
+                      {c.souche ? ` · ${c.souche}` : ''}
                       {c.prix_unitaire ? ` · ${money(c.prix_unitaire, lang)} / ${t('unites.piece')}` : ''}
                     </div>
-                    <div className="progress"><div style={{ width: `${Math.min(100, (recus / c.nombre_commande) * 100)}%` }} /></div>
+                    <div className="progress"><div style={{ width: `${Math.min(100, (nRecus / c.nombre_commande) * 100)}%` }} /></div>
                     <ul className="deliveries">
                       {[...c.livraisons].sort((a, b) => String(a.date_prevue ?? a.date_livraison).localeCompare(String(b.date_prevue ?? b.date_livraison))).map((l) => (
                         <li key={l.id} className={l.statut}>
@@ -124,23 +145,41 @@ export default function Commandes({ onChange }) {
             })}
           </ul>
         </Panel>
-      )}
+      ))}
 
       {manage && (
         <FormCard title={t('commandes.new')} icon="drumstick" onSubmit={commander}>
           <div className="grid-2">
-            <Field label={t('commandes.flockCode')}><input required value={form.code_bande} onChange={set('code_bande')} placeholder="ex. B2-2026" /></Field>
             <Field label={t('ferme.supplier')}>
               <select value={form.fournisseur_id} onChange={set('fournisseur_id')}>
                 <option value="">—</option>
                 {q.data.fournisseurs.map((f) => <option key={f.id} value={f.id}>{f.nom}</option>)}
               </select>
             </Field>
-            <Field label={t('commandes.quantity')} className="big"><input type="number" min="1" required value={form.nombre_commande} onChange={set('nombre_commande')} /></Field>
             <Field label={t('commandes.expectedDate')}><input type="date" required value={form.date_livraison_prevue} onChange={set('date_livraison_prevue')} /></Field>
             <Field label={t('ferme.strain')}><input value={form.souche} onChange={set('souche')} placeholder="ex. Cobb 500" /></Field>
             <Field label={t('commandes.unitPrice')}><input type="number" min="0" value={form.prix_unitaire} onChange={set('prix_unitaire')} /></Field>
           </div>
+
+          <div className="field"><span>{t('commandes.flocksOfOrder')}</span></div>
+          {form.lignes.map((l, i) => (
+            <div key={i} className="grid-2 order-line">
+              <Field label={t('commandes.flockCode')}>
+                <input required value={l.code_bande} onChange={setLigne(i, 'code_bande')} placeholder={`ex. B${i + 1}-2026`} />
+              </Field>
+              <Field label={t('commandes.quantity')}>
+                <span className="row">
+                  <input type="number" min="1" required value={l.nombre_commande} onChange={setLigne(i, 'nombre_commande')} />
+                  {form.lignes.length > 1 && (
+                    <button type="button" className="icon-btn dark" onClick={() => removeLigne(i)} aria-label={t('common.close')}><Icon name="trash" size={16} /></button>
+                  )}
+                </span>
+              </Field>
+            </div>
+          ))}
+          <button type="button" className="btn ghost sm" onClick={addLigne}><Icon name="plus" size={14} />{t('commandes.addFlock')}</button>
+          <div className="total-box"><span>{t('commandes.totalOrdered')}</span><strong>{total.toLocaleString(lang)}</strong></div>
+
           <Field label={t('saisie.notes')}><input value={form.notes} onChange={set('notes')} /></Field>
           <p className="note"><Icon name="clock" size={16} />{t('commandes.hint')}</p>
         </FormCard>
@@ -150,16 +189,15 @@ export default function Commandes({ onChange }) {
         <details>
           <summary>{t('commandes.done', { count: terminees.length })}</summary>
           <ul className="list">
-            {terminees.map((c) => (
-              <li key={c.id}>
+            {terminees.map((g) => (
+              <li key={g.reference}>
                 <div className="grow">
-                  <strong>{c.code_bande}</strong>
+                  <strong>{t('commandes.orderOf', { d: day(g.date, lang) })}{g.fournisseur ? ` · ${g.fournisseur.nom}` : ''}</strong>
                   <div className="muted small">
-                    {t('commandes.received', { n: c.livraisons.filter((l) => l.statut === 'livree').reduce((s, l) => s + l.nombre, 0), total: c.nombre_commande })}
-                    {c.fournisseur ? ` · ${c.fournisseur.nom}` : ''}
+                    {g.lignes.map((c) => `${c.code_bande} : ${t('commandes.received', { n: recus(c), total: c.nombre_commande })}`).join(' · ')}
                   </div>
                 </div>
-                <span className="tag muted">{t(`commandes.statuts.${c.statut}`)}</span>
+                <span className="tag muted">{t(`commandes.statuts.${g.lignes.every((c) => c.statut === 'annulee') ? 'annulee' : 'livree'}`)}</span>
               </li>
             ))}
           </ul>

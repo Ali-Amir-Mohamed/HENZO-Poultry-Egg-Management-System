@@ -870,6 +870,11 @@
       "partielle": "Livrée en partie",
       "livree": "Livrée",
       "annulee": "Annulée"
-    }
+    },
+    "orderOf": "Commande du {{d}}",
+    "groupSummary": "{{flocks}} bande(s) · {{recus}} / {{total}} poussins reçus",
+    "flocksOfOrder": "Bandes de cette commande (une ligne par bande)",
+    "addFlock": "Ajouter une bande à la commande",
+    "totalOrdered": "Total commandé"
   }
 }
