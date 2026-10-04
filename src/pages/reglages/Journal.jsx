@@ -5,7 +5,7 @@ import { must, useQuery } from '../../hooks'
 import { Loading, money, Panel } from '../../components/ui'
 
 // Activity log (director): who did what, when — filled automatically by the database
-const TABLES = ['', 'ventes', 'depenses', 'ecritures', 'paiements_clients', 'paiements_fournisseurs', 'bandes', 'lots_pondeuses',
+const TABLES = ['', 'ventes', 'depenses', 'ecritures', 'paiements_clients', 'paiements_fournisseurs', 'bandes', 'livraisons_poussins', 'lots_pondeuses',
   'operations_investisseurs', 'distributions_investisseurs', 'prets', 'remboursements_prets', 'verifications_caisse',
   'transferts_caisses', 'tiers', 'prix_vente', 'profiles', 'fermes']
 const IGNORED = ['created_at', 'annulee_le', 'valide_le', 'decide_le', 'fait_le']

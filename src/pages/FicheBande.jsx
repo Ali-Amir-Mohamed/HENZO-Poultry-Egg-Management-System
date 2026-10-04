@@ -2,7 +2,8 @@ import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { must, useQuery } from '../hooks'
-import { TABLES } from '../config'
+import { useAuth } from '../auth/AuthProvider'
+import { can, TABLES } from '../config'
 import Icon from '../components/Icon'
 import { day, Loading, money, Panel } from '../components/ui'
 import { Fact, Timeline, WeightCurve } from '../components/fiche'
@@ -12,11 +13,12 @@ import { Fact, Timeline, WeightCurve } from '../components/fiche'
 export default function FicheBande() {
   const { id } = useParams()
   const { t, i18n } = useTranslation()
+  const { role } = useAuth()
   const lang = i18n.resolvedLanguage
   const n = (v, d = 0) => (v == null ? '—' : Number(v).toLocaleString(lang, { maximumFractionDigits: d }))
 
   const q = useQuery(async () => {
-    const [bande, ind, bilan, morts, pesees, conso, ventes, depenses, taches, resultat] = await Promise.all([
+    const [bande, ind, bilan, morts, pesees, conso, ventes, depenses, taches, resultat, livraisons] = await Promise.all([
       supabase.from(TABLES.bandes).select('*, fournisseur:tiers(nom)').eq('id', id).single(),
       supabase.from('indicateurs_bandes').select('*').eq('bande_id', id).maybeSingle(),
       supabase.from('bilans_bandes').select('*').eq('bande_id', id).maybeSingle(),
@@ -26,22 +28,44 @@ export default function FicheBande() {
       supabase.from(TABLES.ventes).select('id, date_vente, produit, unite, quantite, prix_unitaire, montant, nombre_sujets, annulee, created_at, client:tiers(nom)').eq('bande_id', id),
       supabase.from(TABLES.depenses).select('id, date_depense, categorie, libelle, montant, statut, annulee, created_at').eq('bande_id', id),
       supabase.from(TABLES.taches).select('id, titre, type_tache, date_prevue, statut, fait_le, produit').eq('bande_id', id).neq('statut', 'annule').order('date_prevue'),
-      supabase.from('resultat_bandes').select('*').eq('bande_id', id).maybeSingle()
+      supabase.from('resultat_bandes').select('*').eq('bande_id', id).maybeSingle(),
+      supabase.from('livraisons_poussins').select('id, date_livraison, nombre, notes').eq('bande_id', id).order('date_livraison').order('created_at')
     ])
     return {
       bande: must(bande), ind: must(ind), bilan: must(bilan), morts: must(morts), pesees: must(pesees),
-      conso: must(conso), ventes: must(ventes), depenses: must(depenses), taches: must(taches), resultat: must(resultat)
+      conso: must(conso), ventes: must(ventes), depenses: must(depenses), taches: must(taches), resultat: must(resultat),
+      livraisons: must(livraisons)
     }
   }, [id])
 
   if (!q.data) return <Loading error={q.error} />
-  const { bande, bilan, morts, pesees, conso, ventes, depenses, taches, resultat } = q.data
+  const { bande, bilan, morts, pesees, conso, ventes, depenses, taches, resultat, livraisons } = q.data
   const aVenir = taches.filter((x) => x.statut === 'a_faire')
+  const canDeliver = can(role, 'bande.create') && bande.statut === 'en_cours'
+
+  // Chicks delivered in several times: each delivery adds to the flock's initial number
+  const ajouterLivraison = async () => {
+    const date = window.prompt(t('livraisons.datePrompt'), new Date().toLocaleDateString('en-CA'))
+    if (!date) return
+    const nombre = Number(window.prompt(t('livraisons.numberPrompt')))
+    if (!nombre || nombre <= 0) return
+    const { error } = await supabase.from('livraisons_poussins').insert({ bande_id: id, date_livraison: date, nombre })
+    if (error) window.alert(error.message)
+    q.reload()
+  }
+  const supprimerLivraison = async (l) => {
+    if (!window.confirm(t('livraisons.confirmRemove', { n: l.nombre, d: day(l.date_livraison, lang) }))) return
+    const { error } = await supabase.from('livraisons_poussins').delete().eq('id', l.id)
+    if (error) window.alert(error.message)
+    q.reload()
+  }
   // Closed flock: show the frozen report ; otherwise live figures
   const ind = bilan ?? q.data.ind
 
   const events = [
-    { date: bande.date_arrivee, icon: 'drumstick', tone: 'green', text: t('fiche.ev.arrival', { n: bande.nombre_initial }) },
+    ...(livraisons.length
+      ? livraisons.map((l) => ({ date: l.date_livraison, icon: 'drumstick', tone: 'green', text: t('fiche.ev.arrival', { n: l.nombre }) }))
+      : [{ date: bande.date_arrivee, icon: 'drumstick', tone: 'green', text: t('fiche.ev.arrival', { n: bande.nombre_initial }) }]),
     ...morts.map((m) => ({ date: m.date_constat, icon: 'alert', tone: 'rose', text: t('fiche.ev.death', { n: m.nombre }) + (m.cause ? ` · ${m.cause}` : '') })),
     ...pesees.map((p) => ({ date: p.date_pesee, icon: 'scale', tone: 'yolk', text: t('fiche.ev.weight', { g: n(p.poids_moyen_g), n: p.nombre_peses }) })),
     ...conso.map((c) => ({ date: c.date_mouvement, icon: 'box', tone: 'sky', text: `${n(c.quantite, 2)} ${t(`unites.${c.article?.unite}`)} ${c.article?.nom}` })),
@@ -116,6 +140,26 @@ export default function FicheBande() {
             {!bilan && <p className="note"><Icon name="clock" size={16} />{t('fiche.liveNote')}</p>}
           </Panel>
         </>
+      )}
+
+      {(livraisons.length > 1 || canDeliver) && (
+        <Panel icon="drumstick" tone="green" title={t('livraisons.title', { n: bande.nombre_initial })}
+          actions={canDeliver ? <button className="btn primary sm" onClick={ajouterLivraison}><Icon name="plus" size={14} />{t('livraisons.add')}</button> : null}>
+          <ul className="list">
+            {livraisons.map((l) => (
+              <li key={l.id}>
+                <div className="grow">
+                  <strong>{t('livraisons.line', { n: l.nombre })}</strong>
+                  <div className="muted small">{day(l.date_livraison, lang)}{l.notes ? ` · ${l.notes}` : ''}</div>
+                </div>
+                {canDeliver && livraisons.length > 1 && (
+                  <button className="btn ghost sm" onClick={() => supprimerLivraison(l)}><Icon name="trash" size={14} /></button>
+                )}
+              </li>
+            ))}
+          </ul>
+          {canDeliver && <p className="muted small">{t('livraisons.hint')}</p>}
+        </Panel>
       )}
 
       {aVenir.length > 0 && (

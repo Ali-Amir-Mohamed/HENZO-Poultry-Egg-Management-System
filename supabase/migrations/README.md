@@ -10,6 +10,8 @@
 | `0006_phase_e_analyses.sql` | Capital initial et prêts existants (sans mouvement de caisse), fonction `rapport_mensuel` |
 | `0007_complements.sql` | Client / fournisseur obligatoire au-delà d'un seuil, bénéfice net et disponible par bande, transferts entre caisses, identifiants des comptes, durée de session |
 | `0008_securite_fonctions.sql` | Fonctions internes non exécutables par les utilisateurs (Security Advisor) |
+| `0009_alerte_stock.sql` | Alerte « stock bas » seulement si un seuil est fixé |
+| `0010_livraisons_poussins.sql` | Livraisons de poussins en plusieurs fois (nombre initial = somme des livraisons) |
 
 Le Security Advisor signale encore « Security Definer View » sur les vues de calcul (effectifs,
 indicateurs, résultats, alertes) : c'est voulu, chacune filtre elle-même la ferme et les rôles.

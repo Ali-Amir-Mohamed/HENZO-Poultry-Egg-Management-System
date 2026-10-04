@@ -773,7 +773,8 @@
       "tiers": "Customer / supplier",
       "prix_vente": "Price",
       "profiles": "Account",
-      "fermes": "Farm settings"
+      "fermes": "Farm settings",
+      "livraisons_poussins": "Chick delivery"
     }
   },
   "sauvegarde": {
@@ -827,5 +828,14 @@
     "saved": "Saved.",
     "save": "Save",
     "close": "Close"
+  },
+  "livraisons": {
+    "title": "Chick deliveries ({{n}} in total)",
+    "add": "Add a delivery",
+    "line": "{{n}} chicks delivered",
+    "datePrompt": "Delivery date (YYYY-MM-DD):",
+    "numberPrompt": "Number of chicks delivered:",
+    "confirmRemove": "Delete the delivery of {{n}} chicks on {{d}}?",
+    "hint": "Delivered in several times: add each delivery here, the flock number updates. Record the payment in Money → Expenses (category Chicks, this flock)."
   }
 }

@@ -773,7 +773,8 @@
       "tiers": "Client / fournisseur",
       "prix_vente": "Prix",
       "profiles": "Compte",
-      "fermes": "Paramètres de la ferme"
+      "fermes": "Paramètres de la ferme",
+      "livraisons_poussins": "Livraison de poussins"
     }
   },
   "sauvegarde": {
@@ -827,5 +828,14 @@
     "saved": "Enregistré.",
     "save": "Enregistrer",
     "close": "Fermer"
+  },
+  "livraisons": {
+    "title": "Livraisons de poussins ({{n}} au total)",
+    "add": "Ajouter une livraison",
+    "line": "{{n}} poussins livrés",
+    "datePrompt": "Date de la livraison (AAAA-MM-JJ) :",
+    "numberPrompt": "Nombre de poussins livrés :",
+    "confirmRemove": "Supprimer la livraison de {{n}} poussins du {{d}} ?",
+    "hint": "Livraison en plusieurs fois : ajoutez chaque livraison ici, le nombre de la bande se met à jour. Enregistrez le paiement dans Argent → Dépenses (catégorie Poussins, cette bande)."
   }
 }

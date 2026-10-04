@@ -455,6 +455,24 @@ const stockAlerts = (await as('kenfack', `select params->>'nom' nom from public.
 ok('no false alert for product without threshold', !stockAlerts.includes('Vaccin X'), stockAlerts.join(','))
 ok('alert kept when stock under threshold', stockAlerts.includes('Aliment Y'), stockAlerts.join(','))
 
+// ---------- 0010: chicks delivered in several times ----------
+try {
+  await db.exec(readFileSync(new URL('0010_livraisons_poussins.sql', MIG), 'utf8'))
+  ok('migration 0010 runs', true)
+} catch (e) { ok('migration 0010 runs', false, e.message); process.exit(1) }
+ok('existing flocks got their first delivery', Number((await db.query(`select count(*) n from public.livraisons_poussins where bande_id = '${C7}'`)).rows[0].n) === 1)
+await expectOk('flock created with first half', 'kenfack', `insert into public.bandes (code, date_arrivee, nombre_initial) values ('L1', current_date - 2, 250)`)
+const L1 = (await db.query(`select id from public.bandes where code = 'L1'`)).rows[0].id
+ok('first delivery recorded automatically', Number((await db.query(`select sum(nombre) n from public.livraisons_poussins where bande_id = '${L1}'`)).rows[0].n) === 250)
+await expectOk('second half delivered later', 'kenfack', `insert into public.livraisons_poussins (bande_id, nombre, notes) values ($1, 250, 'Deuxième moitié')`, [L1])
+ok('initial number = 500 after second delivery', (await one('kenfack', `select nombre_initial from public.bandes where code = 'L1'`)).nombre_initial === 500)
+ok('headcount follows deliveries', (await one('employe', `select restants from public.effectif_bandes where code = 'L1'`)).restants === 500)
+await expectErr('delivery before arrival refused', 'kenfack', `insert into public.livraisons_poussins (bande_id, date_livraison, nombre) values ($1, current_date - 10, 10)`, [L1], 'précéder')
+await expectErr('employe cannot add a delivery', 'employe', `insert into public.livraisons_poussins (bande_id, nombre) values ($1, 10)`, [L1])
+await expectOk('wrong delivery removed', 'kenfack', `delete from public.livraisons_poussins where bande_id = $1 and notes = 'Deuxième moitié'`, [L1])
+ok('initial number back to 250', (await one('kenfack', `select nombre_initial from public.bandes where code = 'L1'`)).nombre_initial === 250)
+await expectErr('last delivery cannot be removed', 'kenfack', `delete from public.livraisons_poussins where bande_id = $1`, [L1], 'au moins une')
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))

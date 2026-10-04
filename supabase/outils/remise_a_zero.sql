@@ -35,6 +35,7 @@ truncate table
   public.pesees,
   public.pontes,
   public.mortalites,
+  public.livraisons_poussins,
   public.bandes,
   public.lots_pondeuses,
   public.batiments,
