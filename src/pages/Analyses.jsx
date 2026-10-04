@@ -273,7 +273,7 @@ function Rapport() {
               <table className="table">
                 <thead><tr><th>{t('stock.name')}</th><th>{t('analyses.r.used')}</th><th>{t('analyses.r.endStock')}</th></tr></thead>
                 <tbody>{r.stocks.map((s, i) => (
-                  <tr key={i}><td>{s.nom}</td><td>{n(s.consomme, 2)} {t(`unites.${s.unite}`)}</td><td className={Number(s.stock_fin) <= Number(s.seuil_minimum) ? 'error' : ''}>{n(s.stock_fin, 2)} {t(`unites.${s.unite}`)}</td></tr>
+                  <tr key={i}><td>{s.nom}</td><td>{n(s.consomme, 2)} {t(`unites.${s.unite}`)}</td><td className={(Number(s.seuil_minimum) > 0 && Number(s.stock_fin) <= Number(s.seuil_minimum)) || Number(s.stock_fin) < 0 ? 'error' : ''}>{n(s.stock_fin, 2)} {t(`unites.${s.unite}`)}</td></tr>
                 ))}</tbody>
               </table>
             )}

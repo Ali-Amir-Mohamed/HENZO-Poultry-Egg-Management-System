@@ -444,6 +444,17 @@ ok('after hardening: employe still blocked from indicators', (await as('employe'
 ok('journal visible to directeur', (await as('ali', `select * from public.journal_activite`)).rows.length > 10)
 ok('journal hidden from finance', (await as('dahirou', `select * from public.journal_activite`)).rows.length === 0)
 
+// ---------- 0009: low-stock alert only when a threshold is set ----------
+try {
+  await db.exec(readFileSync(new URL('0009_alerte_stock.sql', MIG), 'utf8'))
+  ok('migration 0009 runs', true)
+} catch (e) { ok('migration 0009 runs', false, e.message); process.exit(1) }
+await expectOk('product without threshold', 'kenfack', `insert into public.articles (nom, categorie, unite) values ('Vaccin X', 'medicament', 'flacon')`)
+await expectOk('product with threshold 5', 'kenfack', `insert into public.articles (nom, categorie, unite, seuil_minimum, poids_unitaire_kg) values ('Aliment Y', 'aliment', 'sac', 5, 50)`)
+const stockAlerts = (await as('kenfack', `select params->>'nom' nom from public.alertes_responsables where type_alerte = 'stock_bas'`)).rows.map((r) => r.nom)
+ok('no false alert for product without threshold', !stockAlerts.includes('Vaccin X'), stockAlerts.join(','))
+ok('alert kept when stock under threshold', stockAlerts.includes('Aliment Y'), stockAlerts.join(','))
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))

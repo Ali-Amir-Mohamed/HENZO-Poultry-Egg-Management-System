@@ -50,7 +50,8 @@ export default function Stock() {
       {!stock.data ? <Loading error={stock.error} /> : stock.data.length === 0 ? <Empty icon="box" text={t('stock.empty')} /> : (
         <div className="cards">
           {stock.data.map((s) => {
-            const low = Number(s.stock) <= Number(s.seuil_minimum)
+            // Low stock only when a threshold is set (or stock went negative)
+            const low = (Number(s.seuil_minimum) > 0 && Number(s.stock) <= Number(s.seuil_minimum)) || Number(s.stock) < 0
             return (
               <article key={s.article_id} className={`card-item ${low ? 'alert-border' : ''}`}>
                 <header>
