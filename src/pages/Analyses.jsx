@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { must, useQuery } from '../hooks'
@@ -8,7 +8,9 @@ import { day, Empty, Loading, money, Panel, Tabs } from '../components/ui'
 
 // Analyses: flock comparison, forecast for running flocks, monthly report (printable to PDF)
 export default function Analyses() {
-  const [tab, setTab] = useState('comparaison')
+  // ?tab=rapport&mois=2026-09 opens a given report (link from the dashboard reminder)
+  const [params] = useSearchParams()
+  const [tab, setTab] = useState(params.get('tab') || 'comparaison')
   return (
     <div className="stack">
       <div className="no-print">
@@ -20,7 +22,7 @@ export default function Analyses() {
       </div>
       {tab === 'comparaison' && <Comparaison />}
       {tab === 'previsionnel' && <Previsionnel />}
-      {tab === 'rapport' && <Rapport />}
+      {tab === 'rapport' && <Rapport moisInitial={params.get('mois')} />}
     </div>
   )
 }
@@ -43,11 +45,14 @@ function Comparaison() {
   const lang = i18n.resolvedLanguage
   const [metric, setMetric] = useState('marge_brute')
   const q = useQuery(async () => {
-    const [closed, open] = await Promise.all([
+    const [closed, open, infos] = await Promise.all([
       supabase.from('bilans_bandes').select('*').order('date_arrivee'),
-      supabase.from('indicateurs_bandes').select('*').neq('statut', 'cloturee').order('date_arrivee')
+      supabase.from('indicateurs_bandes').select('*').neq('statut', 'cloturee').order('date_arrivee'),
+      supabase.from('bandes').select('id, souche, fournisseur:tiers(nom)')
     ])
-    return [...must(closed).map((b) => ({ ...b, closed: true })), ...must(open).map((b) => ({ ...b, closed: false }))]
+    const info = Object.fromEntries(must(infos).map((b) => [b.id, b]))
+    const plus = (b) => ({ ...b, souche: info[b.bande_id]?.souche, fournisseur: info[b.bande_id]?.fournisseur?.nom })
+    return [...must(closed).map((b) => ({ ...plus(b), closed: true })), ...must(open).map((b) => ({ ...plus(b), closed: false }))]
   })
   if (!q.data) return <Loading error={q.error} />
   if (!q.data.length) return <Empty icon="chart" text={t('analyses.noFlock')} />
@@ -110,7 +115,68 @@ function Comparaison() {
           </table>
         </div>
       </Panel>
+
+      <ParGroupe bandes={q.data} fmt={fmt} />
     </>
+  )
+}
+
+// Which strain / which chick supplier gives the best results (closed flocks only: final figures)
+const GROUP_METRICS = ['taux_mortalite', 'fcr', 'poids_moyen_g', 'cout_par_kg', 'marge_brute']
+function ParGroupe({ bandes, fmt }) {
+  const { t } = useTranslation()
+  const [by, setBy] = useState('souche')
+  const closed = bandes.filter((b) => b.closed)
+  const groups = Object.values(closed.reduce((acc, b) => {
+    const key = b[by] || t('analyses.unknown')
+    ;(acc[key] ??= { key, bandes: [] }).bandes.push(b)
+    return acc
+  }, {}))
+  const avg = (g, k) => {
+    const vals = g.bandes.map((b) => b[k]).filter((v) => v != null).map(Number)
+    return vals.length ? vals.reduce((s, v) => s + v, 0) / vals.length : null
+  }
+  const best = (k) => {
+    const m = METRICS.find((x) => x.key === k)
+    const vals = groups.map((g) => avg(g, k)).filter((v) => v != null)
+    if (groups.length < 2 || !vals.length) return null
+    return m.better === 'low' ? Math.min(...vals) : Math.max(...vals)
+  }
+
+  return (
+    <Panel icon="users" tone="yolk" title={t('analyses.groupTitle')} subtitle={t('analyses.groupHint')}
+      actions={(
+        <select className="inline-select" value={by} onChange={(e) => setBy(e.target.value)}>
+          <option value="souche">{t('analyses.bySouche')}</option>
+          <option value="fournisseur">{t('analyses.bySupplier')}</option>
+        </select>
+      )}>
+      {!closed.length ? <p className="muted">{t('analyses.groupNone')}</p> : (
+        <div className="table-wrap">
+          <table className="table compare">
+            <thead>
+              <tr>
+                <th>{by === 'souche' ? t('ferme.strain') : t('ferme.supplier')}</th>
+                <th>{t('analyses.flocksCount')}</th>
+                {GROUP_METRICS.map((k) => <th key={k}>{t(`analyses.metrics.${k}`)}{k === 'marge_brute' ? ` (${t('analyses.perFlock')})` : ''}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {groups.map((g) => (
+                <tr key={g.key}>
+                  <td><strong>{g.key}</strong><div className="muted small">{g.bandes.map((b) => b.code).join(', ')}</div></td>
+                  <td>{g.bandes.length}</td>
+                  {GROUP_METRICS.map((k) => {
+                    const v = avg(g, k)
+                    return <td key={k} className={v != null && v === best(k) ? 'best' : ''}>{fmt(METRICS.find((m) => m.key === k), v)}</td>
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </Panel>
   )
 }
 
@@ -171,10 +237,10 @@ function Previsionnel() {
 }
 
 // ---------- Monthly report ----------
-function Rapport() {
+function Rapport({ moisInitial }) {
   const { t, i18n } = useTranslation()
   const lang = i18n.resolvedLanguage
-  const [mois, setMois] = useState(() => new Date().toLocaleDateString('en-CA').slice(0, 7))
+  const [mois, setMois] = useState(() => moisInitial || new Date().toLocaleDateString('en-CA').slice(0, 7))
   const q = useQuery(async () => {
     const { data, error } = await supabase.rpc('rapport_mensuel', { p_mois: `${mois}-01` })
     if (error) throw error
@@ -192,6 +258,8 @@ function Rapport() {
         </label>
         <span className="spacer" />
         <button className="btn primary" onClick={() => window.print()} disabled={!r}><Icon name="download" size={16} />{t('capital.print')}</button>
+        {r && <a className="btn ghost" href={`https://wa.me/?text=${encodeURIComponent(resume(r, titreMois, t, lang))}`} target="_blank" rel="noreferrer">
+          <Icon name="users" size={16} />{t('recu.whatsapp')}</a>}
       </div>
 
       {!r ? <Loading error={q.error} /> : (
@@ -346,6 +414,22 @@ function Rapport() {
       )}
     </>
   )
+}
+
+// Short text summary of the month, for the partners on WhatsApp (the full report is the PDF)
+function resume(r, titreMois, t, lang) {
+  const n = (v) => Number(v ?? 0).toLocaleString(lang)
+  const tot = (k) => r.resultat.reduce((s, x) => s + Number(x[k]), 0)
+  return [
+    `*${r.ferme} – ${t('analyses.reportTitle', { mois: titreMois })}*`,
+    '',
+    ...r.resultat.map((x) => `${t(`types.${x.activite}_pl`)} : ${t('analyses.r.ventes')} ${money(x.ventes, lang)} · ${t('analyses.r.depenses')} ${money(x.depenses, lang)} · ${t('analyses.r.balance')} ${money(x.ventes - x.depenses, lang)}`),
+    `*${t('analyses.r.total')} : ${money(tot('ventes') - tot('depenses'), lang)}*`,
+    '',
+    `${t('analyses.r.birdsSold')} : ${n(r.production.poulets_vendus)} · ${t('analyses.r.eggs')} : ${n(r.production.oeufs_collectes)} · ${t('analyses.r.trays')} : ${n(r.production.plateaux_vendus)}`,
+    `${t('analyses.r.deadChair')} : ${n(r.mortalite.chair)} · ${t('analyses.r.deadLayers')} : ${n(r.mortalite.pondeuse)}`,
+    `${t('analyses.r.receivables')} : ${money(r.creances.total, lang)} · ${t('analyses.r.payables')} : ${money(r.dettes.total, lang)}`
+  ].join('\n')
 }
 
 function ReportSection({ title, children }) {

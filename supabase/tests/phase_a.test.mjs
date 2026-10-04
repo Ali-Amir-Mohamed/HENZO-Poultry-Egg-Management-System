@@ -546,7 +546,7 @@ await expectOk('adjustment: 5 eggs broken in store', 'kenfack', `insert into pub
 const eggs1 = await one('kenfack', `select * from public.stock_oeufs`)
 ok('egg stock = +890 − 60 − 5', eggs1.stock_oeufs - eggs0.stock_oeufs === 825, JSON.stringify({ before: eggs0.stock_oeufs, after: eggs1.stock_oeufs }))
 ok('trays computed', eggs1.plateaux === Math.floor(eggs1.stock_oeufs / 30))
-ok('employe cannot see egg stock', (await as('employe', `select * from public.stock_oeufs`)).rows.length === 0)
+ok('employe cannot see egg stock (before 0014)', (await as('employe', `select * from public.stock_oeufs`)).rows.length === 0)
 
 // Buildings
 await expectOk('kenfack creates building', 'kenfack', `insert into public.batiments (nom, capacite) values ('Bâtiment A', 1200)`)
@@ -588,6 +588,23 @@ await expectOk('ali changes kenfack role in new farm', 'ali', `select public.def
 await expectErr('ali cannot change own role', 'ali', `select public.definir_role($1, 'employe')`, [U.ali], 'propre')
 await expectOk('ali back to first farm', 'ali', `select public.changer_ferme($1)`, [fermeAli])
 ok('first farm data visible again', (await as('ali', `select * from public.bandes`)).rows.length > 0)
+
+// ---------- 0014: egg stock for everyone, accounts limited to the active farm ----------
+try {
+  await db.exec(readFileSync(new URL('0014_stock_oeufs_comptes.sql', MIG), 'utf8'))
+  ok('migration 0014 runs', true)
+} catch (e) { ok('migration 0014 runs', false, e.message); process.exit(1) }
+ok('employe now sees egg stock (sale warning)', (await as('employe', `select * from public.stock_oeufs`)).rows.length === 1)
+ok('anon still sees nothing', await as(null, `select * from public.stock_oeufs`).then((r) => r.rows.length === 0, () => true))
+await expectOk('ali switches to Ferme Nord', 'ali', `select public.changer_ferme($1)`, [F2])
+ok('ali sees kenfack (member, active elsewhere)', (await as('ali', `select id from public.profiles where id = '${U.kenfack}'`)).rows.length === 1)
+ok('ali does not see dahirou (not a member)', (await as('ali', `select id from public.profiles where id = '${U.dahirou}'`)).rows.length === 0)
+await expectNoRows('ali cannot deactivate a non-member', 'ali', `update public.profiles set actif = false where id = '${U.dahirou}' returning id`)
+ok('ali can deactivate a member active elsewhere', (await as('ali', `update public.profiles set actif = false where id = '${U.kenfack}' returning id`)).rows.length === 1)
+await db.exec(`update public.profiles set actif = true where id = '${U.kenfack}'`)
+await expectOk('ali back to first farm', 'ali', `select public.changer_ferme($1)`, [fermeAli])
+ok('ali sees all 4 accounts of first farm', (await as('ali', `select id from public.profiles`)).rows.length === 4)
+await expectNoRows('kenfack still cannot change accounts', 'kenfack', `update public.profiles set nom_complet = 'x' where id = '${U.employe}' returning id`)
 
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {

@@ -1,3 +1,4 @@
+import { lazy } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from './auth/AuthProvider'
@@ -7,19 +8,21 @@ import { Logo } from './components/Icon'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Saisie from './pages/Saisie'
-import Ferme from './pages/Ferme'
-import FicheBande from './pages/FicheBande'
-import FicheLot from './pages/FicheLot'
-import Argent from './pages/Argent'
-import Stock from './pages/Stock'
-import Planning from './pages/Planning'
-import Analyses from './pages/Analyses'
-import ReleveInvestisseur from './pages/argent/ReleveInvestisseur'
-import Reglages from './pages/Reglages'
-import FicheTiers from './pages/reglages/FicheTiers'
-import Sync from './pages/Sync'
-import Plus from './pages/Plus'
-import Recu from './pages/Recu'
+// Dashboard and field entry load at once (used every day, also offline);
+// the other pages are downloaded when opened, and kept by the service worker for offline use
+const Ferme = lazy(() => import('./pages/Ferme'))
+const FicheBande = lazy(() => import('./pages/FicheBande'))
+const FicheLot = lazy(() => import('./pages/FicheLot'))
+const Argent = lazy(() => import('./pages/Argent'))
+const Stock = lazy(() => import('./pages/Stock'))
+const Planning = lazy(() => import('./pages/Planning'))
+const Analyses = lazy(() => import('./pages/Analyses'))
+const ReleveInvestisseur = lazy(() => import('./pages/argent/ReleveInvestisseur'))
+const Reglages = lazy(() => import('./pages/Reglages'))
+const FicheTiers = lazy(() => import('./pages/reglages/FicheTiers'))
+const Sync = lazy(() => import('./pages/Sync'))
+const Plus = lazy(() => import('./pages/Plus'))
+const Recu = lazy(() => import('./pages/Recu'))
 
 function Guard({ section, children }) {
   const { role } = useAuth()

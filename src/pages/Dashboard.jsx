@@ -52,6 +52,18 @@ export default function Dashboard() {
         <Link to="/sync" className="note link-note"><Icon name="cloud" size={16} />{t('status.pending', { count: pending })}</Link>
       )}
 
+      {/* First week of the month: last month's report is ready to share with the partners */}
+      {canAccess(role, 'analyses') && new Date().getDate() <= 7 && (() => {
+        const d = new Date()
+        d.setDate(0)
+        const mois = d.toLocaleDateString('en-CA').slice(0, 7)
+        return (
+          <Link to={`/analyses?tab=rapport&mois=${mois}`} className="note link-note">
+            <Icon name="note" size={16} />{t('dashboard.reportReady', { mois: d.toLocaleDateString(lang, { month: 'long', year: 'numeric' }) })}
+          </Link>
+        )
+      })()}
+
       {!stats ? <p className="muted">{t('dashboard.noData')}</p>
         : stats.kind === 'employe' ? <EmployeeHome stats={stats} />
           : <ManagerHome stats={stats} />}

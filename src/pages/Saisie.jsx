@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { useAsk } from '../components/Dialog'
 import { useTranslation } from 'react-i18next'
 import { enqueue } from '../lib/offlineQueue'
 import { loadReference, prixDuMoment, readCachedReference, saveReference } from '../lib/referenceData'
@@ -62,6 +64,12 @@ export default function Saisie() {
       {kind === 'vente'
         ? <VenteForm key="vente" refData={ref} onNewClient={(c) => {
             const next = { ...ref, clients: [...ref.clients, c].sort((a, b) => a.nom.localeCompare(b.nom)) }
+            setRef(next)
+            saveReference(next)
+          }} onEggsSold={(n) => {
+            // Keep the egg stock up to date between two server refreshes (also offline)
+            if (!ref.oeufs) return
+            const next = { ...ref, oeufs: { ...ref.oeufs, stock_oeufs: ref.oeufs.stock_oeufs - n } }
             setRef(next)
             saveReference(next)
           }} />
@@ -146,8 +154,9 @@ function FieldForm({ kind, refData }) {
 }
 
 // ---------- Sale form ----------
-function VenteForm({ refData, onNewClient }) {
+function VenteForm({ refData, onNewClient, onEggsSold }) {
   const { t, i18n } = useTranslation()
+  const ask = useAsk()
   const initial = (activite) => {
     const prod = PRODUITS[activite][0]
     const first = activite === 'chair' ? refData.bandes[0] : refData.lots[0]
@@ -196,6 +205,14 @@ function VenteForm({ refData, onNewClient }) {
   }
   const fmt = (n) => Number(n || 0).toLocaleString(i18n.resolvedLanguage)
 
+  // Egg sales: warn when selling more than the recorded stock (not blocked: a collection may be missing)
+  const opp = refData.oeufs?.oeufs_par_plateau ?? 30
+  const oeufsVendus = form.produit === 'oeufs' ? quantite || 0 : form.produit === 'plateaux' ? (quantite || 0) * opp : 0
+  const stockOeufs = refData.oeufs ? Number(refData.oeufs.stock_oeufs) : null
+  const depasseStock = oeufsVendus > 0 && stockOeufs != null && oeufsVendus > stockOeufs
+  const stockLabel = stockOeufs == null ? ''
+    : t('saisie.eggStock', { plateaux: fmt(Math.floor(Math.max(stockOeufs, 0) / opp)), oeufs: fmt(Math.max(stockOeufs, 0) % opp) })
+
   const update = (patch) => { setSaved(false); setForm((f) => ({ ...f, ...patch })) }
   const set = (key) => (e) => update({ [key]: e.target.value })
   const setProduit = (produit) => {
@@ -206,6 +223,7 @@ function VenteForm({ refData, onNewClient }) {
 
   const submit = async (e) => {
     e.preventDefault()
+    if (depasseStock && !(await ask.confirm(t('saisie.eggStockConfirm', { stock: stockLabel }), { title: t('saisie.eggStockTitle'), icon: 'egg' }))) return
     const row = {
       ...cibleToIds(form.cible),
       date_vente: form.date_vente,
@@ -221,9 +239,10 @@ function VenteForm({ refData, onNewClient }) {
       date_echeance: credit ? form.date_echeance || null : null,
       notes: form.notes || null
     }
-    await enqueue(TABLES.ventes, row)
+    const sent = await enqueue(TABLES.ventes, row)
+    if (oeufsVendus > 0) onEggsSold?.(oeufsVendus)
     setForm({ ...initial(form.activite), cible: form.cible })
-    setSaved(true)
+    setSaved(sent.id)
   }
 
   return (
@@ -289,6 +308,11 @@ function VenteForm({ refData, onNewClient }) {
         <span>{t('saisie.total')}</span>
         <strong>{fmt(total)} FCFA</strong>
       </div>
+      {stockOeufs != null && ['oeufs', 'plateaux'].includes(form.produit) && (
+        depasseStock
+          ? <div className="alert warn"><Icon name="alert" size={16} />{t('saisie.eggStockOver', { stock: stockLabel })}</div>
+          : <p className="note"><Icon name="egg" size={16} />{stockLabel}</p>
+      )}
 
       <div className="field">
         <span>{t('saisie.paiement')}</span>
@@ -360,7 +384,10 @@ function VenteForm({ refData, onNewClient }) {
         <textarea rows="2" value={form.notes} onChange={set('notes')} />
       </label>
       <p className="note"><Icon name="cloud" size={16} />{t('saisie.venteCheck')}</p>
-      <Submit saved={saved} />
+      {saved && (
+        <Link to={`/recu/${saved}`} className="btn ghost block"><Icon name="receipt" size={16} />{t('saisie.seeReceipt')}</Link>
+      )}
+      <Submit saved={Boolean(saved)} />
     </form>
   )
 }

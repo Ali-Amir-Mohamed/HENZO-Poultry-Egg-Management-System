@@ -3,6 +3,18 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  build: {
+    rollupOptions: {
+      output: {
+        // Libraries in their own files: an app update does not re-download them
+        manualChunks: {
+          react: ['react', 'react-dom', 'react-router-dom'],
+          supabase: ['@supabase/supabase-js'],
+          outils: ['i18next', 'react-i18next', 'dexie']
+        }
+      }
+    }
+  },
   plugins: [
     react(),
     VitePWA({

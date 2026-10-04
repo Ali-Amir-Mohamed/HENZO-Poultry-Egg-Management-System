@@ -167,7 +167,8 @@
     "layers": "Laying hens",
     "last7": "Eggs: last 7 days",
     "total": "{{n}} eggs in total",
-    "brokenToday": "{{n}} broken today"
+    "brokenToday": "{{n}} broken today",
+    "reportReady": "The {{mois}} report is ready: print it or share it with the partners"
   },
   "saisie": {
     "kinds": {
@@ -242,7 +243,12 @@
     "clientRequired": "Customer (required above {{n}} F)",
     "newClient": "New customer",
     "newClientName": "New customer name",
-    "addClient": "Add customer"
+    "addClient": "Add customer",
+    "eggStock": "Egg stock: {{plateaux}} trays and {{oeufs}} eggs",
+    "eggStockOver": "Warning: you are selling more than the recorded stock ({{stock}}). Check today’s collection or adjust the stock.",
+    "eggStockTitle": "Sale above stock",
+    "eggStockConfirm": "This sale exceeds the recorded egg stock ({{stock}}). A collection may be missing. Save anyway?",
+    "seeReceipt": "See the receipt of this sale"
   },
   "ferme": {
     "newBande": "New broiler flock",
@@ -717,7 +723,15 @@
       "closed": "Flocks closed this month",
       "running": "Running flocks",
       "generated": "Report generated on {{d}} by HENZO."
-    }
+    },
+    "groupTitle": "By strain or by supplier",
+    "groupHint": "Averages of closed flocks: the best value is in green.",
+    "bySouche": "By strain",
+    "bySupplier": "By chick supplier",
+    "groupNone": "No closed flock yet: the comparison will appear after the first closure.",
+    "flocksCount": "Flocks",
+    "perFlock": "per flock",
+    "unknown": "Not specified"
   },
   "demarrage": {
     "title": "Initial setup",
@@ -1018,7 +1032,9 @@
     "price": "Unit price",
     "amount": "Amount",
     "print": "Print / PDF",
-    "whatsapp": "Send on WhatsApp"
+    "whatsapp": "Send on WhatsApp",
+    "notFound": "Sale not found.",
+    "pending": "Sale not sent yet (offline): this receipt is provisional and will be confirmed when synced."
   },
   "oeufs": {
     "title": "Egg stock",

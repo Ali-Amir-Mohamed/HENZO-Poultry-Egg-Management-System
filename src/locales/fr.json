@@ -167,7 +167,8 @@
     "layers": "Pondeuses en production",
     "last7": "Œufs : 7 derniers jours",
     "total": "{{n}} œufs au total",
-    "brokenToday": "{{n}} cassés aujourd’hui"
+    "brokenToday": "{{n}} cassés aujourd’hui",
+    "reportReady": "Le rapport de {{mois}} est prêt : à imprimer ou partager avec les associés"
   },
   "saisie": {
     "kinds": {
@@ -242,7 +243,12 @@
     "clientRequired": "Client (obligatoire au-delà de {{n}} F)",
     "newClient": "Nouveau client",
     "newClientName": "Nom du nouveau client",
-    "addClient": "Ajouter le client"
+    "addClient": "Ajouter le client",
+    "eggStock": "Stock d’œufs : {{plateaux}} plateaux et {{oeufs}} œufs",
+    "eggStockOver": "Attention : vous vendez plus que le stock enregistré ({{stock}}). Vérifiez le ramassage du jour ou faites un ajustement du stock.",
+    "eggStockTitle": "Vente supérieure au stock",
+    "eggStockConfirm": "Cette vente dépasse le stock d’œufs enregistré ({{stock}}). Il manque peut-être un ramassage. Enregistrer quand même ?",
+    "seeReceipt": "Voir le reçu de cette vente"
   },
   "ferme": {
     "newBande": "Nouvelle bande de poulets de chair",
@@ -717,7 +723,15 @@
       "closed": "Bandes clôturées dans le mois",
       "running": "Bandes en cours",
       "generated": "Rapport généré le {{d}} par HENZO."
-    }
+    },
+    "groupTitle": "Par souche ou par fournisseur",
+    "groupHint": "Moyennes des bandes clôturées : la meilleure valeur est en vert.",
+    "bySouche": "Par souche",
+    "bySupplier": "Par fournisseur de poussins",
+    "groupNone": "Aucune bande clôturée pour l’instant : la comparaison apparaîtra après la première clôture.",
+    "flocksCount": "Bandes",
+    "perFlock": "par bande",
+    "unknown": "Non renseigné"
   },
   "demarrage": {
     "title": "Configuration initiale",
@@ -1018,7 +1032,9 @@
     "price": "Prix unitaire",
     "amount": "Montant",
     "print": "Imprimer / PDF",
-    "whatsapp": "Envoyer sur WhatsApp"
+    "whatsapp": "Envoyer sur WhatsApp",
+    "notFound": "Vente introuvable.",
+    "pending": "Vente pas encore envoyée (hors ligne) : le reçu est provisoire, il sera confirmé à la synchronisation."
   },
   "oeufs": {
     "title": "Stock d’œufs",

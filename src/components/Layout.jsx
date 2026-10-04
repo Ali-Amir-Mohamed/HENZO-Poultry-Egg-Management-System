@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/AuthProvider'
@@ -83,7 +84,7 @@ export default function Layout() {
           )}
         </nav>
       </header>
-      <main className="content"><Outlet /></main>
+      <main className="content"><Suspense fallback={<p className="muted">{t('common.loading')}</p>}><Outlet /></Suspense></main>
       <SessionGuard />
     </div>
   )

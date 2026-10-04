@@ -2,6 +2,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { must, useQuery } from '../hooks'
+import { db } from '../lib/offlineQueue'
+import { readCachedReference } from '../lib/referenceData'
 import Icon, { Logo } from '../components/Icon'
 import { day, Loading, money } from '../components/ui'
 
@@ -12,11 +14,28 @@ export default function Recu() {
   const { t, i18n } = useTranslation()
   const lang = i18n.resolvedLanguage
   const q = useQuery(async () => {
-    const [v, f] = await Promise.all([
-      supabase.from('ventes').select('*, client:tiers(nom, telephone), bande:bandes(code), lot:lots_pondeuses(code)').eq('id', id).single(),
-      supabase.from('fermes').select('nom').limit(1).maybeSingle()
-    ])
-    return { v: must(v), ferme: f.data }
+    if (navigator.onLine) {
+      const [v, f] = await Promise.all([
+        supabase.from('ventes').select('*, client:tiers(nom, telephone), bande:bandes(code), lot:lots_pondeuses(code)').eq('id', id).maybeSingle(),
+        supabase.from('fermes').select('nom').limit(1).maybeSingle()
+      ])
+      if (v.data) return { v: v.data, ferme: f.data?.nom }
+      if (v.error && !/fetch/i.test(v.error.message)) must(v)
+    }
+    // Not sent yet (offline): the sale is still in this phone's outbox
+    const item = (await db.outbox.where('table').equals('ventes').toArray()).find((x) => x.row.id === id)
+    if (!item) throw new Error(t('recu.notFound'))
+    const ref = readCachedReference()
+    const r = item.row
+    const client = ref.clients.find((c) => c.id === r.client_id)
+    return {
+      pending: true,
+      ferme: ref.ferme,
+      v: {
+        ...r, montant: Math.round(Number(r.quantite) * Number(r.prix_unitaire)), annulee: false,
+        client: client ? { nom: client.nom, telephone: client.telephone } : null
+      }
+    }
   }, [id])
 
   if (!q.data) return <Loading error={q.error} />
@@ -24,7 +43,7 @@ export default function Recu() {
   const numero = v.id.slice(0, 8).toUpperCase()
   const reste = Number(v.montant) - Number(v.montant_encaisse)
   const ligne = `${Number(v.quantite).toLocaleString(lang)} ${t(`unites.${v.unite}`)} ${t(`produits.${v.produit}`)}`
-  const nomFerme = ferme?.nom || t('app.name')
+  const nomFerme = ferme || t('app.name')
 
   const texte = [
     `*${nomFerme}* – ${t('recu.title')} n° ${numero}`,
@@ -56,6 +75,7 @@ export default function Recu() {
           <span className="spacer" />
           <span>{day(v.date_vente, lang)}</span>
         </header>
+        {q.data.pending && <div className="alert warn no-print"><Icon name="cloud" size={16} />{t('recu.pending')}</div>}
         {v.annulee && <div className="alert danger"><Icon name="alert" size={16} />{t('argent.cancelled')} : {v.motif_annulation}</div>}
         {v.client && <p><span className="muted">{t('recu.client')} :</span> <strong>{v.client.nom}</strong>{v.client.telephone ? ` · ${v.client.telephone}` : ''}</p>}
         <table className="table">
