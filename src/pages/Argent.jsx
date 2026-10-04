@@ -195,7 +195,8 @@ function Depenses() {
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
 
   const list = useQuery(async () => must(await supabase.from(TABLES.depenses)
-    .select('*, fournisseur:tiers(nom), article:articles(nom, unite)').order('created_at', { ascending: false }).limit(60)))
+    .select('*, fournisseur:tiers(nom), article:articles(nom, unite), bande:bandes(code), lot:lots_pondeuses(code)')
+    .order('created_at', { ascending: false }).limit(60)))
   const refs = useQuery(async () => {
     const [b, l, f, a, s] = await Promise.all([
       supabase.from('effectif_bandes').select('bande_id, code').neq('statut', 'cloturee').order('date_arrivee'),
@@ -385,6 +386,7 @@ function Depenses() {
                   <strong>{d.libelle}</strong>
                   <div className="muted small">
                     {day(d.date_depense, lang)} · {t(`categories.${d.categorie}`)}
+                    {d.bande ? ` · ${t('saisie.bande')} ${d.bande.code}` : d.lot ? ` · ${t('saisie.lot')} ${d.lot.code}` : ''}
                     {d.fournisseur ? ` · ${d.fournisseur.nom}` : ''}
                     {d.article ? ` · ${d.quantite} ${t(`unites.${d.article.unite}`)} ${d.article.nom}` : ''}
                     {d.a_credit ? ` · ${t('argent.supplierCredit')}` : ''}
