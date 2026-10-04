@@ -44,7 +44,7 @@ async function loadEmployee() {
 async function loadManager() {
   const since = new Date()
   since.setDate(since.getDate() - 6)
-  const [bandes, lots, pontes, pesees, caisses, creances, capitaux, alertes] = await Promise.all([
+  const [bandes, lots, pontes, pesees, caisses, creances, capitaux, alertes, oeufs] = await Promise.all([
     supabase.from('effectif_bandes').select('bande_id, code, statut, age_jours, restants, date_vente_prevue')
       .neq('statut', 'cloturee').order('date_arrivee'),
     supabase.from('effectif_lots').select('lot_id, code, effectif').eq('statut', 'en_production'),
@@ -53,7 +53,8 @@ async function loadManager() {
     supabase.from('soldes_caisses').select('activite, mode, solde'),
     supabase.from('creances_clients').select('reste'),
     supabase.from('capitaux_engages').select('*').maybeSingle(),
-    supabase.from('alertes_responsables').select('*').order('niveau').order('date_ref')
+    supabase.from('alertes_responsables').select('*').order('niveau').order('date_ref'),
+    supabase.from('stock_oeufs').select('stock_oeufs, plateaux, oeufs_isoles').maybeSingle()
   ])
 
   // Broilers: latest weight per flock
@@ -80,7 +81,7 @@ async function loadManager() {
   return {
     kind: 'manager',
     chair,
-    pondeuse: { effectif: effectifPondeuses, lots: must(lots).length, days },
+    pondeuse: { effectif: effectifPondeuses, lots: must(lots).length, days, stock: oeufs.data ?? null },
     caisses: caisseRows,
     soldes,
     creances: { total: must(creances).reduce((s, c) => s + Number(c.reste), 0) },

@@ -6,6 +6,7 @@ import { useInstallPrompt, useOnline, usePendingCount } from '../hooks'
 import LanguageSwitch from './LanguageSwitch'
 import Notifications from './Notifications'
 import SessionGuard from './SessionGuard'
+import FarmSwitch from './FarmSwitch'
 import Icon, { Logo } from './Icon'
 
 export const SECTIONS = [
@@ -41,6 +42,7 @@ export default function Layout() {
             <div>
               <strong>{t('app.name')}</strong>
               <small>{profile?.nom_complet || t(`roles.${role}`)}</small>
+              <FarmSwitch />
             </div>
           </div>
           <div className="topbar-actions">

@@ -4,10 +4,19 @@ import { supabase } from '../../lib/supabase'
 import { must, useQuery } from '../../hooks'
 import { Loading, money, Panel } from '../../components/ui'
 
+// Names of the accounts of the active farm (members working on several farms included)
+export async function nomsComptes() {
+  const [m, p] = await Promise.all([supabase.rpc('membres_ferme'), supabase.from('profiles').select('id, nom_complet, identifiant')])
+  const names = Object.fromEntries((p.data ?? []).map((u) => [u.id, u.nom_complet || u.identifiant]))
+  for (const u of m.data ?? []) names[u.user_id] = u.nom_complet || u.identifiant
+  return names
+}
+
 // Activity log (director): who did what, when — filled automatically by the database
 const TABLES = ['', 'ventes', 'depenses', 'ecritures', 'paiements_clients', 'paiements_fournisseurs', 'bandes', 'commandes_poussins', 'livraisons_poussins', 'lots_pondeuses',
   'operations_investisseurs', 'distributions_investisseurs', 'prets', 'remboursements_prets', 'verifications_caisse',
-  'transferts_caisses', 'tiers', 'prix_vente', 'profiles', 'fermes']
+  'transferts_caisses', 'tiers', 'prix_vente', 'profiles', 'fermes',
+  'mortalites', 'pontes', 'pesees', 'observations', 'mouvements_stock', 'articles', 'ajustements_oeufs', 'batiments']
 const IGNORED = ['created_at', 'annulee_le', 'valide_le', 'decide_le', 'fait_le']
 
 export default function Journal() {
@@ -19,8 +28,7 @@ export default function Journal() {
   const q = useQuery(async () => {
     let req = supabase.from('journal_activite').select('*').order('created_at', { ascending: false }).limit(limit)
     if (table) req = req.eq('table_nom', table)
-    const [rows, users] = await Promise.all([req, supabase.from('profiles').select('id, nom_complet, identifiant')])
-    const names = Object.fromEntries(must(users).map((u) => [u.id, u.nom_complet || u.identifiant]))
+    const [rows, names] = await Promise.all([req, nomsComptes()])
     return { rows: must(rows), names }
   }, [table, limit])
 

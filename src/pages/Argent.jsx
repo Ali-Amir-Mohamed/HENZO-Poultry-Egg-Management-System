@@ -6,7 +6,11 @@ import { must, useQuery } from '../hooks'
 import { can, CATEGORIES_DEPENSE, CATEGORIES_RETRAIT, MODES_PAIEMENT, TABLES } from '../config'
 import { localDate } from '../lib/stats'
 import Icon from '../components/Icon'
-import { askReason, day, Empty, Field, FormCard, Loading, money, Panel, Tabs } from '../components/ui'
+import { day, Empty, Field, FormCard, Loading, money, Panel, Tabs } from '../components/ui'
+import { useAsk, useRun } from '../components/Dialog'
+import Filtres, { useFiltres } from '../components/Filtres'
+import { exportExcel } from '../lib/export'
+import { Link } from 'react-router-dom'
 import Investisseurs from './argent/Investisseurs'
 import Prets from './argent/Prets'
 import Verification from './argent/Verification'
@@ -45,10 +49,24 @@ function Caisses() {
   const { t, i18n } = useTranslation()
   const { role } = useAuth()
   const lang = i18n.resolvedLanguage
+  const ask = useAsk()
+  const run = useRun()
   const soldes = useQuery(async () => must(await supabase.from('soldes_caisses').select('*')))
+  const { f, setF, keep } = useFiltres()
   const ecritures = useQuery(async () => must(await supabase.from('ecritures')
     .select('id, date_operation, sens, montant, nature, libelle, caisse_id, source_id, ecriture_corrigee_id, caisse:caisses(activite, mode)')
-    .order('created_at', { ascending: false }).limit(40)))
+    .gte('date_operation', f.from).lte('date_operation', f.to)
+    .order('date_operation', { ascending: false }).order('created_at', { ascending: false }).limit(1000)), [f.from, f.to])
+  const moves = keep(ecritures.data ?? [], { activite: (e) => e.caisse.activite, text: (e) => `${e.libelle ?? ''} ${t(`natures.${e.nature}`)}` })
+  const exporter = () => exportExcel('henzo-caisses', [
+    { label: t('export.date'), value: (e) => e.date_operation },
+    { label: t('export.activity'), value: (e) => t(`types.${e.caisse.activite}_pl`) },
+    { label: t('export.mode'), value: (e) => t(`modes.${e.caisse.mode}`) },
+    { label: t('export.nature'), value: (e) => t(`natures.${e.nature}`) },
+    { label: t('export.label'), value: (e) => e.libelle },
+    { label: t('export.in'), value: (e) => (e.sens === 'entree' ? Number(e.montant) : null) },
+    { label: t('export.out'), value: (e) => (e.sens === 'sortie' ? Number(e.montant) : null) }
+  ], moves)
   const [form, setForm] = useState({ caisse_id: '', montant: '' })
   const [tr, setTr] = useState({ caisse_source: '', caisse_destination: '', montant: '', motif: '', date_transfert: localDate() })
   const reload = () => { soldes.reload(); ecritures.reload() }
@@ -69,25 +87,24 @@ function Caisses() {
   }
   // Director only: correcting entry linked to the original (the original stays in the history)
   const corriger = async (e) => {
-    const sensChoice = window.prompt(t('argent.correctionSens'), '2')
-    const sens = sensChoice === '1' ? 'entree' : sensChoice === '2' ? 'sortie' : null
-    if (!sens) return
-    const montant = Number(window.prompt(t('argent.correctionAmount')))
-    if (!montant || montant <= 0) return
-    const motif = askReason(t('argent.correctionReason'))
-    if (!motif) return
-    const { error } = await supabase.from('ecritures').insert({
-      caisse_id: e.caisse_id, sens, montant, nature: 'correction', libelle: motif, ecriture_corrigee_id: e.id
+    const v = await ask.form({
+      title: t('argent.correctTitle', { libelle: e.libelle || t(`natures.${e.nature}`) }), icon: 'note', submit: t('argent.correct'),
+      fields: [
+        { name: 'sens', label: t('argent.correctionDirection'), type: 'select', value: 'sortie',
+          options: [{ value: 'entree', label: t('argent.correctionAdd') }, { value: 'sortie', label: t('argent.correctionRemove') }] },
+        { name: 'montant', label: t('argent.correctionAmountLabel'), type: 'number', min: 1, required: true },
+        { name: 'motif', label: t('dialog.reason'), type: 'textarea', required: true }
+      ]
     })
-    if (error) window.alert(error.message)
-    reload()
+    if (!v) return
+    await run(supabase.from('ecritures').insert({
+      caisse_id: e.caisse_id, sens: v.sens, montant: v.montant, nature: 'correction', libelle: v.motif.trim(), ecriture_corrigee_id: e.id
+    }), reload)
   }
   const annulerTransfert = async (e) => {
-    const motif = askReason(t('argent.cancelReason'))
+    const motif = await ask.reason(t('argent.cancelTransfer'))
     if (!motif) return
-    const { error } = await supabase.from('transferts_caisses').update({ annulee: true, motif_annulation: motif }).eq('id', e.source_id)
-    if (error) window.alert(error.message)
-    reload()
+    await run(supabase.from('transferts_caisses').update({ annulee: true, motif_annulation: motif }).eq('id', e.source_id), reload)
   }
 
   return (
@@ -152,10 +169,15 @@ function Caisses() {
         </FormCard>
       )}
 
-      <Panel title={t('argent.lastMoves')}>
-        {!ecritures.data ? <Loading error={ecritures.error} /> : ecritures.data.length === 0 ? <p className="muted">{t('argent.noMoves')}</p> : (
+      <Panel title={t('argent.lastMoves')} subtitle={ecritures.data ? t('filtres.summary', {
+        count: moves.length,
+        inn: money(moves.filter((e) => e.sens === 'entree').reduce((s, e) => s + Number(e.montant), 0), lang),
+        out: money(moves.filter((e) => e.sens === 'sortie').reduce((s, e) => s + Number(e.montant), 0), lang)
+      }) : null}>
+        <Filtres f={f} setF={setF} onExport={exporter} count={moves.length} />
+        {!ecritures.data ? <Loading error={ecritures.error} /> : moves.length === 0 ? <p className="muted">{t('argent.noMoves')}</p> : (
           <ul className="list">
-            {ecritures.data.map((e) => (
+            {moves.map((e) => (
               <li key={e.id}>
                 <div className="grow">
                   <strong>{e.libelle || t(`natures.${e.nature}`)}</strong>
@@ -190,13 +212,32 @@ function Depenses() {
   const { t, i18n } = useTranslation()
   const { role } = useAuth()
   const lang = i18n.resolvedLanguage
+  const ask = useAsk()
+  const run = useRun()
   const porteeParDefaut = can(role, 'depense.ferme') ? 'ferme' : 'generale'
   const [form, setForm] = useState(() => emptyDepense(porteeParDefaut))
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
 
+  const { f, setF, keep } = useFiltres()
   const list = useQuery(async () => must(await supabase.from(TABLES.depenses)
     .select('*, fournisseur:tiers(nom), article:articles(nom, unite), bande:bandes(code), lot:lots_pondeuses(code)')
-    .order('created_at', { ascending: false }).limit(60)))
+    .gte('date_depense', f.from).lte('date_depense', f.to)
+    .order('date_depense', { ascending: false }).order('created_at', { ascending: false }).limit(1000)), [f.from, f.to])
+  const depenses = keep(list.data ?? [], {
+    activite: (d) => d.activite,
+    text: (d) => `${d.libelle} ${t(`categories.${d.categorie}`)} ${d.fournisseur?.nom ?? ''} ${d.bande?.code ?? d.lot?.code ?? ''} ${d.beneficiaire ?? ''}`
+  })
+  const exporter = () => exportExcel('henzo-depenses', [
+    { label: t('export.date'), value: (d) => d.date_depense },
+    { label: t('export.activity'), value: (d) => t(`types.${d.activite}_pl`) },
+    { label: t('export.category'), value: (d) => t(`categories.${d.categorie}`) },
+    { label: t('export.label'), value: (d) => d.libelle },
+    { label: t('export.flock'), value: (d) => d.bande?.code ?? d.lot?.code },
+    { label: t('export.supplier'), value: (d) => d.fournisseur?.nom },
+    { label: t('export.amount'), value: (d) => Number(d.montant) },
+    { label: t('export.paid'), value: (d) => Number(d.montant_paye) },
+    { label: t('export.status'), value: (d) => (d.annulee ? t('argent.cancelled') : t(`statuts.${d.statut}`)) }
+  ], depenses)
   const refs = useQuery(async () => {
     const [b, l, f, a, s] = await Promise.all([
       supabase.from('effectif_bandes').select('bande_id, code').neq('statut', 'cloturee').order('date_arrivee'),
@@ -250,21 +291,17 @@ function Depenses() {
   const decide = async (d, statut) => {
     const patch = { statut }
     if (statut === 'rejetee') {
-      const motif = askReason(t('argent.rejectReason'))
+      const motif = await ask.reason(t('argent.rejectTitle', { libelle: d.libelle }))
       if (!motif) return
       patch.motif_rejet = motif
-    } else if (!window.confirm(t('argent.confirmValidate', { n: money(d.montant, lang) }))) return
-    const { error } = await supabase.from(TABLES.depenses).update(patch).eq('id', d.id)
-    if (error) window.alert(error.message)
-    list.reload()
+    } else if (!(await ask.confirm(t('argent.confirmValidate', { n: money(d.montant, lang) }), { title: d.libelle, icon: 'check', submit: t('argent.validate') }))) return
+    await run(supabase.from(TABLES.depenses).update(patch).eq('id', d.id), list.reload)
   }
 
   const annuler = async (d) => {
-    const motif = askReason(t('argent.cancelReason'))
+    const motif = await ask.reason(t('argent.cancelTitle', { libelle: d.libelle }))
     if (!motif) return
-    const { error } = await supabase.from(TABLES.depenses).update({ annulee: true, motif_annulation: motif }).eq('id', d.id)
-    if (error) window.alert(error.message)
-    list.reload()
+    await run(supabase.from(TABLES.depenses).update({ annulee: true, motif_annulation: motif }).eq('id', d.id), list.reload)
   }
 
   const portees = ['ferme', 'generale'].filter((p) => can(role, `depense.${p}`))
@@ -377,10 +414,14 @@ function Depenses() {
         </FormCard>
       )}
 
-      <Panel title={t('argent.lastExpenses')}>
-        {!list.data ? <Loading error={list.error} /> : list.data.length === 0 ? <p className="muted">{t('argent.noExpenses')}</p> : (
+      <Panel title={t('argent.lastExpenses')} subtitle={list.data ? t('filtres.total', {
+        count: depenses.length,
+        n: money(depenses.filter((d) => !d.annulee && d.statut === 'validee').reduce((s, d) => s + Number(d.montant), 0), lang)
+      }) : null}>
+        <Filtres f={f} setF={setF} onExport={exporter} count={depenses.length} />
+        {!list.data ? <Loading error={list.error} /> : depenses.length === 0 ? <p className="muted">{t('argent.noExpenses')}</p> : (
           <ul className="list">
-            {list.data.map((d) => (
+            {depenses.map((d) => (
               <li key={d.id} className={d.annulee ? 'cancelled' : ''}>
                 <div className="grow">
                   <strong>{d.libelle}</strong>
@@ -425,23 +466,46 @@ function Ventes() {
   const { t, i18n } = useTranslation()
   const { role } = useAuth()
   const lang = i18n.resolvedLanguage
+  const ask = useAsk()
+  const run = useRun()
+  const { f, setF, keep } = useFiltres()
   const list = useQuery(async () => must(await supabase.from(TABLES.ventes)
     .select('*, client:tiers(nom), bande:bandes(code), lot:lots_pondeuses(code)')
-    .order('created_at', { ascending: false }).limit(60)))
+    .gte('date_vente', f.from).lte('date_vente', f.to)
+    .order('date_vente', { ascending: false }).order('created_at', { ascending: false }).limit(1000)), [f.from, f.to])
+  const ventes = keep(list.data ?? [], {
+    activite: (v) => (v.bande_id ? 'chair' : 'pondeuse'),
+    text: (v) => `${t(`produits.${v.produit}`)} ${v.client?.nom ?? ''} ${v.bande?.code ?? v.lot?.code ?? ''}`
+  })
+  const exporter = () => exportExcel('henzo-ventes', [
+    { label: t('export.date'), value: (v) => v.date_vente },
+    { label: t('export.product'), value: (v) => t(`produits.${v.produit}`) },
+    { label: t('export.flock'), value: (v) => v.bande?.code ?? v.lot?.code },
+    { label: t('export.client'), value: (v) => v.client?.nom },
+    { label: t('export.quantity'), value: (v) => Number(v.quantite) },
+    { label: t('export.unit'), value: (v) => t(`unites.${v.unite}`) },
+    { label: t('export.birds'), value: (v) => v.nombre_sujets },
+    { label: t('export.unitPrice'), value: (v) => Number(v.prix_unitaire) },
+    { label: t('export.amount'), value: (v) => Number(v.montant) },
+    { label: t('export.cashed'), value: (v) => Number(v.montant_encaisse) },
+    { label: t('export.mode'), value: (v) => (v.a_credit ? t('modes.credit') : t(`modes.${v.mode_paiement}`)) },
+    { label: t('export.status'), value: (v) => (v.annulee ? t('argent.cancelled') : '') }
+  ], ventes)
 
   const annuler = async (v) => {
-    const motif = askReason(t('argent.cancelReason'))
+    const motif = await ask.reason(t('argent.cancelSaleTitle', { n: money(v.montant, lang) }))
     if (!motif) return
-    const { error } = await supabase.from(TABLES.ventes).update({ annulee: true, motif_annulation: motif }).eq('id', v.id)
-    if (error) window.alert(error.message)
-    list.reload()
+    await run(supabase.from(TABLES.ventes).update({ annulee: true, motif_annulation: motif }).eq('id', v.id), list.reload)
   }
 
   return (
-    <Panel title={t('argent.lastSales')}>
-      {!list.data ? <Loading error={list.error} /> : list.data.length === 0 ? <Empty icon="cart" text={t('argent.noSales')} /> : (
+    <Panel title={t('argent.lastSales')} subtitle={list.data ? t('filtres.total', {
+      count: ventes.length, n: money(ventes.filter((v) => !v.annulee).reduce((s, v) => s + Number(v.montant), 0), lang)
+    }) : null}>
+      <Filtres f={f} setF={setF} onExport={exporter} count={ventes.length} />
+      {!list.data ? <Loading error={list.error} /> : ventes.length === 0 ? <Empty icon="cart" text={t('argent.noSales')} /> : (
         <ul className="list">
-          {list.data.map((v) => (
+          {ventes.map((v) => (
             <li key={v.id} className={v.annulee ? 'cancelled' : ''}>
               <div className="grow">
                 <strong>{t(`produits.${v.produit}`)} · {v.bande?.code ?? v.lot?.code}</strong>
@@ -454,8 +518,11 @@ function Ventes() {
                   <div className="warn-text small">{t('argent.priceGap', { ref: money(v.prix_reference, lang) })}</div>
                 )}
                 {v.annulee && <div className="error small">{t('argent.cancelled')} : {v.motif_annulation}</div>}
-                {!v.annulee && can(role, 'annuler') && (
-                  <div className="row-actions"><button className="btn ghost sm" onClick={() => annuler(v)}>{t('argent.cancel')}</button></div>
+                {!v.annulee && (
+                  <div className="row-actions">
+                    <Link to={`/recu/${v.id}`} className="btn ghost sm"><Icon name="receipt" size={14} />{t('recu.open')}</Link>
+                    {can(role, 'annuler') && <button className="btn ghost sm" onClick={() => annuler(v)}>{t('argent.cancel')}</button>}
+                  </div>
                 )}
               </div>
               <div className="right">
@@ -475,18 +542,18 @@ function Credits() {
   const { t, i18n } = useTranslation()
   const { role } = useAuth()
   const lang = i18n.resolvedLanguage
+  const ask = useAsk()
+  const run = useRun()
   const creances = useQuery(async () => must(await supabase.from('creances_clients').select('*').order('date_echeance', { nullsFirst: false })))
   const dettes = useQuery(async () => must(await supabase.from('dettes_fournisseurs').select('*').order('date_echeance', { nullsFirst: false })))
 
-  const payer = async (table, idField, row, reload) => {
-    const montant = window.prompt(t('argent.paymentAmount', { n: money(row.reste, lang) }), row.reste)
-    if (!montant) return
-    const choice = window.prompt(t('argent.paymentMode', MODES_PAIEMENT.reduce((o, m, i) => ({ ...o, [`m${i + 1}`]: t(`modes.${m}`) }), {})), '1')
-    const mode = MODES_PAIEMENT[Number(choice) - 1]
-    if (!mode) { window.alert(t('argent.badMode')); return }
-    const { error } = await supabase.from(table).insert({ [idField]: row[idField], montant: Number(montant), mode_paiement: mode })
-    if (error) window.alert(error.message)
-    reload()
+  const payer = async (table, idField, row, reload, title) => {
+    const v = await ask.payment(title, {
+      value: Number(row.reste), max: Number(row.reste), withDate: true,
+      hint: t('argent.remaining', { n: money(row.reste, lang) }), submit: t('dialog.save')
+    })
+    if (!v) return
+    await run(supabase.from(table).insert({ [idField]: row[idField], montant: v.montant, mode_paiement: v.mode, date_paiement: v.date }), reload)
   }
 
   const renderList = (q, kind) => (
@@ -503,8 +570,8 @@ function Credits() {
               {can(role, 'paiement') && (
                 <div className="row-actions">
                   <button className="btn primary sm" onClick={() => kind === 'creances'
-                    ? payer(TABLES.paiementsClients, 'vente_id', r, q.reload)
-                    : payer(TABLES.paiementsFournisseurs, 'depense_id', r, q.reload)}>
+                    ? payer(TABLES.paiementsClients, 'vente_id', r, q.reload, t('argent.collectFrom', { nom: r.client }))
+                    : payer(TABLES.paiementsFournisseurs, 'depense_id', r, q.reload, t('argent.payTo', { nom: r.fournisseur }))}>
                     {t(kind === 'creances' ? 'argent.collect' : 'argent.pay')}
                   </button>
                 </div>

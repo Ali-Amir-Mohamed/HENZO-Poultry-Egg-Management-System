@@ -8,6 +8,7 @@ import { can, TABLES, TYPES_TACHE } from '../config'
 import { localDate } from '../lib/stats'
 import Icon from '../components/Icon'
 import { day, Empty, Field, FormCard, Loading, Panel, Tabs } from '../components/ui'
+import { useAsk, useRun } from '../components/Dialog'
 
 const TYPE_ICONS = {
   vaccination: 'syringe', traitement: 'syringe', pesee: 'scale', achat_aliment: 'box', remboursement: 'receipt',
@@ -44,6 +45,8 @@ function Taches() {
   const { role } = useAuth()
   const lang = i18n.resolvedLanguage
   const today = localDate()
+  const ask = useAsk()
+  const run = useRun()
   const inAWeek = (() => { const d = new Date(); d.setDate(d.getDate() + 7); return localDate(d) })()
 
   const list = useQuery(async () => {
@@ -80,23 +83,15 @@ function Taches() {
     reload()
   }
 
-  const done = async (tc) => {
-    const { error } = await supabase.from(TABLES.realisations).insert({ tache_id: tc.id })
-    if (error) window.alert(error.message)
-    reload()
-  }
+  const done = (tc) => run(supabase.from(TABLES.realisations).insert({ tache_id: tc.id }), reload)
   const postpone = async (tc) => {
-    const d = window.prompt(t('planning.newDate'), tc.date_prevue)
-    if (!d) return
-    const { error } = await supabase.from(TABLES.taches).update({ date_prevue: d }).eq('id', tc.id)
-    if (error) window.alert(error.message)
-    reload()
+    const v = await ask.form({ title: t('planning.postponeTitle', { titre: tc.titre }), icon: 'calendar', submit: t('planning.postpone'),
+      fields: [{ name: 'date', label: t('planning.date'), type: 'date', value: tc.date_prevue, required: true }] })
+    if (v) await run(supabase.from(TABLES.taches).update({ date_prevue: v.date }).eq('id', tc.id), reload)
   }
   const cancel = async (tc) => {
-    if (!window.confirm(t('planning.confirmCancel', { titre: tc.titre }))) return
-    const { error } = await supabase.from(TABLES.taches).update({ statut: 'annule' }).eq('id', tc.id)
-    if (error) window.alert(error.message)
-    reload()
+    if (!(await ask.confirm(t('planning.confirmCancel', { titre: tc.titre }), { title: t('argent.cancel'), icon: 'calendar', danger: true }))) return
+    await run(supabase.from(TABLES.taches).update({ statut: 'annule' }).eq('id', tc.id), reload)
   }
 
   const groups = [
@@ -196,6 +191,7 @@ function Programmes() {
   const { t } = useTranslation()
   const { role } = useAuth()
   const edit = can(role, 'programme.edit')
+  const run = useRun()
   const list = useQuery(async () => must(await supabase.from(TABLES.modeles).select('*').order('type_production').order('jour')))
   const [form, setForm] = useState({ type_production: 'chair', jour: '7', type_tache: 'vaccination', titre: '', produit: '', assigne_role: 'employe', repeter_jours: '' })
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
@@ -208,11 +204,7 @@ function Programmes() {
     setForm({ ...form, titre: '', produit: '' })
     list.reload()
   }
-  const toggle = async (m) => {
-    const { error } = await supabase.from(TABLES.modeles).update({ actif: !m.actif }).eq('id', m.id)
-    if (error) window.alert(error.message)
-    list.reload()
-  }
+  const toggle = (m) => run(supabase.from(TABLES.modeles).update({ actif: !m.actif }).eq('id', m.id), list.reload)
 
   return (
     <>

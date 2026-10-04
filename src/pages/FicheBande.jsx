@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { must, useQuery } from '../hooks'
 import { useAuth } from '../auth/AuthProvider'
 import { can, TABLES } from '../config'
+import { useAsk, useRun } from '../components/Dialog'
 import Icon from '../components/Icon'
 import { day, Loading, money, Panel } from '../components/ui'
 import { Fact, Timeline, WeightCurve } from '../components/fiche'
@@ -14,11 +15,13 @@ export default function FicheBande() {
   const { id } = useParams()
   const { t, i18n } = useTranslation()
   const { role } = useAuth()
+  const ask = useAsk()
+  const run = useRun()
   const lang = i18n.resolvedLanguage
   const n = (v, d = 0) => (v == null ? '—' : Number(v).toLocaleString(lang, { maximumFractionDigits: d }))
 
   const q = useQuery(async () => {
-    const [bande, ind, bilan, morts, pesees, conso, ventes, depenses, taches, resultat, livraisons] = await Promise.all([
+    const [bande, ind, bilan, morts, pesees, conso, ventes, depenses, taches, resultat, livraisons, batiments] = await Promise.all([
       supabase.from(TABLES.bandes).select('*, fournisseur:tiers(nom)').eq('id', id).single(),
       supabase.from('indicateurs_bandes').select('*').eq('bande_id', id).maybeSingle(),
       supabase.from('bilans_bandes').select('*').eq('bande_id', id).maybeSingle(),
@@ -29,12 +32,13 @@ export default function FicheBande() {
       supabase.from(TABLES.depenses).select('id, date_depense, categorie, libelle, montant, statut, annulee, created_at').eq('bande_id', id),
       supabase.from(TABLES.taches).select('id, titre, type_tache, date_prevue, statut, fait_le, produit').eq('bande_id', id).neq('statut', 'annule').order('date_prevue'),
       supabase.from('resultat_bandes').select('*').eq('bande_id', id).maybeSingle(),
-      supabase.from('livraisons_poussins').select('id, date_livraison, nombre, notes').eq('bande_id', id).order('date_livraison').order('created_at')
+      supabase.from('livraisons_poussins').select('id, date_livraison, nombre, notes').eq('bande_id', id).order('date_livraison').order('created_at'),
+      supabase.from('batiments').select('id, nom').order('nom')
     ])
     return {
       bande: must(bande), ind: must(ind), bilan: must(bilan), morts: must(morts), pesees: must(pesees),
       conso: must(conso), ventes: must(ventes), depenses: must(depenses), taches: must(taches), resultat: must(resultat),
-      livraisons: must(livraisons)
+      livraisons: must(livraisons), batiments: must(batiments)
     }
   }, [id])
 
@@ -45,20 +49,27 @@ export default function FicheBande() {
 
   // Chicks delivered in several times: each delivery adds to the flock's initial number
   const ajouterLivraison = async () => {
-    const date = window.prompt(t('livraisons.datePrompt'), new Date().toLocaleDateString('en-CA'))
-    if (!date) return
-    const nombre = Number(window.prompt(t('livraisons.numberPrompt')))
-    if (!nombre || nombre <= 0) return
-    const { error } = await supabase.from('livraisons_poussins').insert({ bande_id: id, date_livraison: date, nombre })
-    if (error) window.alert(error.message)
-    q.reload()
+    const v = await ask.form({ title: t('livraisons.add'), icon: 'drumstick', submit: t('dialog.save'), fields: [
+      { name: 'date', label: t('livraisons.dateLabel'), type: 'date', value: new Date().toLocaleDateString('en-CA'), required: true },
+      { name: 'nombre', label: t('livraisons.numberLabel'), type: 'number', min: 1, required: true }] })
+    if (v) await run(supabase.from('livraisons_poussins').insert({ bande_id: id, date_livraison: v.date, nombre: v.nombre }), q.reload)
   }
   const supprimerLivraison = async (l) => {
-    if (!window.confirm(t('livraisons.confirmRemove', { n: l.nombre, d: day(l.date_livraison, lang) }))) return
-    const { error } = await supabase.from('livraisons_poussins').delete().eq('id', l.id)
-    if (error) window.alert(error.message)
-    q.reload()
+    if (!(await ask.confirm(t('livraisons.confirmRemove', { n: l.nombre, d: day(l.date_livraison, lang) }), { title: t('stock.remove'), icon: 'trash', danger: true }))) return
+    await run(supabase.from('livraisons_poussins').delete().eq('id', l.id), q.reload)
   }
+  // Edit the flock file (strain, building, planned sale, notes)
+  const modifier = async () => {
+    const v = await ask.form({ title: t('fiche.editTitle', { code: bande.code }), icon: 'drumstick', submit: t('dialog.save'), fields: [
+      { name: 'souche', label: t('ferme.strain'), value: bande.souche ?? '' },
+      { name: 'batiment_id', label: t('batiments.building'), type: 'select', value: bande.batiment_id ?? '',
+        options: [{ value: '', label: '—' }, ...q.data.batiments.map((b) => ({ value: b.id, label: b.nom }))] },
+      { name: 'date_vente_prevue', label: t('ferme.plannedSale'), type: 'date', value: bande.date_vente_prevue ?? '' },
+      { name: 'notes', label: t('saisie.notes'), type: 'textarea', value: bande.notes ?? '' }] })
+    if (v) await run(supabase.from(TABLES.bandes).update({ souche: v.souche || null, batiment_id: v.batiment_id || null,
+      date_vente_prevue: v.date_vente_prevue || null, notes: v.notes || null }).eq('id', id), q.reload)
+  }
+  const batiment = q.data.batiments.find((b) => b.id === bande.batiment_id)
   // Closed flock: show the frozen report ; otherwise live figures
   const ind = bilan ?? q.data.ind
 
@@ -86,6 +97,8 @@ export default function FicheBande() {
           <p className="hero-date">{t('types.chair_pl')}{bande.souche ? ` · ${bande.souche}` : ''}{bande.fournisseur ? ` · ${bande.fournisseur.nom}` : ''}</p>
           <h1>{bande.code}</h1>
           <span className="chip">{t(`statuts.${bande.statut}`)}</span>
+          {batiment && <span className="chip">{batiment.nom}</span>}
+          {can(role, 'bande.create') && <button className="btn ghost sm" onClick={modifier}><Icon name="note" size={14} />{t('common.edit')}</button>}
         </div>
         <div className="hero-facts">
           <div><span>{t('dashboard.age')}</span><strong>{t('dashboard.days', { n: ind?.age_jours })}</strong></div>

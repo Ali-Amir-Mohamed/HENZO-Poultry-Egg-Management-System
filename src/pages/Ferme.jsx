@@ -9,6 +9,10 @@ import { localDate } from '../lib/stats'
 import Icon from '../components/Icon'
 import { day, Empty, Field, FormCard, Loading, money, Tabs } from '../components/ui'
 import Commandes from './ferme/Commandes'
+import Batiments from './ferme/Batiments'
+import Saisies from './ferme/Saisies'
+import StockOeufs from './ferme/StockOeufs'
+import { useAsk, useRun } from '../components/Dialog'
 
 // Broiler flocks and layer lots: list, creation, closure workflow
 export default function Ferme() {
@@ -16,9 +20,17 @@ export default function Ferme() {
   return (
     <div className="stack">
       <Tabs value={tab} onChange={setTab}
-        tabs={[{ id: 'chair', label: 'types.chair_pl', icon: 'drumstick' }, { id: 'pondeuse', label: 'types.pondeuse_pl', icon: 'egg' }]} />
-      <ActivitySummary activite={tab} />
-      {tab === 'chair' ? <Bandes /> : <Lots />}
+        tabs={[
+          { id: 'chair', label: 'types.chair_pl', icon: 'drumstick' },
+          { id: 'pondeuse', label: 'types.pondeuse_pl', icon: 'egg' },
+          { id: 'batiments', label: 'batiments.tab', icon: 'barn' },
+          { id: 'saisies', label: 'saisies.tab', icon: 'note' }
+        ]} />
+      {(tab === 'chair' || tab === 'pondeuse') && <ActivitySummary activite={tab} />}
+      {tab === 'chair' && <Bandes />}
+      {tab === 'pondeuse' && <><StockOeufs /><Lots /></>}
+      {tab === 'batiments' && <Batiments />}
+      {tab === 'saisies' && <Saisies />}
     </div>
   )
 }
@@ -42,6 +54,22 @@ function ActivitySummary({ activite }) {
   )
 }
 
+// Buildings in use, for the building drop-downs
+export function useBatiments() {
+  return useQuery(async () => must(await supabase.from('batiments').select('id, nom').eq('actif', true).order('nom')))
+}
+export function BatimentSelect({ value, onChange, batiments }) {
+  const { t } = useTranslation()
+  return (
+    <Field label={t('batiments.building')}>
+      <select value={value} onChange={onChange}>
+        <option value="">—</option>
+        {(batiments.data ?? []).map((b) => <option key={b.id} value={b.id}>{b.nom}</option>)}
+      </select>
+    </Field>
+  )
+}
+
 function useFournisseurs() {
   return useQuery(async () => must(await supabase.from(TABLES.tiers).select('id, nom')
     .in('type_tiers', ['fournisseur', 'client_fournisseur']).order('nom')))
@@ -54,7 +82,10 @@ function Bandes() {
   const lang = i18n.resolvedLanguage
   const list = useQuery(async () => must(await supabase.from('effectif_bandes').select('*').order('date_arrivee', { ascending: false })))
   const fournisseurs = useFournisseurs()
-  const [form, setForm] = useState({ code: '', date_arrivee: localDate(), nombre_initial: '', age_arrivee_jours: '1', souche: '', fournisseur_id: '', date_vente_prevue: '', notes: '' })
+  const batiments = useBatiments()
+  const ask = useAsk()
+  const run = useRun()
+  const [form, setForm] = useState({ batiment_id: '', code: '', date_arrivee: localDate(), nombre_initial: '', age_arrivee_jours: '1', souche: '', fournisseur_id: '', date_vente_prevue: '', notes: '' })
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
 
   const create = async () => {
@@ -63,6 +94,7 @@ function Bandes() {
       nombre_initial: Number(form.nombre_initial),
       age_arrivee_jours: Number(form.age_arrivee_jours),
       fournisseur_id: form.fournisseur_id || null,
+      batiment_id: form.batiment_id || null,
       date_vente_prevue: form.date_vente_prevue || null,
       souche: form.souche || null,
       notes: form.notes || null
@@ -72,10 +104,8 @@ function Bandes() {
   }
 
   const changeStatut = async (b, statut, question) => {
-    if (!window.confirm(question)) return
-    const { error } = await supabase.from(TABLES.bandes).update({ statut }).eq('id', b.bande_id)
-    if (error) window.alert(error.message)
-    list.reload()
+    if (!(await ask.confirm(question, { title: b.code, icon: 'flag' }))) return
+    await run(supabase.from(TABLES.bandes).update({ statut }).eq('id', b.bande_id), list.reload)
   }
 
   return (
@@ -96,6 +126,7 @@ function Bandes() {
               </select>
             </Field>
             <Field label={t('ferme.plannedSale')}><input type="date" value={form.date_vente_prevue} onChange={set('date_vente_prevue')} /></Field>
+            <BatimentSelect value={form.batiment_id} onChange={set('batiment_id')} batiments={batiments} />
           </div>
           <Field label={t('saisie.notes')}><textarea rows="2" value={form.notes} onChange={set('notes')} /></Field>
         </FormCard>
@@ -150,7 +181,10 @@ function Lots() {
   const lang = i18n.resolvedLanguage
   const list = useQuery(async () => must(await supabase.from('effectif_lots').select('*').order('date_arrivee', { ascending: false })))
   const fournisseurs = useFournisseurs()
-  const [form, setForm] = useState({ code: '', date_arrivee: localDate(), effectif_initial: '', age_arrivee_semaines: '18', souche: '', fournisseur_id: '', notes: '' })
+  const batiments = useBatiments()
+  const ask = useAsk()
+  const run = useRun()
+  const [form, setForm] = useState({ batiment_id: '', code: '', date_arrivee: localDate(), effectif_initial: '', age_arrivee_semaines: '18', souche: '', fournisseur_id: '', notes: '' })
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
 
   const create = async () => {
@@ -159,6 +193,7 @@ function Lots() {
       effectif_initial: Number(form.effectif_initial),
       age_arrivee_semaines: Number(form.age_arrivee_semaines),
       fournisseur_id: form.fournisseur_id || null,
+      batiment_id: form.batiment_id || null,
       souche: form.souche || null,
       notes: form.notes || null
     }))
@@ -167,10 +202,8 @@ function Lots() {
   }
 
   const reformer = async (l) => {
-    if (!window.confirm(t('ferme.confirmReform', { code: l.code }))) return
-    const { error } = await supabase.from(TABLES.lots).update({ statut: 'reforme', date_reforme: localDate() }).eq('id', l.lot_id)
-    if (error) window.alert(error.message)
-    list.reload()
+    if (!(await ask.confirm(t('ferme.confirmReform', { code: l.code }), { title: t('ferme.reform'), icon: 'flag', danger: true }))) return
+    await run(supabase.from(TABLES.lots).update({ statut: 'reforme', date_reforme: localDate() }).eq('id', l.lot_id), list.reload)
   }
 
   return (
@@ -189,6 +222,7 @@ function Lots() {
                 {(fournisseurs.data ?? []).map((f) => <option key={f.id} value={f.id}>{f.nom}</option>)}
               </select>
             </Field>
+            <BatimentSelect value={form.batiment_id} onChange={set('batiment_id')} batiments={batiments} />
           </div>
           <Field label={t('saisie.notes')}><textarea rows="2" value={form.notes} onChange={set('notes')} /></Field>
         </FormCard>

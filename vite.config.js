@@ -28,6 +28,8 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest}'],
         navigateFallback: '/index.html',
+        // Notifications on the phone: push and click handlers
+        importScripts: ['push-sw.js'],
         // Supabase API calls are never cached: offline writes go through the IndexedDB queue instead.
         // Only the Google font is cached so the app keeps its look offline.
         runtimeCaching: [

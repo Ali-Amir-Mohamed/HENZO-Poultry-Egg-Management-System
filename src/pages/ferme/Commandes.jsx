@@ -8,6 +8,7 @@ import { can } from '../../config'
 import { localDate } from '../../lib/stats'
 import Icon from '../../components/Icon'
 import { day, Field, FormCard, Loading, money, Panel } from '../../components/ui'
+import { useAsk, useRun } from '../../components/Dialog'
 
 // Chick orders (exploitation): order, planned deliveries, tick « Livré » with the number received,
 // new date for the rest. The first reception creates the flock.
@@ -19,22 +20,23 @@ export default function Commandes({ onChange }) {
   const today = localDate()
 
   const q = useQuery(async () => {
-    const [cmd, fournisseurs] = await Promise.all([
+    const [cmd, fournisseurs, batiments] = await Promise.all([
       supabase.from('commandes_poussins')
         .select('*, fournisseur:tiers(nom), livraisons:livraisons_poussins(id, statut, nombre, date_prevue, date_livraison, notes)')
         .order('date_livraison_prevue', { ascending: false }).limit(30),
-      supabase.from('tiers').select('id, nom').in('type_tiers', ['fournisseur', 'client_fournisseur']).order('nom')
+      supabase.from('tiers').select('id, nom').in('type_tiers', ['fournisseur', 'client_fournisseur']).order('nom'),
+      supabase.from('batiments').select('id, nom').eq('actif', true).order('nom')
     ])
-    return { commandes: must(cmd), fournisseurs: must(fournisseurs) }
+    return { commandes: must(cmd), fournisseurs: must(fournisseurs), batiments: must(batiments) }
   })
   const reload = () => { q.reload(); onChange?.() }
 
   // One order to the hatchery can cover several flocks started at the same time
-  const empty = { fournisseur_id: '', souche: '', date_livraison_prevue: today, prix_unitaire: '', notes: '', lignes: [{ code_bande: '', nombre_commande: '' }] }
+  const empty = { fournisseur_id: '', souche: '', date_livraison_prevue: today, prix_unitaire: '', notes: '', lignes: [{ code_bande: '', nombre_commande: '', batiment_id: '' }] }
   const [form, setForm] = useState(empty)
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
   const setLigne = (i, k) => (e) => setForm({ ...form, lignes: form.lignes.map((l, j) => (j === i ? { ...l, [k]: e.target.value } : l)) })
-  const addLigne = () => setForm({ ...form, lignes: [...form.lignes, { code_bande: '', nombre_commande: '' }] })
+  const addLigne = () => setForm({ ...form, lignes: [...form.lignes, { code_bande: '', nombre_commande: '', batiment_id: '' }] })
   const removeLigne = (i) => setForm({ ...form, lignes: form.lignes.filter((_, j) => j !== i) })
   const total = form.lignes.reduce((s, l) => s + (Number(l.nombre_commande) || 0), 0)
 
@@ -44,6 +46,7 @@ export default function Commandes({ onChange }) {
       reference,
       code_bande: l.code_bande,
       nombre_commande: Number(l.nombre_commande),
+      batiment_id: l.batiment_id || null,
       date_livraison_prevue: form.date_livraison_prevue,
       fournisseur_id: form.fournisseur_id || null,
       souche: form.souche || null,
@@ -55,30 +58,31 @@ export default function Commandes({ onChange }) {
     return t('commandes.created')
   }
 
-  const rpc = async (fn, args) => {
-    const { error } = await supabase.rpc(fn, args)
-    if (error) window.alert(error.message)
-    reload()
-  }
+  const ask = useAsk()
+  const run = useRun()
+  const rpc = (fn, args) => run(supabase.rpc(fn, args), reload)
 
   // « Livré » : number actually received; if some are missing, the new date announced for the rest
-  const livrer = async (l) => {
-    const recu = Number(window.prompt(t('commandes.receivedPrompt', { n: l.nombre }), l.nombre))
-    if (!recu || recu <= 0) return
-    const date = window.prompt(t('commandes.receivedDatePrompt'), today)
-    if (!date) return
-    let reste = null
-    if (recu < l.nombre) {
-      reste = window.prompt(t('commandes.restPrompt', { n: l.nombre - recu }), '') || null
-    }
-    await rpc('receptionner_livraison', { p_livraison: l.id, p_nombre: recu, p_date: date, p_date_reste: reste })
+  const livrer = async (l, code) => {
+    const v = await ask.form({
+      title: t('commandes.receiveTitle', { n: l.nombre, code }), icon: 'drumstick', submit: t('commandes.delivered'),
+      fields: [
+        { name: 'recu', label: t('commandes.receivedLabel'), type: 'number', value: l.nombre, min: 1, required: true },
+        { name: 'date', label: t('commandes.receivedDateLabel'), type: 'date', value: today, required: true },
+        { name: 'reste', label: t('commandes.restDateLabel'), type: 'date', value: '', showIf: (x) => Number(x.recu) > 0 && Number(x.recu) < l.nombre,
+          hint: t('commandes.restHint') }
+      ]
+    })
+    if (!v) return
+    await rpc('receptionner_livraison', { p_livraison: l.id, p_nombre: v.recu, p_date: v.date, p_date_reste: v.recu < l.nombre && v.reste ? v.reste : null })
   }
   const reporter = async (l) => {
-    const date = window.prompt(t('commandes.postponePrompt'), l.date_prevue)
-    if (date) await rpc('reporter_livraison', { p_livraison: l.id, p_date: date })
+    const v = await ask.form({ title: t('commandes.postponeTitle', { n: l.nombre }), icon: 'calendar', submit: t('planning.postpone'),
+      fields: [{ name: 'date', label: t('commandes.expectedDate'), type: 'date', value: l.date_prevue, required: true }] })
+    if (v) await rpc('reporter_livraison', { p_livraison: l.id, p_date: v.date })
   }
   const annuler = async (l) => {
-    if (window.confirm(t('commandes.confirmCancel', { n: l.nombre }))) await rpc('annuler_livraison_prevue', { p_livraison: l.id })
+    if (await ask.confirm(t('commandes.confirmCancel', { n: l.nombre }), { title: t('argent.cancel'), icon: 'drumstick', danger: true })) await rpc('annuler_livraison_prevue', { p_livraison: l.id })
   }
 
   if (!q.data) return <Loading error={q.error} />
@@ -129,7 +133,7 @@ export default function Commandes({ onChange }) {
                           </span>
                           {l.statut === 'prevue' && manage && (
                             <span className="row-actions">
-                              <button className="btn primary sm" onClick={() => livrer(l)}><Icon name="check" size={14} />{t('commandes.delivered')}</button>
+                              <button className="btn primary sm" onClick={() => livrer(l, c.code_bande)}><Icon name="check" size={14} />{t('commandes.delivered')}</button>
                               <button className="btn ghost sm" onClick={() => reporter(l)}>{t('planning.postpone')}</button>
                               <button className="btn ghost sm" onClick={() => annuler(l)}>{t('argent.cancel')}</button>
                             </span>
@@ -175,6 +179,14 @@ export default function Commandes({ onChange }) {
                   )}
                 </span>
               </Field>
+              {q.data.batiments.length > 0 && (
+                <Field label={t('batiments.building')}>
+                  <select value={l.batiment_id} onChange={setLigne(i, 'batiment_id')}>
+                    <option value="">—</option>
+                    {q.data.batiments.map((b) => <option key={b.id} value={b.id}>{b.nom}</option>)}
+                  </select>
+                </Field>
+              )}
             </div>
           ))}
           <button type="button" className="btn ghost sm" onClick={addLigne}><Icon name="plus" size={14} />{t('commandes.addFlock')}</button>

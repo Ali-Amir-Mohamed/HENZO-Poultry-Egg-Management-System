@@ -212,7 +212,10 @@ function ManagerHome({ stats }) {
       <section className="kpis three">
         <Kpi icon="egg" tone="yolk" label={t('dashboard.eggsToday')} value={fmt(today.eggs)}
           hint={t('dashboard.layingRate', { rate: taux })} />
-        <Kpi icon="broken" tone="rose" label={t('dashboard.broken')} value={fmt(today.broken)} />
+        {stats.pondeuse.stock
+          ? <Kpi icon="egg" tone="green" label={t('oeufs.title')} value={t('oeufs.traysN', { n: fmt(stats.pondeuse.stock.plateaux) })}
+            hint={`${stats.pondeuse.stock.oeufs_isoles ? `+ ${fmt(stats.pondeuse.stock.oeufs_isoles)} ${t('oeufs.eggs')} · ` : ''}${t('dashboard.brokenToday', { n: fmt(today.broken) })}`} />
+          : <Kpi icon="broken" tone="rose" label={t('dashboard.broken')} value={fmt(today.broken)} />}
         <Kpi icon="hen" tone="green" label={t('dashboard.layers')} value={fmt(stats.pondeuse.effectif)} />
       </section>
       <section className="panel">

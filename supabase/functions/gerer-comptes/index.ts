@@ -43,15 +43,20 @@ Deno.serve(async (req) => {
         email: `${identifiant}@${DOMAIN}`, password, email_confirm: true, user_metadata: { nom_complet: nom }
       })
       if (error) return json({ error: /already|exists/i.test(error.message) ? 'Cet identifiant existe déjà' : error.message }, 400)
-      // Le profil est créé automatiquement (rôle « employe ») : on applique le rôle choisi
-      const { error: roleError } = await admin.from('profiles').update({ role: body.role, nom_complet: nom }).eq('id', data.user.id)
+      // Le profil est créé automatiquement (rôle « employe ») : on le place dans la ferme active
+      // du directeur avec le rôle choisi, et il n'est membre que de cette ferme
+      const { error: roleError } = await admin.from('profiles')
+        .update({ role: body.role, nom_complet: nom, ferme_id: me.ferme_id }).eq('id', data.user.id)
       if (roleError) return json({ error: roleError.message }, 400)
+      await admin.from('membres_fermes').delete().eq('user_id', data.user.id).neq('ferme_id', me.ferme_id)
       return json({ ok: true, id: data.user.id })
     }
 
     if (body.action === 'reset_password') {
-      const { data: target } = await admin.from('profiles').select('ferme_id').eq('id', body.user_id).single()
-      if (!target || target.ferme_id !== me.ferme_id) return json({ error: 'Compte introuvable' }, 404)
+      // Le compte doit être membre de la ferme active du directeur
+      const { data: target } = await admin.from('membres_fermes').select('user_id')
+        .eq('user_id', body.user_id).eq('ferme_id', me.ferme_id).maybeSingle()
+      if (!target) return json({ error: 'Compte introuvable' }, 404)
       const { error } = await admin.auth.admin.updateUserById(body.user_id, { password })
       if (error) return json({ error: error.message }, 400)
       return json({ ok: true })

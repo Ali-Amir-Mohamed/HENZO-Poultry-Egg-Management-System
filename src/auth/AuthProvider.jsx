@@ -26,6 +26,19 @@ async function loadProfile(user) {
   return data
 }
 
+// Short device description for the login history (e.g. "Android · Chrome")
+function appareil() {
+  const ua = navigator.userAgent
+  const os = /Android/.test(ua) ? 'Android' : /iPhone|iPad/.test(ua) ? 'iPhone' : /Windows/.test(ua) ? 'Windows' : /Mac/.test(ua) ? 'Mac' : /Linux/.test(ua) ? 'Linux' : '?'
+  const nav = /Edg\//.test(ua) ? 'Edge' : /SamsungBrowser/.test(ua) ? 'Samsung' : /Chrome\//.test(ua) ? 'Chrome' : /Firefox\//.test(ua) ? 'Firefox' : /Safari\//.test(ua) ? 'Safari' : '?'
+  const app = window.matchMedia?.('(display-mode: standalone)').matches ? ' · app' : ''
+  return `${os} · ${nav}${app}`
+}
+// Login history (read by the director). Never blocks signing in or out.
+const noterConnexion = async (evenement) => {
+  try { await supabase.from('connexions').insert({ evenement, appareil: appareil() }) } catch {}
+}
+
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null)
   const [profile, setProfile] = useState(null)
@@ -47,9 +60,14 @@ export function AuthProvider({ children }) {
     return () => { active = false; sub.subscription.unsubscribe() }
   }, [])
 
-  const signIn = (identifier, password) =>
-    supabase.auth.signInWithPassword({ email: toLoginEmail(identifier), password })
-  const signOut = async () => {
+  const signIn = async (identifier, password) => {
+    const res = await supabase.auth.signInWithPassword({ email: toLoginEmail(identifier), password })
+    if (!res.error) noterConnexion('connexion')
+    return res
+  }
+  // reason: 'deconnexion' (button) or 'expiration' (inactivity)
+  const signOut = async (reason) => {
+    if (navigator.onLine) await noterConnexion(reason === 'expiration' ? 'expiration' : 'deconnexion')
     try { localStorage.removeItem(PROFILE_CACHE) } catch {}
     await supabase.auth.signOut()
   }

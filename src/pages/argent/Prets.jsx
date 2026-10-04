@@ -6,7 +6,8 @@ import { must, useQuery } from '../../hooks'
 import { can, MODES_PAIEMENT } from '../../config'
 import { localDate } from '../../lib/stats'
 import Icon from '../../components/Icon'
-import { askReason, day, Empty, Field, FormCard, Loading, money, Panel } from '../../components/ui'
+import { day, Empty, Field, FormCard, Loading, money, Panel } from '../../components/ui'
+import { useAsk, useRun } from '../../components/Dialog'
 
 // Loans (bank / private person): schedule, repayments, balance
 export default function Prets() {
@@ -14,6 +15,8 @@ export default function Prets() {
   const { role } = useAuth()
   const lang = i18n.resolvedLanguage
   const manage = can(role, 'pret.manage')
+  const ask = useAsk()
+  const run = useRun()
 
   const list = useQuery(async () => {
     const [s, e, r, b] = await Promise.all([
@@ -36,33 +39,35 @@ export default function Prets() {
   const { prets, echeances, remboursements, bandes } = list.data
 
   const addEcheance = async (p) => {
-    const date = window.prompt(t('prets.dueDatePrompt'), localDate())
-    if (!date) return
-    const montant = Number(window.prompt(t('prets.dueAmountPrompt')))
-    if (!montant) return
-    const { error } = await supabase.from('echeances_prets').insert({ pret_id: p.pret_id, date_echeance: date, montant })
-    if (error) window.alert(error.message)
-    list.reload()
+    const v = await ask.form({
+      title: t('prets.addDueTitle', { preteur: p.preteur }), icon: 'calendar', submit: t('dialog.save'),
+      fields: [
+        { name: 'date', label: t('prets.dueDate'), type: 'date', value: localDate(), required: true },
+        { name: 'montant', label: t('argent.amount'), type: 'number', min: 1, required: true }
+      ]
+    })
+    if (!v) return
+    await run(supabase.from('echeances_prets').insert({ pret_id: p.pret_id, date_echeance: v.date, montant: v.montant }), list.reload)
   }
   const rembourser = async (p) => {
-    const montant = Number(window.prompt(t('argent.paymentAmount', { n: money(p.solde, lang) }), p.solde))
-    if (!montant) return
-    const choice = window.prompt(t('argent.paymentMode', MODES_PAIEMENT.reduce((o, m, i) => ({ ...o, [`m${i + 1}`]: t(`modes.${m}`) }), {})), '3')
-    const mode = MODES_PAIEMENT[Number(choice) - 1]
-    if (!mode) return
-    const codes = bandes.map((b) => b.code).join(', ')
-    const code = window.prompt(t('prets.linkFlock', { codes }), '')
-    const bande = bandes.find((b) => b.code === (code || '').trim())
-    const { error } = await supabase.from('remboursements_prets').insert({ pret_id: p.pret_id, montant, mode_paiement: mode, bande_id: bande?.id ?? null })
-    if (error) window.alert(error.message)
-    list.reload()
+    const v = await ask.form({
+      title: t('prets.repayTitle', { preteur: p.preteur }), icon: 'wallet', submit: t('prets.repay'),
+      fields: [
+        { name: 'montant', label: t('argent.amount'), type: 'number', value: Number(p.solde), min: 1, max: Number(p.solde), required: true, hint: t('argent.remaining', { n: money(p.solde, lang) }) },
+        { name: 'mode', label: t('saisie.modeAcompte'), type: 'select', value: 'banque', options: MODES_PAIEMENT.map((m) => ({ value: m, label: t(`modes.${m}`) })) },
+        { name: 'date', label: t('saisie.date'), type: 'date', value: localDate(), required: true },
+        { name: 'bande', label: t('prets.linkFlockLabel'), type: 'select', value: '', options: [{ value: '', label: '—' }, ...bandes.map((b) => ({ value: b.id, label: b.code }))] }
+      ]
+    })
+    if (!v) return
+    await run(supabase.from('remboursements_prets').insert({
+      pret_id: p.pret_id, montant: v.montant, mode_paiement: v.mode, date_remboursement: v.date, bande_id: v.bande || null
+    }), list.reload)
   }
-  const annuler = async (table, id) => {
-    const motif = askReason(t('argent.cancelReason'))
+  const annuler = async (table, id, title) => {
+    const motif = await ask.reason(title)
     if (!motif) return
-    const { error } = await supabase.from(table).update({ annulee: true, motif_annulation: motif }).eq('id', id)
-    if (error) window.alert(error.message)
-    list.reload()
+    await run(supabase.from(table).update({ annulee: true, motif_annulation: motif }).eq('id', id), list.reload)
   }
 
   return (
@@ -104,7 +109,7 @@ export default function Prets() {
                         <div className="muted small">{day(r.date_remboursement, lang)} · {t(`modes.${r.mode_paiement}`)}{r.bande ? ` · ${t('prets.flock', { code: r.bande.code })}` : ''}</div>
                         {r.annulee && <div className="error small">{t('argent.cancelled')} : {r.motif_annulation}</div>}
                       </div>
-                      {!r.annulee && can(role, 'annuler') && <button className="btn ghost sm" onClick={() => annuler('remboursements_prets', r.id)}>{t('argent.cancel')}</button>}
+                      {!r.annulee && can(role, 'annuler') && <button className="btn ghost sm" onClick={() => annuler('remboursements_prets', r.id, t('prets.cancelRepayment', { n: money(r.montant, lang) }))}>{t('argent.cancel')}</button>}
                     </li>
                   ))}
                 </ul>
@@ -114,7 +119,7 @@ export default function Prets() {
               <div className="row-actions">
                 {manage && Number(p.solde) > 0 && <button className="btn primary sm" onClick={() => rembourser(p)}>{t('prets.repay')}</button>}
                 {manage && <button className="btn ghost sm" onClick={() => addEcheance(p)}>{t('prets.addDue')}</button>}
-                {can(role, 'annuler') && <button className="btn ghost sm" onClick={() => annuler('prets', p.pret_id)}>{t('argent.cancel')}</button>}
+                {can(role, 'annuler') && <button className="btn ghost sm" onClick={() => annuler('prets', p.pret_id, t('prets.cancelLoan', { preteur: p.preteur }))}>{t('argent.cancel')}</button>}
               </div>
             )}
           </Panel>

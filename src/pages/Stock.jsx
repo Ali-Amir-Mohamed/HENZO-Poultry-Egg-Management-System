@@ -7,6 +7,7 @@ import { ARTICLE_CATEGORIES, ARTICLE_UNITES, can, TABLES } from '../config'
 import { localDate } from '../lib/stats'
 import Icon from '../components/Icon'
 import { day, Empty, Field, FormCard, Loading, Panel } from '../components/ui'
+import { useAsk, useRun } from '../components/Dialog'
 
 // Stock: entries come from purchases (expenses), consumption from field entries.
 export default function Stock() {
@@ -14,6 +15,8 @@ export default function Stock() {
   const { role } = useAuth()
   const lang = i18n.resolvedLanguage
   const fmt = (n) => Number(n ?? 0).toLocaleString(lang, { maximumFractionDigits: 2 })
+  const ask = useAsk()
+  const run = useRun()
 
   const stock = useQuery(async () => must(await supabase.from('stock_articles').select('*').order('nom')))
   const moves = useQuery(async () => must(await supabase.from(TABLES.mouvementsStock)
@@ -36,10 +39,25 @@ export default function Stock() {
   }
   // A manual entry or adjustment typed by mistake can be removed (not purchases: cancel the expense instead)
   const removeMove = async (m) => {
-    if (!window.confirm(t('stock.confirmRemove', { q: fmt(m.quantite), unite: t(`unites.${m.article?.unite}`), nom: m.article?.nom }))) return
-    const { error } = await supabase.from(TABLES.mouvementsStock).delete().eq('id', m.id)
-    if (error) window.alert(error.message)
-    reload()
+    if (!(await ask.confirm(t('stock.confirmRemove', { q: fmt(m.quantite), unite: t(`unites.${m.article?.unite}`), nom: m.article?.nom }), { title: t('stock.remove'), icon: 'trash', danger: true }))) return
+    await run(supabase.from(TABLES.mouvementsStock).delete().eq('id', m.id), reload)
+  }
+
+  // Edit a product: name, minimum level, bag weight, active
+  const editArticle = async (s) => {
+    const a = must(await supabase.from(TABLES.articles).select('*').eq('id', s.article_id).single())
+    const v = await ask.form({ title: t('stock.editTitle', { nom: a.nom }), icon: 'box', submit: t('dialog.save'), fields: [
+      { name: 'nom', label: t('stock.name'), value: a.nom, required: true },
+      { name: 'seuil_minimum', label: t('stock.threshold'), type: 'number', value: a.seuil_minimum, min: 0, step: '0.01', required: true },
+      ...(a.categorie === 'aliment' && a.unite !== 'kg'
+        ? [{ name: 'poids_unitaire_kg', label: t('stock.unitWeight', { unite: t(`unites.${a.unite}`) }), type: 'number', value: a.poids_unitaire_kg ?? '', min: 0.001, step: '0.001', required: true }]
+        : []),
+      { name: 'actif', label: t('stock.status'), type: 'select', value: a.actif ? 'oui' : 'non', options: [{ value: 'oui', label: t('stock.active') }, { value: 'non', label: t('stock.inactive') }] }
+    ] })
+    if (!v) return
+    const patch = { nom: v.nom, seuil_minimum: v.seuil_minimum, actif: v.actif === 'oui' }
+    if ('poids_unitaire_kg' in v) patch.poids_unitaire_kg = v.poids_unitaire_kg
+    await run(supabase.from(TABLES.articles).update(patch).eq('id', a.id), reload)
   }
 
   const createMove = async () => {
@@ -76,6 +94,9 @@ export default function Stock() {
                   <div className="fact"><span>{t('stock.autonomy')}</span><strong>{s.autonomie_jours != null ? t('dashboard.days', { n: s.autonomie_jours }) : '—'}</strong></div>
                 </div>
                 {low && <div className="alert danger"><Icon name="alert" size={16} />{t('stock.low')}</div>}
+                {can(role, 'article.edit') && (
+                  <footer><button className="btn ghost sm" onClick={() => editArticle(s)}><Icon name="note" size={14} />{t('common.edit')}</button></footer>
+                )}
               </article>
             )
           })}

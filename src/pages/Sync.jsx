@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { discardOutboxItem, listOutbox, onQueueChange, syncOutbox } from '../lib/offlineQueue'
 import { useOnline } from '../hooks'
 import Icon from '../components/Icon'
+import { useAsk } from '../components/Dialog'
 
 export default function Sync() {
   const { t, i18n } = useTranslation()
@@ -15,8 +16,9 @@ export default function Sync() {
     return onQueueChange(refresh)
   }, [])
 
-  const discard = (it) => {
-    if (window.confirm(t('sync.confirmDiscard'))) discardOutboxItem(it.seq)
+  const ask = useAsk()
+  const discard = async (it) => {
+    if (await ask.confirm(t('sync.confirmDiscard'), { title: t('sync.discard'), icon: 'trash', danger: true, submit: t('sync.discard') })) discardOutboxItem(it.seq)
   }
 
   return (

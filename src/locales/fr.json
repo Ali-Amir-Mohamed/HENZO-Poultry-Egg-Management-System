@@ -166,7 +166,8 @@
     "broken": "Cassés aujourd’hui",
     "layers": "Pondeuses en production",
     "last7": "Œufs : 7 derniers jours",
-    "total": "{{n}} œufs au total"
+    "total": "{{n}} œufs au total",
+    "brokenToday": "{{n}} cassés aujourd’hui"
   },
   "saisie": {
     "kinds": {
@@ -349,7 +350,18 @@
     "correctionSens": "Correction : 1 = ajouter de l’argent à cette caisse, 2 = retirer de l’argent de cette caisse",
     "correctionAmount": "Montant de la correction (FCFA) :",
     "correctionReason": "Motif de la correction (obligatoire) :",
-    "supplierRequired": "Fournisseur (obligatoire pour ce montant)"
+    "supplierRequired": "Fournisseur (obligatoire pour ce montant)",
+    "remaining": "Reste à payer : {{n}}",
+    "correctTitle": "Corriger « {{libelle}} »",
+    "correctionDirection": "Sens de la correction",
+    "correctionAdd": "Ajouter de l’argent dans la caisse",
+    "correctionRemove": "Retirer de l’argent de la caisse",
+    "correctionAmountLabel": "Montant de la correction (FCFA)",
+    "rejectTitle": "Rejeter « {{libelle}} »",
+    "cancelTitle": "Annuler « {{libelle}} »",
+    "cancelSaleTitle": "Annuler la vente de {{n}}",
+    "collectFrom": "Encaisser – {{nom}}",
+    "payTo": "Payer – {{nom}}"
   },
   "stock": {
     "empty": "Aucun produit. Créez d’abord vos aliments et médicaments.",
@@ -375,7 +387,11 @@
     "noMoves": "Aucun mouvement.",
     "remove": "Supprimer",
     "fromPurchase": "achat",
-    "confirmRemove": "Supprimer l’entrée manuelle de {{q}} {{unite}} de {{nom}} ? (Les achats, eux, s’annulent dans Argent → Dépenses.)"
+    "confirmRemove": "Supprimer l’entrée manuelle de {{q}} {{unite}} de {{nom}} ? (Les achats, eux, s’annulent dans Argent → Dépenses.)",
+    "status": "État",
+    "editTitle": "Modifier {{nom}}",
+    "active": "Actif",
+    "inactive": "Archivé (plus utilisé)"
   },
   "reglages": {
     "tabs": {
@@ -384,7 +400,9 @@
       "demarrage": "Démarrage",
       "comptes": "Comptes",
       "journal": "Journal",
-      "sauvegarde": "Sauvegarde"
+      "sauvegarde": "Sauvegarde",
+      "connexions": "Connexions",
+      "fermes": "Fermes"
     },
     "newTiers": "Nouveau client / fournisseur",
     "type": "Type",
@@ -406,7 +424,10 @@
     "newPrice": "Nouveau prix",
     "price": "Prix (FCFA)",
     "from": "À partir du",
-    "priceGapNote": "Une vente à un autre prix est signalée au directeur."
+    "priceGapNote": "Une vente à un autre prix est signalée au directeur.",
+    "editTitle": "Modifier {{nom}}",
+    "ceilingEdit": "Plafond de crédit (FCFA)",
+    "ceilingHint": "0 = pas de crédit autorisé."
   },
   "fiche": {
     "back": "Retour à la ferme",
@@ -453,7 +474,8 @@
     "investors10": "10 % dus aux investisseurs",
     "loanRepaid": "Remboursements de prêt liés à la bande",
     "availableProfit": "Bénéfice disponible",
-    "netNote": "Charges générales de l’activité chair réparties entre les bandes présentes à la date de chaque dépense, au prorata du nombre de poulets."
+    "netNote": "Charges générales de l’activité chair réparties entre les bandes présentes à la date de chaque dépense, au prorata du nombre de poulets.",
+    "editTitle": "Modifier {{code}}"
   },
   "capital": {
     "pendingTitle": "10 % à verser ou réinvestir",
@@ -498,7 +520,9 @@
       "en_attente": "En attente",
       "retire": "Versé",
       "reinvesti": "Réinvesti"
-    }
+    },
+    "payoutTitle": "Verser {{n}}",
+    "cancelOperation": "Annuler l’opération de {{n}}"
   },
   "prets": {
     "none": "Aucun prêt en cours.",
@@ -527,7 +551,13 @@
     "hint": "Le montant prêté entre dans la caisse de l’activité choisie. Les remboursements en sortent.",
     "dueDatePrompt": "Date de l’échéance (AAAA-MM-JJ) :",
     "dueAmountPrompt": "Montant de l’échéance (FCFA) :",
-    "linkFlock": "Lier à une fin de bande ? Tapez le code (ou laissez vide). Bandes : {{codes}}"
+    "linkFlock": "Lier à une fin de bande ? Tapez le code (ou laissez vide). Bandes : {{codes}}",
+    "addDueTitle": "Nouvelle échéance – {{preteur}}",
+    "dueDate": "Date d’échéance",
+    "repayTitle": "Rembourser {{preteur}}",
+    "linkFlockLabel": "Bande concernée (facultatif)",
+    "cancelRepayment": "Annuler le remboursement de {{n}}",
+    "cancelLoan": "Annuler le prêt de {{preteur}}"
   },
   "verif": {
     "new": "Vérifier une caisse",
@@ -596,7 +626,8 @@
     "newStep": "Nouvelle étape de programme",
     "production": "Production",
     "ageDay": "Âge des oiseaux (jours)",
-    "receiveInFarm": "Réceptionner dans Ferme"
+    "receiveInFarm": "Réceptionner dans Ferme",
+    "postponeTitle": "Reporter « {{titre}} »"
   },
   "alertes": {
     "mortalite": "Mortalité anormale : {{morts}} morts dans {{code}} ({{pct}} %) le {{date}}",
@@ -743,7 +774,17 @@
     "passwordDone": "Mot de passe modifié.",
     "confirmDisable": "Désactiver le compte de {{nom}} ? Il ne pourra plus rien voir ni saisir.",
     "confirmEnable": "Réactiver le compte de {{nom}} ?",
-    "noFunction": "La fonction « gerer-comptes » n’est pas encore installée dans Supabase (voir les instructions)."
+    "noFunction": "La fonction « gerer-comptes » n’est pas encore installée dans Supabase (voir les instructions).",
+    "roleTitle": "Rôle de {{nom}}",
+    "passwordTitle": "Nouveau mot de passe pour {{id}}",
+    "newPassword": "Nouveau mot de passe",
+    "passwordHint": "8 caractères minimum. Communiquez-le à la personne de vive voix.",
+    "passwordTooShort": "Le mot de passe doit faire au moins 8 caractères.",
+    "passwordDoneText": "Le mot de passe de {{id}} est changé.",
+    "addExisting": "Ajouter un compte existant",
+    "add": "Ajouter",
+    "roleHere": "Rôle dans cette ferme",
+    "activeElsewhere": "travaille actuellement dans une autre ferme"
   },
   "journal": {
     "title": "Journal d’activité",
@@ -777,7 +818,15 @@
       "profiles": "Compte",
       "fermes": "Paramètres de la ferme",
       "livraisons_poussins": "Livraison de poussins",
-      "commandes_poussins": "Commande de poussins"
+      "commandes_poussins": "Commande de poussins",
+      "mortalites": "Mortalité",
+      "pontes": "Ponte",
+      "pesees": "Pesée",
+      "observations": "Observation",
+      "mouvements_stock": "Mouvement de stock",
+      "articles": "Produit du stock",
+      "ajustements_oeufs": "Ajustement d’œufs",
+      "batiments": "Bâtiment"
     }
   },
   "sauvegarde": {
@@ -830,7 +879,8 @@
     "loading": "Chargement…",
     "saved": "Enregistré.",
     "save": "Enregistrer",
-    "close": "Fermer"
+    "close": "Fermer",
+    "edit": "Modifier"
   },
   "livraisons": {
     "title": "Livraisons de poussins ({{n}} au total)",
@@ -839,7 +889,9 @@
     "datePrompt": "Date de la livraison (AAAA-MM-JJ) :",
     "numberPrompt": "Nombre de poussins livrés :",
     "confirmRemove": "Supprimer la livraison de {{n}} poussins du {{d}} ?",
-    "hint": "Livraison en plusieurs fois : ajoutez chaque livraison ici, le nombre de la bande se met à jour. Enregistrez le paiement dans Argent → Dépenses (catégorie Poussins, cette bande)."
+    "hint": "Livraison en plusieurs fois : ajoutez chaque livraison ici, le nombre de la bande se met à jour. Enregistrez le paiement dans Argent → Dépenses (catégorie Poussins, cette bande).",
+    "dateLabel": "Date de livraison",
+    "numberLabel": "Nombre de poussins"
   },
   "commandes": {
     "title_one": "Commande de poussins en cours ({{count}})",
@@ -875,6 +927,167 @@
     "groupSummary": "{{flocks}} bande(s) · {{recus}} / {{total}} poussins reçus",
     "flocksOfOrder": "Bandes de cette commande (une ligne par bande)",
     "addFlock": "Ajouter une bande à la commande",
-    "totalOrdered": "Total commandé"
+    "totalOrdered": "Total commandé",
+    "receiveTitle": "Réception de {{n}} poussins – bande {{code}}",
+    "receivedLabel": "Nombre de poussins reçus",
+    "receivedDateLabel": "Date de réception",
+    "restDateLabel": "Nouvelle date pour le reste",
+    "restHint": "Laissez vide si le fournisseur ne livrera pas le reste.",
+    "postponeTitle": "Reporter la livraison de {{n}} poussins"
+  },
+  "dialog": {
+    "errorTitle": "Opération impossible",
+    "reason": "Motif",
+    "confirm": "Confirmer",
+    "required": "« {{field}} » est obligatoire",
+    "min": "« {{field}} » doit être au moins {{min}}",
+    "max": "« {{field}} » doit être au plus {{max}}",
+    "confirmTitle": "Confirmation",
+    "cancel": "Annuler",
+    "ok": "OK",
+    "save": "Enregistrer"
+  },
+  "fermes": {
+    "pendingFirst_one": "{{count}} saisie attend d’être envoyée : synchronisez-la avant de changer de ferme.",
+    "pendingFirst_other": "{{count}} saisies attendent d’être envoyées : synchronisez-les avant de changer de ferme.",
+    "switch": "Changer de ferme",
+    "new": "Nouvelle ferme",
+    "create": "Créer la ferme",
+    "name": "Nom de la ferme",
+    "newHint": "La nouvelle ferme reçoit ses propres caisses (à zéro), le même programme de soins et les mêmes réglages que la ferme actuelle. Vous en êtes le directeur.",
+    "created": "La ferme « {{nom}} » est créée. L’ouvrir maintenant ?",
+    "open": "Ouvrir",
+    "title": "Mes fermes",
+    "subtitle": "Chaque ferme a ses caisses, ses bandes, son stock et ses comptes. Le sélecteur en haut de l’écran permet de passer de l’une à l’autre.",
+    "current": "Ferme actuelle",
+    "membersHint": "Pour qu’un compte travaille dans une autre ferme : ouvrez cette ferme, puis Réglages > Comptes > « Ajouter un compte existant »."
+  },
+  "filtres": {
+    "from": "Du",
+    "to": "Au",
+    "activity": "Activité",
+    "both": "Les deux",
+    "search": "Rechercher",
+    "searchPh": "libellé, client, bande…",
+    "export": "Excel",
+    "summary": "{{count}} mouvements · entrées {{inn}} · sorties {{out}}",
+    "total": "{{count}} lignes · total {{n}}"
+  },
+  "push": {
+    "needInstall": "Installez d’abord HENZO sur le téléphone (bouton « Installer » ou menu du navigateur > Ajouter à l’écran d’accueil), puis réessayez depuis l’appli installée.",
+    "on": "Notifications activées sur ce téléphone",
+    "disable": "Désactiver",
+    "enable": "Recevoir les notifications sur ce téléphone",
+    "denied": "Les notifications sont bloquées pour HENZO : autorisez-les dans les réglages du navigateur.",
+    "unsupported": "Notifications sur téléphone : disponibles dans l’appli installée (sur iPhone, iOS 16.4 ou plus et HENZO ajouté à l’écran d’accueil)."
+  },
+  "export": {
+    "date": "Date",
+    "activity": "Activité",
+    "mode": "Mode",
+    "nature": "Nature",
+    "label": "Libellé",
+    "in": "Entrée (FCFA)",
+    "out": "Sortie (FCFA)",
+    "category": "Catégorie",
+    "flock": "Bande / lot",
+    "supplier": "Fournisseur",
+    "amount": "Montant (FCFA)",
+    "paid": "Payé (FCFA)",
+    "status": "Statut",
+    "product": "Produit",
+    "client": "Client",
+    "quantity": "Quantité",
+    "unit": "Unité",
+    "birds": "Sujets",
+    "unitPrice": "Prix unitaire (FCFA)",
+    "cashed": "Encaissé (FCFA)"
+  },
+  "recu": {
+    "open": "Reçu",
+    "title": "Reçu de vente",
+    "date": "Date",
+    "client": "Client",
+    "total": "Total",
+    "paid": "Payé",
+    "due": "Reste à payer",
+    "dueOn": "avant le {{d}}",
+    "thanks": "Merci pour votre confiance.",
+    "item": "Article",
+    "qty": "Quantité",
+    "price": "Prix unitaire",
+    "amount": "Montant",
+    "print": "Imprimer / PDF",
+    "whatsapp": "Envoyer sur WhatsApp"
+  },
+  "oeufs": {
+    "title": "Stock d’œufs",
+    "traysN": "{{n}} plateaux",
+    "eggs": "œufs",
+    "adjustTitle": "Ajuster le stock d’œufs",
+    "direction": "Sens",
+    "remove": "Retirer (casse en magasin, consommation…)",
+    "add": "Ajouter (inventaire)",
+    "quantity": "Quantité",
+    "trays": "plateaux de {{n}}",
+    "reasonPh": "ex. casse au magasin, inventaire du jour",
+    "adjust": "Ajuster",
+    "traysLabel": "plateaux en stock",
+    "collected": "Œufs bons ramassés",
+    "sold": "Œufs vendus",
+    "adjustments": "Ajustements",
+    "total": "Stock (œufs)",
+    "negative": "Le stock est négatif : il manque des ramassages ou un inventaire. Faites un ajustement après comptage.",
+    "history_one": "{{count}} ajustement récent",
+    "history_other": "{{count}} ajustements récents"
+  },
+  "batiments": {
+    "tab": "Bâtiments",
+    "name": "Nom du bâtiment",
+    "capacity": "Capacité (oiseaux)",
+    "inUse": "En service",
+    "outOfUse": "Hors service",
+    "new": "Nouveau bâtiment",
+    "editTitle": "Modifier {{nom}}",
+    "none": "Aucun bâtiment. Créez vos bâtiments pour savoir où est chaque bande.",
+    "free": "Libre",
+    "occupied": "Occupé",
+    "birds": "Oiseaux présents",
+    "birdsN": "{{n}} oiseaux",
+    "building": "Bâtiment"
+  },
+  "saisies": {
+    "tab": "Saisies",
+    "title": "Saisies du terrain",
+    "subtitle": "Les dernières saisies de mortalité, ponte, pesée, aliment et observations.",
+    "subtitleEdit": "Corrigez ou supprimez une saisie erronée : chaque correction est notée dans le journal.",
+    "lastDays": "{{n}} derniers jours",
+    "none": "Aucune saisie sur cette période.",
+    "editTitle": "Corriger : {{type}}",
+    "brokenTooHigh": "Les œufs cassés ne peuvent pas dépasser les œufs ramassés.",
+    "confirmDelete": "Supprimer cette saisie ({{type}} du {{d}}) : {{label}} ?",
+    "lines": {
+      "mortalite": "{{n}} morts",
+      "ponte": "{{n}} œufs ramassés, {{c}} cassés",
+      "pesee": "{{g}} g en moyenne ({{n}} pesés)"
+    },
+    "types": {
+      "mortalites": "Mortalité",
+      "pontes": "Ponte",
+      "pesees": "Pesée",
+      "mouvements_stock": "Aliment / produit utilisé",
+      "observations": "Observation"
+    }
+  },
+  "connexions": {
+    "title": "Connexions",
+    "subtitle": "Qui s’est connecté, quand, et depuis quel appareil.",
+    "everyone": "Tout le monde",
+    "none": "Aucune connexion enregistrée.",
+    "events": {
+      "connexion": "connexion",
+      "deconnexion": "déconnexion",
+      "expiration": "déconnecté (inactivité)"
+    }
   }
 }

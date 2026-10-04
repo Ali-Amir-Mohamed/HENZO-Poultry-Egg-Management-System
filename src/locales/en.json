@@ -166,7 +166,8 @@
     "broken": "Broken today",
     "layers": "Laying hens",
     "last7": "Eggs: last 7 days",
-    "total": "{{n}} eggs in total"
+    "total": "{{n}} eggs in total",
+    "brokenToday": "{{n}} broken today"
   },
   "saisie": {
     "kinds": {
@@ -349,7 +350,18 @@
     "correctionSens": "Correction: 1 = add money to this cash box, 2 = remove money from this cash box",
     "correctionAmount": "Correction amount (FCFA):",
     "correctionReason": "Reason for the correction (required):",
-    "supplierRequired": "Supplier (required for this amount)"
+    "supplierRequired": "Supplier (required for this amount)",
+    "remaining": "Left to pay: {{n}}",
+    "correctTitle": "Correct “{{libelle}}”",
+    "correctionDirection": "Correction direction",
+    "correctionAdd": "Add money to the cash box",
+    "correctionRemove": "Remove money from the cash box",
+    "correctionAmountLabel": "Correction amount (FCFA)",
+    "rejectTitle": "Reject “{{libelle}}”",
+    "cancelTitle": "Cancel “{{libelle}}”",
+    "cancelSaleTitle": "Cancel the {{n}} sale",
+    "collectFrom": "Collect – {{nom}}",
+    "payTo": "Pay – {{nom}}"
   },
   "stock": {
     "empty": "No product. First create your feeds and medicines.",
@@ -375,7 +387,11 @@
     "noMoves": "No movement.",
     "remove": "Delete",
     "fromPurchase": "purchase",
-    "confirmRemove": "Delete the manual entry of {{q}} {{unite}} of {{nom}}? (Purchases are cancelled in Money → Expenses.)"
+    "confirmRemove": "Delete the manual entry of {{q}} {{unite}} of {{nom}}? (Purchases are cancelled in Money → Expenses.)",
+    "status": "Status",
+    "editTitle": "Edit {{nom}}",
+    "active": "Active",
+    "inactive": "Archived (no longer used)"
   },
   "reglages": {
     "tabs": {
@@ -384,7 +400,9 @@
       "demarrage": "Initial setup",
       "comptes": "Accounts",
       "journal": "Log",
-      "sauvegarde": "Backup"
+      "sauvegarde": "Backup",
+      "connexions": "Logins",
+      "fermes": "Farms"
     },
     "newTiers": "New customer / supplier",
     "type": "Type",
@@ -406,7 +424,10 @@
     "newPrice": "New price",
     "price": "Price (FCFA)",
     "from": "From",
-    "priceGapNote": "A sale at a different price is reported to the director."
+    "priceGapNote": "A sale at a different price is reported to the director.",
+    "editTitle": "Edit {{nom}}",
+    "ceilingEdit": "Credit ceiling (FCFA)",
+    "ceilingHint": "0 = no credit allowed."
   },
   "fiche": {
     "back": "Back to farm",
@@ -453,7 +474,8 @@
     "investors10": "10 % due to investors",
     "loanRepaid": "Loan repayments linked to the flock",
     "availableProfit": "Available profit",
-    "netNote": "Broiler overheads shared between the flocks present on the date of each expense, pro rata to the number of birds."
+    "netNote": "Broiler overheads shared between the flocks present on the date of each expense, pro rata to the number of birds.",
+    "editTitle": "Edit {{code}}"
   },
   "capital": {
     "pendingTitle": "10 % to pay out or reinvest",
@@ -498,7 +520,9 @@
       "en_attente": "Pending",
       "retire": "Paid out",
       "reinvesti": "Reinvested"
-    }
+    },
+    "payoutTitle": "Pay out {{n}}",
+    "cancelOperation": "Cancel the {{n}} operation"
   },
   "prets": {
     "none": "No loan.",
@@ -527,7 +551,13 @@
     "hint": "The loan goes into the chosen activity's cash box. Repayments come out of it.",
     "dueDatePrompt": "Due date (YYYY-MM-DD):",
     "dueAmountPrompt": "Amount due (FCFA):",
-    "linkFlock": "Link to the end of a flock? Type its code (or leave empty). Flocks: {{codes}}"
+    "linkFlock": "Link to the end of a flock? Type its code (or leave empty). Flocks: {{codes}}",
+    "addDueTitle": "New instalment – {{preteur}}",
+    "dueDate": "Due date",
+    "repayTitle": "Repay {{preteur}}",
+    "linkFlockLabel": "Related flock (optional)",
+    "cancelRepayment": "Cancel the {{n}} repayment",
+    "cancelLoan": "Cancel the loan from {{preteur}}"
   },
   "verif": {
     "new": "Check a cash box",
@@ -596,7 +626,8 @@
     "newStep": "New programme step",
     "production": "Production",
     "ageDay": "Birds' age (days)",
-    "receiveInFarm": "Receive in Farm"
+    "receiveInFarm": "Receive in Farm",
+    "postponeTitle": "Postpone “{{titre}}”"
   },
   "alertes": {
     "mortalite": "Abnormal mortality: {{morts}} dead in {{code}} ({{pct}}%) on {{date}}",
@@ -743,7 +774,17 @@
     "passwordDone": "Password changed.",
     "confirmDisable": "Disable {{nom}}'s account? They will no longer see or enter anything.",
     "confirmEnable": "Enable {{nom}}'s account again?",
-    "noFunction": "The “gerer-comptes” function is not installed in Supabase yet (see the instructions)."
+    "noFunction": "The “gerer-comptes” function is not installed in Supabase yet (see the instructions).",
+    "roleTitle": "Role of {{nom}}",
+    "passwordTitle": "New password for {{id}}",
+    "newPassword": "New password",
+    "passwordHint": "At least 8 characters. Tell it to the person face to face.",
+    "passwordTooShort": "The password must have at least 8 characters.",
+    "passwordDoneText": "The password of {{id}} has been changed.",
+    "addExisting": "Add an existing account",
+    "add": "Add",
+    "roleHere": "Role on this farm",
+    "activeElsewhere": "currently working on another farm"
   },
   "journal": {
     "title": "Activity log",
@@ -777,7 +818,15 @@
       "profiles": "Account",
       "fermes": "Farm settings",
       "livraisons_poussins": "Chick delivery",
-      "commandes_poussins": "Chick order"
+      "commandes_poussins": "Chick order",
+      "mortalites": "Mortality",
+      "pontes": "Laying",
+      "pesees": "Weighing",
+      "observations": "Observation",
+      "mouvements_stock": "Stock move",
+      "articles": "Stock product",
+      "ajustements_oeufs": "Egg adjustment",
+      "batiments": "Building"
     }
   },
   "sauvegarde": {
@@ -830,7 +879,8 @@
     "loading": "Loading…",
     "saved": "Saved.",
     "save": "Save",
-    "close": "Close"
+    "close": "Close",
+    "edit": "Edit"
   },
   "livraisons": {
     "title": "Chick deliveries ({{n}} in total)",
@@ -839,7 +889,9 @@
     "datePrompt": "Delivery date (YYYY-MM-DD):",
     "numberPrompt": "Number of chicks delivered:",
     "confirmRemove": "Delete the delivery of {{n}} chicks on {{d}}?",
-    "hint": "Delivered in several times: add each delivery here, the flock number updates. Record the payment in Money → Expenses (category Chicks, this flock)."
+    "hint": "Delivered in several times: add each delivery here, the flock number updates. Record the payment in Money → Expenses (category Chicks, this flock).",
+    "dateLabel": "Delivery date",
+    "numberLabel": "Number of chicks"
   },
   "commandes": {
     "title_one": "Chick order in progress ({{count}})",
@@ -875,6 +927,167 @@
     "groupSummary": "{{flocks}} flock(s) · {{recus}} / {{total}} chicks received",
     "flocksOfOrder": "Flocks of this order (one line per flock)",
     "addFlock": "Add a flock to the order",
-    "totalOrdered": "Total ordered"
+    "totalOrdered": "Total ordered",
+    "receiveTitle": "Receiving {{n}} chicks – flock {{code}}",
+    "receivedLabel": "Number of chicks received",
+    "receivedDateLabel": "Reception date",
+    "restDateLabel": "New date for the rest",
+    "restHint": "Leave empty if the supplier will not deliver the rest.",
+    "postponeTitle": "Postpone the delivery of {{n}} chicks"
+  },
+  "dialog": {
+    "errorTitle": "Operation not possible",
+    "reason": "Reason",
+    "confirm": "Confirm",
+    "required": "“{{field}}” is required",
+    "min": "“{{field}}” must be at least {{min}}",
+    "max": "“{{field}}” must be at most {{max}}",
+    "confirmTitle": "Confirmation",
+    "cancel": "Cancel",
+    "ok": "OK",
+    "save": "Save"
+  },
+  "fermes": {
+    "pendingFirst_one": "{{count}} entry is waiting to be sent: sync it before switching farm.",
+    "pendingFirst_other": "{{count}} entries are waiting to be sent: sync them before switching farm.",
+    "switch": "Switch farm",
+    "new": "New farm",
+    "create": "Create farm",
+    "name": "Farm name",
+    "newHint": "The new farm gets its own cash boxes (at zero), the same care programme and the same settings as the current farm. You are its director.",
+    "created": "Farm “{{nom}}” created. Open it now?",
+    "open": "Open",
+    "title": "My farms",
+    "subtitle": "Each farm has its own cash boxes, flocks, stock and accounts. Use the selector at the top of the screen to switch.",
+    "current": "Current farm",
+    "membersHint": "To let an account work on another farm: open that farm, then Settings > Accounts > “Add an existing account”."
+  },
+  "filtres": {
+    "from": "From",
+    "to": "To",
+    "activity": "Activity",
+    "both": "Both",
+    "search": "Search",
+    "searchPh": "label, customer, flock…",
+    "export": "Excel",
+    "summary": "{{count}} moves · in {{inn}} · out {{out}}",
+    "total": "{{count}} rows · total {{n}}"
+  },
+  "push": {
+    "needInstall": "First install HENZO on the phone (“Install” button or browser menu > Add to home screen), then try again from the installed app.",
+    "on": "Notifications on for this phone",
+    "disable": "Turn off",
+    "enable": "Get notifications on this phone",
+    "denied": "Notifications are blocked for HENZO: allow them in the browser settings.",
+    "unsupported": "Phone notifications: available in the installed app (on iPhone, iOS 16.4+ with HENZO added to the home screen)."
+  },
+  "export": {
+    "date": "Date",
+    "activity": "Activity",
+    "mode": "Mode",
+    "nature": "Type",
+    "label": "Label",
+    "in": "In (FCFA)",
+    "out": "Out (FCFA)",
+    "category": "Category",
+    "flock": "Flock / lot",
+    "supplier": "Supplier",
+    "amount": "Amount (FCFA)",
+    "paid": "Paid (FCFA)",
+    "status": "Status",
+    "product": "Product",
+    "client": "Customer",
+    "quantity": "Quantity",
+    "unit": "Unit",
+    "birds": "Birds",
+    "unitPrice": "Unit price (FCFA)",
+    "cashed": "Cashed (FCFA)"
+  },
+  "recu": {
+    "open": "Receipt",
+    "title": "Sale receipt",
+    "date": "Date",
+    "client": "Customer",
+    "total": "Total",
+    "paid": "Paid",
+    "due": "Left to pay",
+    "dueOn": "by {{d}}",
+    "thanks": "Thank you for your trust.",
+    "item": "Item",
+    "qty": "Quantity",
+    "price": "Unit price",
+    "amount": "Amount",
+    "print": "Print / PDF",
+    "whatsapp": "Send on WhatsApp"
+  },
+  "oeufs": {
+    "title": "Egg stock",
+    "traysN": "{{n}} trays",
+    "eggs": "eggs",
+    "adjustTitle": "Adjust the egg stock",
+    "direction": "Direction",
+    "remove": "Remove (broken in store, own use…)",
+    "add": "Add (stock count)",
+    "quantity": "Quantity",
+    "trays": "trays of {{n}}",
+    "reasonPh": "e.g. broken in store, today’s count",
+    "adjust": "Adjust",
+    "traysLabel": "trays in stock",
+    "collected": "Good eggs collected",
+    "sold": "Eggs sold",
+    "adjustments": "Adjustments",
+    "total": "Stock (eggs)",
+    "negative": "The stock is negative: some collections or a count are missing. Make an adjustment after counting.",
+    "history_one": "{{count}} recent adjustment",
+    "history_other": "{{count}} recent adjustments"
+  },
+  "batiments": {
+    "tab": "Buildings",
+    "name": "Building name",
+    "capacity": "Capacity (birds)",
+    "inUse": "In use",
+    "outOfUse": "Out of use",
+    "new": "New building",
+    "editTitle": "Edit {{nom}}",
+    "none": "No building yet. Create your buildings to know where each flock is.",
+    "free": "Free",
+    "occupied": "Occupied",
+    "birds": "Birds inside",
+    "birdsN": "{{n}} birds",
+    "building": "Building"
+  },
+  "saisies": {
+    "tab": "Entries",
+    "title": "Field entries",
+    "subtitle": "Latest mortality, laying, weighing, feed and observation entries.",
+    "subtitleEdit": "Correct or delete a wrong entry: every correction is recorded in the activity log.",
+    "lastDays": "last {{n}} days",
+    "none": "No entry in this period.",
+    "editTitle": "Correct: {{type}}",
+    "brokenTooHigh": "Broken eggs cannot exceed collected eggs.",
+    "confirmDelete": "Delete this entry ({{type}} of {{d}}): {{label}}?",
+    "lines": {
+      "mortalite": "{{n}} dead",
+      "ponte": "{{n}} eggs collected, {{c}} broken",
+      "pesee": "{{g}} g average ({{n}} weighed)"
+    },
+    "types": {
+      "mortalites": "Mortality",
+      "pontes": "Laying",
+      "pesees": "Weighing",
+      "mouvements_stock": "Feed / product used",
+      "observations": "Observation"
+    }
+  },
+  "connexions": {
+    "title": "Logins",
+    "subtitle": "Who signed in, when, and from which device.",
+    "everyone": "Everyone",
+    "none": "No login recorded.",
+    "events": {
+      "connexion": "signed in",
+      "deconnexion": "signed out",
+      "expiration": "signed out (inactivity)"
+    }
   }
 }

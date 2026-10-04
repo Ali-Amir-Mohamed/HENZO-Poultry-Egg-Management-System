@@ -8,6 +8,7 @@ import { can, MODES_PAIEMENT } from '../../config'
 import { localDate } from '../../lib/stats'
 import Icon from '../../components/Icon'
 import { Empty, Field, FormCard, Loading, money, Panel } from '../../components/ui'
+import { useAsk, useRun } from '../../components/Dialog'
 
 // Investors: separate capital register, 10 % due at each broiler flock closure
 export default function Investisseurs() {
@@ -15,6 +16,8 @@ export default function Investisseurs() {
   const { role } = useAuth()
   const lang = i18n.resolvedLanguage
   const manage = can(role, 'capital.manage')
+  const ask = useAsk()
+  const run = useRun()
 
   const list = useQuery(async () => must(await supabase.from('situation_investisseurs').select('*').order('nom')))
   const pending = useQuery(async () => must(await supabase.from('distributions_investisseurs')
@@ -37,13 +40,14 @@ export default function Investisseurs() {
   const decide = async (d, statut) => {
     let mode = null
     if (statut === 'retire') {
-      const choice = window.prompt(t('argent.paymentMode', MODES_PAIEMENT.reduce((o, m, i) => ({ ...o, [`m${i + 1}`]: t(`modes.${m}`) }), {})), '1')
-      mode = MODES_PAIEMENT[Number(choice) - 1]
-      if (!mode) return
-    } else if (!window.confirm(t('capital.confirmReinvest', { n: money(d.montant, lang), nom: d.investisseur.nom }))) return
-    const { error } = await supabase.from('distributions_investisseurs').update({ statut, mode_paiement: mode }).eq('id', d.id)
-    if (error) window.alert(error.message)
-    reload()
+      const v = await ask.form({
+        title: t('capital.payoutTitle', { n: money(d.montant, lang), nom: d.investisseur.nom }), icon: 'wallet', submit: t('capital.payout'),
+        fields: [{ name: 'mode', label: t('saisie.modeAcompte'), type: 'select', value: 'especes', options: MODES_PAIEMENT.map((m) => ({ value: m, label: t(`modes.${m}`) })) }]
+      })
+      if (!v) return
+      mode = v.mode
+    } else if (!(await ask.confirm(t('capital.confirmReinvest', { n: money(d.montant, lang), nom: d.investisseur.nom }), { title: t('capital.reinvest'), icon: 'users' }))) return
+    await run(supabase.from('distributions_investisseurs').update({ statut, mode_paiement: mode }).eq('id', d.id), reload)
   }
 
   return (

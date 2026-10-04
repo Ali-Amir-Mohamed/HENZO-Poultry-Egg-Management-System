@@ -2,7 +2,9 @@ import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { must, useQuery } from '../hooks'
-import { TABLES } from '../config'
+import { can, TABLES } from '../config'
+import { useAuth } from '../auth/AuthProvider'
+import { useAsk, useRun } from '../components/Dialog'
 import Icon from '../components/Icon'
 import { Loading, money, Panel } from '../components/ui'
 import { Fact, Timeline, WeightCurve } from '../components/fiche'
@@ -11,26 +13,40 @@ import { Fact, Timeline, WeightCurve } from '../components/fiche'
 export default function FicheLot() {
   const { id } = useParams()
   const { t, i18n } = useTranslation()
+  const { role } = useAuth()
+  const ask = useAsk()
+  const run = useRun()
   const lang = i18n.resolvedLanguage
   const n = (v, d = 0) => (v == null ? '—' : Number(v).toLocaleString(lang, { maximumFractionDigits: d }))
 
   const q = useQuery(async () => {
     const since = new Date()
     since.setDate(since.getDate() - 29)
-    const [lot, ind, ponte, morts, conso, ventes, depenses] = await Promise.all([
+    const [lot, ind, ponte, morts, conso, ventes, depenses, batiments] = await Promise.all([
       supabase.from(TABLES.lots).select('*, fournisseur:tiers(nom)').eq('id', id).single(),
       supabase.from('indicateurs_lots').select('*').eq('lot_id', id).maybeSingle(),
       supabase.from('ponte_journaliere').select('*').eq('lot_id', id).gte('date_ponte', since.toLocaleDateString('en-CA')).order('date_ponte'),
       supabase.from(TABLES.mortalites).select('id, date_constat, nombre, cause').eq('lot_id', id),
       supabase.from(TABLES.mouvementsStock).select('id, date_mouvement, quantite, article:articles(nom, unite)').eq('lot_id', id).eq('type_mouvement', 'sortie'),
       supabase.from(TABLES.ventes).select('id, date_vente, produit, unite, quantite, montant, annulee, client:tiers(nom)').eq('lot_id', id),
-      supabase.from(TABLES.depenses).select('id, date_depense, libelle, montant, statut, annulee').eq('lot_id', id)
+      supabase.from(TABLES.depenses).select('id, date_depense, libelle, montant, statut, annulee').eq('lot_id', id),
+      supabase.from('batiments').select('id, nom').order('nom')
     ])
-    return { lot: must(lot), ind: must(ind), ponte: must(ponte), morts: must(morts), conso: must(conso), ventes: must(ventes), depenses: must(depenses) }
+    return { lot: must(lot), ind: must(ind), ponte: must(ponte), morts: must(morts), conso: must(conso), ventes: must(ventes), depenses: must(depenses), batiments: must(batiments) }
   }, [id])
 
   if (!q.data) return <Loading error={q.error} />
   const { lot, ind, ponte, morts, conso, ventes, depenses } = q.data
+
+  const modifier = async () => {
+    const v = await ask.form({ title: t('fiche.editTitle', { code: lot.code }), icon: 'egg', submit: t('dialog.save'), fields: [
+      { name: 'souche', label: t('ferme.strain'), value: lot.souche ?? '' },
+      { name: 'batiment_id', label: t('batiments.building'), type: 'select', value: lot.batiment_id ?? '',
+        options: [{ value: '', label: '—' }, ...q.data.batiments.map((b) => ({ value: b.id, label: b.nom }))] },
+      { name: 'notes', label: t('saisie.notes'), type: 'textarea', value: lot.notes ?? '' }] })
+    if (v) await run(supabase.from(TABLES.lots).update({ souche: v.souche || null, batiment_id: v.batiment_id || null, notes: v.notes || null }).eq('id', id), q.reload)
+  }
+  const batiment = q.data.batiments.find((b) => b.id === lot.batiment_id)
 
   const events = [
     { date: lot.date_arrivee, icon: 'egg', tone: 'green', text: t('fiche.ev.arrivalLot', { n: lot.effectif_initial }) },
@@ -51,6 +67,8 @@ export default function FicheLot() {
           <p className="hero-date">{t('types.pondeuse_pl')}{lot.souche ? ` · ${lot.souche}` : ''}{lot.fournisseur ? ` · ${lot.fournisseur.nom}` : ''}</p>
           <h1>{lot.code}</h1>
           <span className="chip">{t(`statuts.${lot.statut}`)}</span>
+          {batiment && <span className="chip">{batiment.nom}</span>}
+          {can(role, 'bande.create') && <button className="btn ghost sm" onClick={modifier}><Icon name="note" size={14} />{t('common.edit')}</button>}
         </div>
         <div className="hero-facts">
           <div><span>{t('dashboard.age')}</span><strong>{t('ferme.weeks', { n: ind?.age_semaines })}</strong></div>

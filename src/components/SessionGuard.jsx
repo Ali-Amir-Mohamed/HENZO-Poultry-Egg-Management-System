@@ -28,7 +28,7 @@ export default function SessionGuard() {
     const expired = () => Date.now() - read(LAST_KEY, Date.now()) > minutes * 60_000
     const logout = () => {
       try { sessionStorage.setItem(EXPIRED_FLAG, '1') } catch {}
-      signOut()
+      signOut('expiration')
     }
     if (expired()) { logout(); return }
 

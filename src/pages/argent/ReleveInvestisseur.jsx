@@ -5,7 +5,8 @@ import { useAuth } from '../../auth/AuthProvider'
 import { must, useQuery } from '../../hooks'
 import { can } from '../../config'
 import Icon, { Logo } from '../../components/Icon'
-import { askReason, day, Loading, money } from '../../components/ui'
+import { day, Loading, money } from '../../components/ui'
+import { useAsk, useRun } from '../../components/Dialog'
 
 // Individual investor statement: capital register + history of the 10 %. Printable (→ PDF).
 export default function ReleveInvestisseur() {
@@ -13,6 +14,8 @@ export default function ReleveInvestisseur() {
   const { t, i18n } = useTranslation()
   const { role } = useAuth()
   const lang = i18n.resolvedLanguage
+  const ask = useAsk()
+  const run = useRun()
 
   const q = useQuery(async () => {
     const [inv, sit, ops, dist, ferme] = await Promise.all([
@@ -29,11 +32,9 @@ export default function ReleveInvestisseur() {
   const { inv, sit, ops, dist, ferme } = q.data
 
   const annuler = async (op) => {
-    const motif = askReason(t('argent.cancelReason'))
+    const motif = await ask.reason(t('capital.cancelOperation', { n: money(op.montant, lang) }))
     if (!motif) return
-    const { error } = await supabase.from('operations_investisseurs').update({ annulee: true, motif_annulation: motif }).eq('id', op.id)
-    if (error) window.alert(error.message)
-    q.reload()
+    await run(supabase.from('operations_investisseurs').update({ annulee: true, motif_annulation: motif }).eq('id', op.id), q.reload)
   }
 
   // Running capital balance

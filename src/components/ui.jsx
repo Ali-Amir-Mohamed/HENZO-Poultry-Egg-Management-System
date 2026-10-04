@@ -102,11 +102,6 @@ export function Empty({ icon = 'check', text }) {
   )
 }
 
-// Asks for a mandatory reason (cancellation, rejection). Returns null if cancelled.
-export function askReason(message) {
-  const r = window.prompt(message)
-  return r && r.trim() ? r.trim() : null
-}
 
 export const money = (n, lang) => `${Number(n ?? 0).toLocaleString(lang)} FCFA`
 export const day = (d, lang) => (d ? new Date(`${d.slice(0, 10)}T00:00`).toLocaleDateString(lang) : '—')

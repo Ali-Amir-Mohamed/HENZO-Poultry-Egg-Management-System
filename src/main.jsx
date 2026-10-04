@@ -5,6 +5,7 @@ import './i18n'
 import './styles.css'
 import App from './App'
 import { AuthProvider } from './auth/AuthProvider'
+import { DialogProvider } from './components/Dialog'
 import { startAutoSync } from './lib/offlineQueue'
 
 startAutoSync()
@@ -20,7 +21,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <App />
+        <DialogProvider>
+          <App />
+        </DialogProvider>
       </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>

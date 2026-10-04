@@ -19,6 +19,7 @@ import Reglages from './pages/Reglages'
 import FicheTiers from './pages/reglages/FicheTiers'
 import Sync from './pages/Sync'
 import Plus from './pages/Plus'
+import Recu from './pages/Recu'
 
 function Guard({ section, children }) {
   const { role } = useAuth()
@@ -61,6 +62,7 @@ export default function App() {
         <Route path="reglages/tiers/:id" element={<Guard section="reglages"><FicheTiers /></Guard>} />
         <Route path="sync" element={<Guard section="sync"><Sync /></Guard>} />
         <Route path="plus" element={<Plus />} />
+        <Route path="recu/:id" element={<Recu />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

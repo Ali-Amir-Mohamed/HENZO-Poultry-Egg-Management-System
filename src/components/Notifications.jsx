@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { TABLES } from '../config'
 import Icon from './Icon'
+import PushToggle from './PushToggle'
 
 // Bell in the header: notifications addressed to the user's role (created by database triggers)
 export default function Notifications() {
@@ -44,6 +45,7 @@ export default function Notifications() {
             <span className="spacer" />
             {unread.length > 0 && <button className="btn ghost sm" onClick={markAllRead}>{t('notifications.markRead')}</button>}
           </div>
+          <PushToggle />
           {items.length === 0 ? <p className="muted">{t('notifications.empty')}</p> : (
             <ul className="list">
               {items.map((n) => (

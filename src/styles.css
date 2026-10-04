@@ -497,3 +497,52 @@ details[open] summary { margin-bottom: .6rem; }
 .empty-icon { width: 64px; height: 64px; border-radius: 10px; display: grid; place-items: center; background: var(--green-100); color: var(--green-500); }
 .order-line { padding: .6rem; border: 1px dashed var(--border); border-radius: 8px; }
 .order-line .row input { flex: 1; }
+
+/* ---------- Dialogs (forms instead of browser prompts) ---------- */
+.dialog-backdrop {
+  position: fixed; inset: 0; z-index: 100; background: rgba(11, 26, 46, .45);
+  display: flex; align-items: flex-end; justify-content: center; padding: 1rem;
+}
+@media (min-width: 640px) { .dialog-backdrop { align-items: center; } }
+.dialog {
+  width: min(460px, 100%); max-height: 90vh; overflow-y: auto;
+  background: var(--surface); color: var(--text); border-radius: 12px; padding: 1.1rem 1.2rem 1.2rem;
+  box-shadow: 0 24px 48px -16px rgba(0, 0, 0, .45); display: flex; flex-direction: column; gap: .8rem;
+}
+.dialog-head { display: flex; align-items: center; gap: .6rem; }
+.dialog-head h2 { flex: 1; }
+.dialog-message { color: var(--muted); font-size: .95rem; }
+.dialog-actions { display: flex; justify-content: flex-end; gap: .5rem; margin-top: .2rem; }
+.dialog-actions .btn { padding: .65rem 1.1rem; }
+.btn.danger { background: var(--rose); color: #fff; }
+/* Farm selector (accounts on several farms) */
+.farm-switch{display:block;margin-top:2px;max-width:180px;padding:1px 6px;font-size:.78rem;background:rgba(255,255,255,.12);color:inherit;border:1px solid rgba(255,255,255,.25);border-radius:6px}
+.farm-switch option{color:#111}
+
+
+/* Filters above the money lists */
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;margin-bottom:12px}
+.filters label{display:flex;flex-direction:column;gap:2px;font-size:.78rem;color:var(--muted, #667)}
+.filters label.grow{flex:1 1 160px}
+.filters input,.filters select{padding:6px 8px;font-size:.88rem}
+
+/* Sale receipt */
+.receipt{background:#fff;color:#111;border:1px solid var(--line, #e3e6ee);border-radius:10px;padding:20px;max-width:560px;width:100%;margin:0 auto}
+.receipt header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.receipt header div{display:flex;flex-direction:column}
+.receipt header .spacer{flex:1}
+.receipt.cancelled{opacity:.6}
+.receipt-totals{margin:12px 0 8px;display:flex;flex-direction:column;gap:4px}
+.receipt-totals div{display:flex;justify-content:space-between}
+.receipt-totals dt,.receipt-totals dd{margin:0}
+.receipt-totals .main{font-size:1.1rem;font-weight:700;border-top:1px solid #ddd;padding-top:6px}
+.receipt-totals .due{color:#b42318;font-weight:600}
+.center{text-align:center}
+@media print{
+  .topbar,.nav,.no-print{display:none !important}
+  body{background:#fff !important}
+  .content{padding:0 !important}
+  .receipt{border:none;max-width:none}
+}
+/* Phone notifications switch */
+.push-toggle{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:6px 0 10px;border-bottom:1px solid var(--line, #e3e6ee);margin-bottom:8px}

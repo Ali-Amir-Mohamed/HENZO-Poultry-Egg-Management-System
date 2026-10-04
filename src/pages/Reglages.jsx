@@ -8,8 +8,11 @@ import { localDate } from '../lib/stats'
 import { day, Empty, Field, FormCard, Loading, money, Panel, Tabs } from '../components/ui'
 import Icon from '../components/Icon'
 import Demarrage from './reglages/Demarrage'
+import { useAsk, useRun } from '../components/Dialog'
 import Comptes from './reglages/Comptes'
 import Journal from './reglages/Journal'
+import Connexions from './reglages/Connexions'
+import Fermes from './reglages/Fermes'
 import Sauvegarde from './reglages/Sauvegarde'
 import { Link } from 'react-router-dom'
 
@@ -21,7 +24,8 @@ export default function Reglages() {
     { id: 'tiers', label: 'reglages.tabs.tiers', icon: 'users' },
     { id: 'prix', label: 'reglages.tabs.prix', icon: 'tag' },
     ...(can(role, 'comptes') ? [{ id: 'comptes', label: 'reglages.tabs.comptes', icon: 'users' }] : []),
-    ...(can(role, 'journal') ? [{ id: 'journal', label: 'reglages.tabs.journal', icon: 'note' }] : []),
+    ...(can(role, 'journal') ? [{ id: 'journal', label: 'reglages.tabs.journal', icon: 'note' }, { id: 'connexions', label: 'reglages.tabs.connexions', icon: 'clock' }] : []),
+    ...(can(role, 'comptes') ? [{ id: 'fermes', label: 'reglages.tabs.fermes', icon: 'barn' }] : []),
     ...(can(role, 'sauvegarde') ? [{ id: 'sauvegarde', label: 'reglages.tabs.sauvegarde', icon: 'download' }] : []),
     ...(can(role, 'demarrage') ? [{ id: 'demarrage', label: 'reglages.tabs.demarrage', icon: 'flag' }] : [])
   ]
@@ -32,6 +36,8 @@ export default function Reglages() {
       {tab === 'prix' && <Prix />}
       {tab === 'comptes' && <Comptes />}
       {tab === 'journal' && <Journal />}
+      {tab === 'connexions' && <Connexions />}
+      {tab === 'fermes' && <Fermes />}
       {tab === 'sauvegarde' && <Sauvegarde />}
       {tab === 'demarrage' && <Demarrage />}
     </div>
@@ -46,6 +52,8 @@ function Tiers() {
   const [form, setForm] = useState({ type_tiers: 'client', nom: '', telephone: '', adresse: '', credit_autorise: false, plafond_credit: '0' })
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value })
   const grant = can(role, 'credit.grant')
+  const ask = useAsk()
+  const run = useRun()
 
   const create = async () => {
     must(await supabase.from(TABLES.tiers).insert({
@@ -59,14 +67,21 @@ function Tiers() {
     list.reload()
   }
 
-  const editCredit = async (c) => {
-    const answer = window.prompt(t('reglages.creditPrompt', { nom: c.nom }), c.credit_autorise ? c.plafond_credit : '0')
-    if (answer === null) return
-    const plafond = Number(answer)
-    if (Number.isNaN(plafond) || plafond < 0) return
-    const { error } = await supabase.from(TABLES.tiers).update({ credit_autorise: plafond > 0, plafond_credit: plafond }).eq('id', c.id)
-    if (error) window.alert(error.message)
-    list.reload()
+  // Edit a customer / supplier (credit fields only for director and exploitation)
+  const editTiers = async (c) => {
+    const withCredit = grant && c.type_tiers !== 'fournisseur'
+    const v = await ask.form({ title: t('reglages.editTitle', { nom: c.nom }), icon: 'users', submit: t('dialog.save'), fields: [
+      { name: 'nom', label: t('reglages.name'), value: c.nom, required: true },
+      { name: 'type_tiers', label: t('reglages.type'), type: 'select', value: c.type_tiers,
+        options: ['client', 'fournisseur', 'client_fournisseur'].map((x) => ({ value: x, label: t(`tiersTypes.${x}`) })) },
+      { name: 'telephone', label: t('reglages.phone'), type: 'tel', value: c.telephone ?? '' },
+      { name: 'adresse', label: t('reglages.address'), value: c.adresse ?? '' },
+      ...(withCredit ? [{ name: 'plafond_credit', label: t('reglages.ceilingEdit'), type: 'number', min: 0, value: c.credit_autorise ? c.plafond_credit : 0, hint: t('reglages.ceilingHint') }] : [])
+    ] })
+    if (!v) return
+    const patch = { nom: v.nom, type_tiers: v.type_tiers, telephone: v.telephone || null, adresse: v.adresse || null }
+    if (withCredit) Object.assign(patch, { credit_autorise: Number(v.plafond_credit) > 0, plafond_credit: Number(v.plafond_credit) || 0 })
+    await run(supabase.from(TABLES.tiers).update(patch).eq('id', c.id), list.reload)
   }
 
   return (
@@ -104,7 +119,7 @@ function Tiers() {
                   <div className="muted small">{t(`tiersTypes.${c.type_tiers}`)}{c.telephone ? ` · ${c.telephone}` : ''}{c.adresse ? ` · ${c.adresse}` : ''}</div>
                   <div className="row-actions">
                     <Link to={`/reglages/tiers/${c.id}`} className="btn ghost sm">{t('tiers.history')}</Link>
-                    {grant && c.type_tiers !== 'fournisseur' && <button className="btn ghost sm" onClick={() => editCredit(c)}>{t('reglages.editCredit')}</button>}
+                    {can(role, 'tiers.edit') && <button className="btn ghost sm" onClick={() => editTiers(c)}>{t('common.edit')}</button>}
                   </div>
                 </div>
                 {c.credit_autorise && <span className="tag warn">{t('reglages.creditUpTo', { n: money(c.plafond_credit, lang) })}</span>}
