@@ -12,6 +12,7 @@
 | `0008_securite_fonctions.sql` | Fonctions internes non exécutables par les utilisateurs (Security Advisor) |
 | `0009_alerte_stock.sql` | Alerte « stock bas » seulement si un seuil est fixé |
 | `0010_livraisons_poussins.sql` | Livraisons de poussins en plusieurs fois (nombre initial = somme des livraisons) |
+| `0011_commandes_poussins.sql` | Commandes de poussins, livraisons prévues, réception « Livré », report et annulation |
 
 Le Security Advisor signale encore « Security Definer View » sur les vues de calcul (effectifs,
 indicateurs, résultats, alertes) : c'est voulu, chacune filtre elle-même la ferme et les rôles.
