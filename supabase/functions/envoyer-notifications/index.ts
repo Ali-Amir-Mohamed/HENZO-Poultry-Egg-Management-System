@@ -11,6 +11,7 @@ const lienAppli = (lien: string | null) => {
   if (!lien) return '/'
   if (lien.startsWith('/bandes/')) return lien.replace('/bandes/', '/ferme/bande/')
   if (lien.startsWith('/lots/')) return lien.replace('/lots/', '/ferme/lot/')
+  if (lien.startsWith('/depenses')) return '/argent'
   return lien.startsWith('/') ? lien : '/'
 }
 

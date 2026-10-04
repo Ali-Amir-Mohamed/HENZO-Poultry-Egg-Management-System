@@ -4,6 +4,16 @@ import { supabase } from '../lib/supabase'
 import { TABLES } from '../config'
 import Icon from './Icon'
 import PushToggle from './PushToggle'
+import { Link } from 'react-router-dom'
+
+// Links written by the database → app pages
+const lienAppli = (lien) => {
+  if (!lien) return '/'
+  if (lien.startsWith('/bandes/')) return lien.replace('/bandes/', '/ferme/bande/')
+  if (lien.startsWith('/lots/')) return lien.replace('/lots/', '/ferme/lot/')
+  if (lien.startsWith('/depenses')) return '/argent'
+  return lien
+}
 
 // Bell in the header: notifications addressed to the user's role (created by database triggers)
 export default function Notifications() {
@@ -50,10 +60,10 @@ export default function Notifications() {
             <ul className="list">
               {items.map((n) => (
                 <li key={n.id} className={n.lu ? 'read' : ''}>
-                  <div>
+                  <Link to={lienAppli(n.lien)} onClick={() => setOpen(false)}>
                     <strong>{n.message}</strong>
                     <div className="muted small">{new Date(n.created_at).toLocaleString(i18n.resolvedLanguage)}</div>
-                  </div>
+                  </Link>
                 </li>
               ))}
             </ul>

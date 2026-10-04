@@ -2,6 +2,7 @@
 -- HENZO – Remise à zéro des données de la ferme (avant le vrai démarrage)
 -- ⚠️ IRRÉVERSIBLE : efface toutes les données d'exploitation.
 -- À lancer seulement après accord du directeur, dans Supabase > SQL Editor.
+-- ⚠️ Efface les données de TOUTES les fermes (pas seulement la ferme active).
 --
 -- Conserve : comptes, rôles et fermes, paramètres, les 6 caisses par ferme
 --            (qui repartent à 0), programme de vaccination (modèles).

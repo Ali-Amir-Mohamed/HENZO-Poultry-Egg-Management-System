@@ -98,7 +98,7 @@ export default function FicheBande() {
           <h1>{bande.code}</h1>
           <span className="chip">{t(`statuts.${bande.statut}`)}</span>
           {batiment && <span className="chip">{batiment.nom}</span>}
-          {can(role, 'bande.create') && <button className="btn ghost sm" onClick={modifier}><Icon name="note" size={14} />{t('common.edit')}</button>}
+          {can(role, 'bande.create') && (bande.statut !== 'cloturee' || role === 'directeur') && <button className="btn ghost sm" onClick={modifier}><Icon name="note" size={14} />{t('common.edit')}</button>}
         </div>
         <div className="hero-facts">
           <div><span>{t('dashboard.age')}</span><strong>{t('dashboard.days', { n: ind?.age_jours })}</strong></div>
