@@ -525,12 +525,76 @@ ok('flocks T1 and T2 created', (await as('kenfack', `select code from public.ban
 await expectErr('code already used by a flock refused', 'kenfack', `insert into public.commandes_poussins (reference, code_bande, nombre_commande, date_livraison_prevue) values ('X', 't1', 10, current_date)`, [], 'déjà utilisé')
 await expectErr('code already planned refused', 'kenfack', `insert into public.commandes_poussins (reference, code_bande, nombre_commande, date_livraison_prevue) values ('X', 'T3', 10, current_date)`, [], 'déjà prévu')
 
+// ---------- 0013: corrections, eggs stock, buildings, logins, push, several farms ----------
+try {
+  await db.exec(readFileSync(new URL('0013_ameliorations.sql', MIG), 'utf8'))
+  ok('migration 0013 runs', true)
+} catch (e) { ok('migration 0013 runs', false, e.message); process.exit(1) }
+
+// Corrections of field entries
+const mort = await one('employe', `insert into public.mortalites (bande_id, nombre, cause) values ('${C7}', 10, 'typo') returning id`)
+await expectOk('kenfack corrects a mortality (10 → 1)', 'kenfack', `update public.mortalites set nombre = 1 where id = $1`, [mort.id])
+ok('correction is in the journal', (await as('ali', `select * from public.journal_activite where table_nom = 'mortalites' and action = 'UPDATE'`)).rows.length >= 1)
+await expectNoRows('employe cannot correct', 'employe', `update public.mortalites set nombre = 5 where id = '${mort.id}' returning id`)
+await expectOk('kenfack deletes a wrong entry', 'kenfack', `delete from public.mortalites where id = $1`, [mort.id])
+
+// Eggs stock
+const eggs0 = await one('kenfack', `select * from public.stock_oeufs`)
+await expectOk('egg laying 900 (10 broken)', 'employe', `insert into public.pontes (lot_id, oeufs_collectes, oeufs_casses) values ($1, 900, 10)`, [P1])
+await expectOk('sale of 2 trays', 'kenfack', `insert into public.ventes (lot_id, produit, unite, quantite, prix_unitaire, mode_paiement) values ($1, 'plateaux', 'plateau', 2, 2000, 'especes')`, [P1])
+await expectOk('adjustment: 5 eggs broken in store', 'kenfack', `insert into public.ajustements_oeufs (quantite, motif) values (-5, 'Casse au magasin')`)
+const eggs1 = await one('kenfack', `select * from public.stock_oeufs`)
+ok('egg stock = +890 − 60 − 5', eggs1.stock_oeufs - eggs0.stock_oeufs === 825, JSON.stringify({ before: eggs0.stock_oeufs, after: eggs1.stock_oeufs }))
+ok('trays computed', eggs1.plateaux === Math.floor(eggs1.stock_oeufs / 30))
+ok('employe cannot see egg stock', (await as('employe', `select * from public.stock_oeufs`)).rows.length === 0)
+
+// Buildings
+await expectOk('kenfack creates building', 'kenfack', `insert into public.batiments (nom, capacite) values ('Bâtiment A', 1200)`)
+const BAT = (await db.query(`select id from public.batiments where nom = 'Bâtiment A'`)).rows[0].id
+await expectOk('order placed in building A', 'kenfack', `insert into public.commandes_poussins (reference, code_bande, nombre_commande, date_livraison_prevue, batiment_id) values ('CMD-BAT', 'BA1', 800, current_date, $1)`, [BAT])
+const lba = await one('kenfack', `select l.id from public.livraisons_poussins l join public.commandes_poussins c on c.id = l.commande_id where c.code_bande = 'BA1'`)
+await expectOk('reception', 'kenfack', `select public.receptionner_livraison($1, 800, current_date, null)`, [lba.id])
+const occ = await one('kenfack', `select * from public.occupation_batiments where nom = 'Bâtiment A'`)
+ok('flock placed in building, occupancy 800', Number(occ.oiseaux) === 800 && occ.occupants[0]?.code === 'BA1', JSON.stringify(occ))
+
+// Logins history
+await expectOk('login recorded', 'kenfack', `insert into public.connexions (evenement, appareil) values ('connexion', 'test')`)
+ok('directeur sees logins', (await as('ali', `select * from public.connexions`)).rows.length >= 1)
+ok('kenfack does not see logins', (await as('kenfack', `select * from public.connexions`)).rows.length === 0)
+
+// Push subscriptions
+await expectOk('device subscription saved', 'kenfack', `insert into public.abonnements_push (endpoint, p256dh, auth) values ('https://push.example/1', 'k', 'a')`)
+ok('only own subscriptions visible', (await as('ali', `select * from public.abonnements_push`)).rows.length === 0)
+
+// Several farms
+ok('memberships backfilled', (await as('ali', `select * from public.mes_fermes()`)).rows.length === 1)
+const F2 = (await as('ali', `select public.creer_ferme('Ferme Nord') as id`)).rows[0].id
+ok('new farm created with 6 cash boxes', Number((await db.query(`select count(*) n from public.caisses where ferme_id = '${F2}'`)).rows[0].n) === 6)
+ok('programme copied to new farm', Number((await db.query(`select count(*) n from public.modeles_taches where ferme_id = '${F2}'`)).rows[0].n) > 0)
+await expectErr('kenfack cannot create a farm', 'kenfack', `select public.creer_ferme('X')`, [], 'directeur')
+const fermeAli = (await as('ali', `select ferme_id from public.mes_fermes() where active`)).rows[0].ferme_id
+await expectOk('ali switches to the new farm', 'ali', `select public.changer_ferme($1)`, [F2])
+ok('new farm has no flock', (await as('ali', `select * from public.bandes`)).rows.length === 0)
+ok('new farm cash at 0', Number((await one('ali', `select sum(solde) s from public.soldes_caisses`)).s) === 0)
+await expectOk('ali adds kenfack to the new farm as employee', 'ali', `select public.ajouter_membre('kenfack', 'employe')`)
+ok('members of new farm', (await as('ali', `select identifiant, role from public.membres_ferme()`)).rows.map((r) => `${r.identifiant}:${r.role}`).sort().join(',') === 'ali:directeur,kenfack:employe')
+await expectOk('kenfack switches to new farm', 'kenfack', `select public.changer_ferme($1)`, [F2])
+ok('kenfack is employee in the new farm', (await one('kenfack', `select role from public.profiles where id = auth.uid()`)).role === 'employe')
+await expectErr('as employee he cannot create a flock there', 'kenfack', `insert into public.bandes (code, date_arrivee, nombre_initial) values ('N1', current_date, 10)`)
+await expectOk('kenfack back to first farm', 'kenfack', `select public.changer_ferme($1)`, [fermeAli])
+ok('kenfack is exploitation again', (await one('kenfack', `select role from public.profiles where id = auth.uid()`)).role === 'exploitation')
+await expectErr('switch to a farm you do not belong to', 'dahirou', `select public.changer_ferme($1)`, [F2], 'membre')
+await expectOk('ali changes kenfack role in new farm', 'ali', `select public.definir_role($1, 'exploitation')`, [U.kenfack])
+await expectErr('ali cannot change own role', 'ali', `select public.definir_role($1, 'employe')`, [U.ali], 'propre')
+await expectOk('ali back to first farm', 'ali', `select public.changer_ferme($1)`, [fermeAli])
+ok('first farm data visible again', (await as('ali', `select * from public.bandes`)).rows.length > 0)
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))
   const counts = Object.fromEntries(res.at(-1).rows.map((r) => [r.element, Number(r.nombre)]))
   ok('reset keeps 6 cash boxes and accounts, empties data',
-    counts['caisses (doivent rester 6)'] === 6 && counts['écritures'] === 0 && counts['bandes'] === 0 && counts['ventes'] === 0 && counts['comptes conservés'] === 4,
+    counts['caisses (6 par ferme)'] % 6 === 0 && counts['caisses (6 par ferme)'] > 0 && counts['écritures'] === 0 && counts['bandes'] === 0 && counts['ventes'] === 0 && counts['comptes conservés'] === 4,
     JSON.stringify(counts))
   ok('cash balances back to 0', (await as('ali', `select sum(solde)::int s from public.soldes_caisses`)).rows[0].s === 0)
   ok('vaccination programme kept', (await as('kenfack', `select * from public.modeles_taches`)).rows.length === 5)

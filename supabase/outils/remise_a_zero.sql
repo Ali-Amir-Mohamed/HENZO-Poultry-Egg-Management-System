@@ -3,7 +3,7 @@
 -- ⚠️ IRRÉVERSIBLE : efface toutes les données d'exploitation.
 -- À lancer seulement après accord du directeur, dans Supabase > SQL Editor.
 --
--- Conserve : comptes et rôles, paramètres de la ferme, les 6 caisses
+-- Conserve : comptes, rôles et fermes, paramètres, les 6 caisses par ferme
 --            (qui repartent à 0), programme de vaccination (modèles).
 -- Efface   : bandes, lots, saisies, ventes, dépenses, paiements, écritures,
 --            stock et produits, clients / fournisseurs, prix, investisseurs,
@@ -43,12 +43,14 @@ truncate table
   public.prix_vente,
   public.articles,
   public.tiers,
+  public.ajustements_oeufs,
+  public.connexions,
   public.notifications,
   public.journal_activite
 restart identity;
 
 -- Vérification : tout doit être à 0, les caisses existent toujours
-select 'caisses (doivent rester 6)' as element, count(*) as nombre from public.caisses
+select 'caisses (6 par ferme)' as element, count(*) as nombre from public.caisses
 union all select 'écritures', count(*) from public.ecritures
 union all select 'bandes', count(*) from public.bandes
 union all select 'ventes', count(*) from public.ventes
