@@ -16,6 +16,7 @@ import Planning from './pages/Planning'
 import Analyses from './pages/Analyses'
 import ReleveInvestisseur from './pages/argent/ReleveInvestisseur'
 import Reglages from './pages/Reglages'
+import FicheTiers from './pages/reglages/FicheTiers'
 import Sync from './pages/Sync'
 import Plus from './pages/Plus'
 
@@ -57,6 +58,7 @@ export default function App() {
         <Route path="analyses" element={<Guard section="analyses"><Analyses /></Guard>} />
         <Route path="stock" element={<Guard section="stock"><Stock /></Guard>} />
         <Route path="reglages" element={<Guard section="reglages"><Reglages /></Guard>} />
+        <Route path="reglages/tiers/:id" element={<Guard section="reglages"><FicheTiers /></Guard>} />
         <Route path="sync" element={<Guard section="sync"><Sync /></Guard>} />
         <Route path="plus" element={<Plus />} />
         <Route path="*" element={<Navigate to="/" replace />} />

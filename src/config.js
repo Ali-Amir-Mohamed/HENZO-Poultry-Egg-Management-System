@@ -67,8 +67,16 @@ export const PERMISSIONS = {
   'tache.plan': [D, X, F],
   'programme.edit': [D, X],
   'demarrage': [D, F],          // initial setup (opening balances, existing capital / loans)
-  'ferme.settings': [D]
+  'ferme.settings': [D],
+  'comptes': [D],
+  'journal': [D],
+  'sauvegarde': [D],
+  'correction': [D],
+  'transfert': [D, F]
 }
+
+// Roles automatically signed out after a period of inactivity (employees work offline: not them)
+export const SESSION_EXPIRY_ROLES = [D, X, F]
 
 export const TYPES_TACHE = ['vaccination', 'traitement', 'pesee', 'achat_aliment', 'remboursement', 'arrivee_poussins', 'vente_prevue', 'nettoyage', 'autre']
 

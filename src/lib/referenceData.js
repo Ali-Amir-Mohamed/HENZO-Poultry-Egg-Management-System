@@ -1,7 +1,7 @@
 import { supabase } from './supabase'
 
 // Reference lists used by the field forms. They are cached so the forms keep working offline.
-const CACHE_KEY = 'henzo.ref.v2'
+const CACHE_KEY = 'henzo.ref.v3'
 
 export function readCachedReference() {
   try {
@@ -12,12 +12,16 @@ export function readCachedReference() {
 }
 
 function empty() {
-  return { bandes: [], lots: [], articles: [], clients: [], prix: [] }
+  return { bandes: [], lots: [], articles: [], clients: [], prix: [], seuilTiers: null }
+}
+
+export function saveReference(ref) {
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify(ref)) } catch {}
 }
 
 export async function loadReference() {
   if (!navigator.onLine) return readCachedReference()
-  const [bandes, lots, articles, clients, prix] = await Promise.all([
+  const [bandes, lots, articles, clients, prix, ferme] = await Promise.all([
     // Oldest flock first: it is the one preselected for a sale
     supabase.from('effectif_bandes').select('bande_id, code, statut, date_arrivee, restants, age_jours')
       .neq('statut', 'cloturee').order('date_arrivee'),
@@ -26,12 +30,15 @@ export async function loadReference() {
     supabase.from('articles').select('id, nom, categorie, unite').eq('actif', true).order('nom'),
     supabase.from('tiers').select('id, nom, type_tiers, credit_autorise, plafond_credit')
       .in('type_tiers', ['client', 'client_fournisseur']).order('nom'),
-    supabase.from('prix_actuels').select('produit, unite, prix')
+    supabase.from('prix_actuels').select('produit, unite, prix'),
+    supabase.from('fermes').select('seuil_tiers_obligatoire').limit(1)
   ])
-  const failed = [bandes, lots, articles, clients, prix].find((r) => r.error)
-  if (failed) return readCachedReference()
-  const ref = { bandes: bandes.data, lots: lots.data, articles: articles.data, clients: clients.data, prix: prix.data }
-  try { localStorage.setItem(CACHE_KEY, JSON.stringify(ref)) } catch {}
+  if ([bandes, lots, articles, clients, prix, ferme].some((r) => r.error)) return readCachedReference()
+  const ref = {
+    bandes: bandes.data, lots: lots.data, articles: articles.data, clients: clients.data, prix: prix.data,
+    seuilTiers: ferme.data[0]?.seuil_tiers_obligatoire ?? null
+  }
+  saveReference(ref)
   return ref
 }
 

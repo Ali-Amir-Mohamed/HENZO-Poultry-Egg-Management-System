@@ -8,6 +8,10 @@ import { localDate } from '../lib/stats'
 import { day, Empty, Field, FormCard, Loading, money, Panel, Tabs } from '../components/ui'
 import Icon from '../components/Icon'
 import Demarrage from './reglages/Demarrage'
+import Comptes from './reglages/Comptes'
+import Journal from './reglages/Journal'
+import Sauvegarde from './reglages/Sauvegarde'
+import { Link } from 'react-router-dom'
 
 // Settings: customers & suppliers (with credit authorisation), current sale prices, initial setup
 export default function Reglages() {
@@ -16,6 +20,9 @@ export default function Reglages() {
   const tabs = [
     { id: 'tiers', label: 'reglages.tabs.tiers', icon: 'users' },
     { id: 'prix', label: 'reglages.tabs.prix', icon: 'tag' },
+    ...(can(role, 'comptes') ? [{ id: 'comptes', label: 'reglages.tabs.comptes', icon: 'users' }] : []),
+    ...(can(role, 'journal') ? [{ id: 'journal', label: 'reglages.tabs.journal', icon: 'note' }] : []),
+    ...(can(role, 'sauvegarde') ? [{ id: 'sauvegarde', label: 'reglages.tabs.sauvegarde', icon: 'download' }] : []),
     ...(can(role, 'demarrage') ? [{ id: 'demarrage', label: 'reglages.tabs.demarrage', icon: 'flag' }] : [])
   ]
   return (
@@ -23,6 +30,9 @@ export default function Reglages() {
       <Tabs value={tab} onChange={setTab} tabs={tabs} />
       {tab === 'tiers' && <Tiers />}
       {tab === 'prix' && <Prix />}
+      {tab === 'comptes' && <Comptes />}
+      {tab === 'journal' && <Journal />}
+      {tab === 'sauvegarde' && <Sauvegarde />}
       {tab === 'demarrage' && <Demarrage />}
     </div>
   )
@@ -90,11 +100,12 @@ function Tiers() {
             {list.data.map((c) => (
               <li key={c.id}>
                 <div className="grow">
-                  <strong>{c.nom}</strong>
+                  <Link to={`/reglages/tiers/${c.id}`} className="card-title">{c.nom}<Icon name="chevron" size={14} /></Link>
                   <div className="muted small">{t(`tiersTypes.${c.type_tiers}`)}{c.telephone ? ` · ${c.telephone}` : ''}{c.adresse ? ` · ${c.adresse}` : ''}</div>
-                  {grant && c.type_tiers !== 'fournisseur' && (
-                    <div className="row-actions"><button className="btn ghost sm" onClick={() => editCredit(c)}>{t('reglages.editCredit')}</button></div>
-                  )}
+                  <div className="row-actions">
+                    <Link to={`/reglages/tiers/${c.id}`} className="btn ghost sm">{t('tiers.history')}</Link>
+                    {grant && c.type_tiers !== 'fournisseur' && <button className="btn ghost sm" onClick={() => editCredit(c)}>{t('reglages.editCredit')}</button>}
+                  </div>
                 </div>
                 {c.credit_autorise && <span className="tag warn">{t('reglages.creditUpTo', { n: money(c.plafond_credit, lang) })}</span>}
               </li>

@@ -5,6 +5,7 @@ import { canAccess } from '../config'
 import { useInstallPrompt, useOnline, usePendingCount } from '../hooks'
 import LanguageSwitch from './LanguageSwitch'
 import Notifications from './Notifications'
+import SessionGuard from './SessionGuard'
 import Icon, { Logo } from './Icon'
 
 export const SECTIONS = [
@@ -81,6 +82,7 @@ export default function Layout() {
         </nav>
       </header>
       <main className="content"><Outlet /></main>
+      <SessionGuard />
     </div>
   )
 }

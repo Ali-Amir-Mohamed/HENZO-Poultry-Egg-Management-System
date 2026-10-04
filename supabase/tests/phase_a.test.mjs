@@ -380,6 +380,42 @@ ok('report lists flocks closed this month', rep.bandes_cloturees.some((b) => b.c
 ok('report treasury: 6 cash boxes', rep.tresorerie.length === 6)
 await expectErr('employe cannot get the report', 'employe', `select public.rapport_mensuel(current_date)`, [], 'responsables')
 
+// ---------- Complements before going live ----------
+try {
+  await db.exec(readFileSync(new URL('0007_complements.sql', MIG), 'utf8'))
+  ok('migration 0007 runs', true)
+} catch (e) { ok('migration 0007 runs', false, e.message); process.exit(1) }
+
+await expectOk('kenfack creates bande C7', 'kenfack', `insert into public.bandes (code, date_arrivee, nombre_initial) values ('C7', current_date - 30, 1000)`)
+const C7 = (await db.query(`select id from public.bandes where code = 'C7'`)).rows[0].id
+await expectErr('big anonymous sale refused', 'employe', `insert into public.ventes (bande_id, produit, unite, quantite, prix_unitaire, nombre_sujets, mode_paiement) values ($1, 'poulets', 'piece', 50, 3000, 50, 'especes')`, [C7], 'client')
+await expectOk('big sale with client accepted', 'employe', `insert into public.ventes (bande_id, client_id, produit, unite, quantite, prix_unitaire, nombre_sujets, mode_paiement) values ($1, (select id from public.tiers where nom = 'Client B'), 'poulets', 'piece', 50, 3000, 50, 'especes')`, [C7])
+await expectOk('small anonymous sale still fine', 'employe', `insert into public.ventes (bande_id, produit, unite, quantite, prix_unitaire, nombre_sujets, mode_paiement) values ($1, 'poulets', 'piece', 2, 3000, 2, 'especes')`, [C7])
+await expectErr('big purchase without supplier refused', 'dahirou', `insert into public.depenses (portee, activite, categorie, libelle, montant, mode_paiement) values ('generale', 'chair', 'loyer', 'Loyer', 150000, 'banque')`, [], 'fournisseur')
+await expectOk('salaries need no supplier', 'dahirou', `insert into public.depenses (portee, activite, categorie, libelle, montant, mode_paiement) values ('generale', 'chair', 'salaires', 'Salaires', 150000, 'banque')`)
+
+const rb = await one('kenfack', `select * from public.resultat_bandes where code = 'C7'`)
+ok('general charges allocated to running flocks', Number(rb?.charges_generales) > 0 && Number(rb.benefice_net) === Number(rb.marge_brute) - Number(rb.charges_generales), JSON.stringify(rb))
+const rb4 = await one('dahirou', `select * from public.resultat_bandes where code = 'C4'`)
+ok('available profit deducts the 10 %', Number(rb4.dix_pourcent_investisseurs) === 100000 && Number(rb4.benefice_disponible) === Number(rb4.benefice_net) - 100000, JSON.stringify(rb4))
+ok('employe cannot see flock profit', (await as('employe', `select * from public.resultat_bandes`)).rows.length === 0)
+
+const cEsp = (await db.query(`select id from public.caisses where activite = 'chair' and mode = 'especes'`)).rows[0].id
+const cBank = (await db.query(`select id from public.caisses where activite = 'chair' and mode = 'banque'`)).rows[0].id
+const espBefore = await solde('chair', 'especes'), bankBefore2 = await solde('chair', 'banque')
+await expectOk('dahirou deposits cash at the bank', 'dahirou', `insert into public.transferts_caisses (caisse_source, caisse_destination, montant, motif) values ($1, $2, 50000, 'Dépôt banque')`, [cEsp, cBank])
+ok('transfer moves money between boxes', espBefore - (await solde('chair', 'especes')) === 50000 && (await solde('chair', 'banque')) - bankBefore2 === 50000)
+ok('total cash unchanged by transfer', (await solde('chair', 'especes')) + (await solde('chair', 'banque')) === espBefore + bankBefore2)
+await expectErr('transfer above balance refused', 'dahirou', `insert into public.transferts_caisses (caisse_source, caisse_destination, montant, motif) values ($1, $2, 999999999, 'x')`, [cEsp, cBank], 'ne contient')
+await expectErr('kenfack cannot transfer', 'kenfack', `insert into public.transferts_caisses (caisse_source, caisse_destination, montant, motif) values ($1, $2, 1, 'x')`, [cEsp, cBank])
+await expectOk('ali cancels the transfer', 'ali', `update public.transferts_caisses set annulee = true, motif_annulation = 'Erreur'`)
+ok('cancelled transfer restored both boxes', (await solde('chair', 'especes')) === espBefore && (await solde('chair', 'banque')) === bankBefore2)
+
+ok('login names filled in profiles', (await as('ali', `select identifiant from public.profiles order by identifiant`)).rows.map((r) => r.identifiant).join(',') === 'ali,dahirou,employe,kenfack')
+await expectErr('directeur cannot demote himself', 'ali', `update public.profiles set role = 'employe' where id = auth.uid()`, [], 'propre')
+await expectOk('directeur changes an employee role', 'ali', `update public.profiles set nom_complet = 'Employé 1' where identifiant = 'employe'`)
+await expectNoRows('kenfack cannot change roles', 'kenfack', `update public.profiles set role = 'directeur' where identifiant = 'employe' returning id`)
+
 // ---------- Journal ----------
 ok('journal visible to directeur', (await as('ali', `select * from public.journal_activite`)).rows.length > 10)
 ok('journal hidden from finance', (await as('dahirou', `select * from public.journal_activite`)).rows.length === 0)

@@ -84,7 +84,9 @@ function ParametresFerme({ ferme, onSaved }) {
       seuil_validation_depense: Number(form.seuil_validation_depense),
       taux_investisseurs: Number(form.taux_investisseurs),
       seuil_mortalite_pct: Number(form.seuil_mortalite_pct),
-      alerte_autonomie_jours: Number(form.alerte_autonomie_jours)
+      alerte_autonomie_jours: Number(form.alerte_autonomie_jours),
+      seuil_tiers_obligatoire: Number(form.seuil_tiers_obligatoire),
+      session_minutes: Number(form.session_minutes)
     }).eq('id', ferme.id))
     onSaved()
   }
@@ -96,6 +98,8 @@ function ParametresFerme({ ferme, onSaved }) {
         <Field label={t('demarrage.investorRate')}><input type="number" min="0" max="100" step="0.01" required value={form.taux_investisseurs} onChange={set('taux_investisseurs')} /></Field>
         <Field label={t('demarrage.mortalityAlert')}><input type="number" min="0.01" step="0.01" required value={form.seuil_mortalite_pct} onChange={set('seuil_mortalite_pct')} /></Field>
         <Field label={t('demarrage.autonomyAlert')}><input type="number" min="1" required value={form.alerte_autonomie_jours} onChange={set('alerte_autonomie_jours')} /></Field>
+        <Field label={t('demarrage.partyThreshold')}><input type="number" min="0" required value={form.seuil_tiers_obligatoire} onChange={set('seuil_tiers_obligatoire')} /></Field>
+        <Field label={t('demarrage.sessionMinutes')}><input type="number" min="5" max="1440" required value={form.session_minutes} onChange={set('session_minutes')} /></Field>
       </div>
     </FormCard>
   )

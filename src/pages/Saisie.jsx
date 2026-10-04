@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { enqueue } from '../lib/offlineQueue'
-import { loadReference, prixDuMoment, readCachedReference } from '../lib/referenceData'
+import { loadReference, prixDuMoment, readCachedReference, saveReference } from '../lib/referenceData'
 import { localDate } from '../lib/stats'
 import { MODES_PAIEMENT, PRODUITS, TABLES } from '../config'
 import Icon from '../components/Icon'
@@ -60,7 +60,11 @@ export default function Saisie() {
         ))}
       </div>
       {kind === 'vente'
-        ? <VenteForm key="vente" refData={ref} />
+        ? <VenteForm key="vente" refData={ref} onNewClient={(c) => {
+            const next = { ...ref, clients: [...ref.clients, c].sort((a, b) => a.nom.localeCompare(b.nom)) }
+            setRef(next)
+            saveReference(next)
+          }} />
         : <FieldForm key={kind} kind={kind} refData={ref} />}
     </div>
   )
@@ -142,7 +146,7 @@ function FieldForm({ kind, refData }) {
 }
 
 // ---------- Sale form ----------
-function VenteForm({ refData }) {
+function VenteForm({ refData, onNewClient }) {
   const { t, i18n } = useTranslation()
   const initial = (activite) => {
     const prod = PRODUITS[activite][0]
@@ -178,6 +182,18 @@ function VenteForm({ refData }) {
   const total = Math.round((quantite || 0) * (Number(form.prix_unitaire) || 0))
   const credit = form.paiement === 'credit'
   const clients = credit ? refData.clients.filter((c) => c.credit_autorise) : refData.clients
+  // No big anonymous sale: customer required above the threshold (database rule too)
+  const clientRequired = credit || (refData.seuilTiers != null && total > Number(refData.seuilTiers))
+  const [newClient, setNewClient] = useState(null)
+
+  // New customer created on the spot (also offline: sent before the sale, same outbox)
+  const addClient = async () => {
+    if (!newClient?.nom?.trim()) return
+    const row = await enqueue(TABLES.tiers, { type_tiers: 'client', nom: newClient.nom.trim(), telephone: newClient.telephone || null })
+    onNewClient({ id: row.id, nom: row.nom, type_tiers: 'client', credit_autorise: false, plafond_credit: 0 })
+    update({ client_id: row.id })
+    setNewClient(null)
+  }
   const fmt = (n) => Number(n || 0).toLocaleString(i18n.resolvedLanguage)
 
   const update = (patch) => { setSaved(false); setForm((f) => ({ ...f, ...patch })) }
@@ -287,8 +303,8 @@ function VenteForm({ refData }) {
       </div>
 
       <label className="field">
-        <span>{credit ? t('saisie.clientCredit') : t('saisie.clientOptional')}</span>
-        <select required={credit} value={form.client_id} onChange={set('client_id')}>
+        <span>{credit ? t('saisie.clientCredit') : clientRequired ? t('saisie.clientRequired', { n: fmt(refData.seuilTiers) }) : t('saisie.clientOptional')}</span>
+        <select required={clientRequired} value={form.client_id} onChange={set('client_id')}>
           <option value="">{credit ? (clients.length ? t('saisie.chooseClient') : t('saisie.noCreditClient')) : '—'}</option>
           {clients.map((c) => (
             <option key={c.id} value={c.id}>
@@ -297,6 +313,25 @@ function VenteForm({ refData }) {
           ))}
         </select>
       </label>
+
+      {!credit && (newClient ? (
+        <div className="grid-2 inline-new">
+          <label className="field"><span>{t('saisie.newClientName')}</span>
+            <input value={newClient.nom} onChange={(e) => setNewClient({ ...newClient, nom: e.target.value })} autoFocus />
+          </label>
+          <label className="field"><span>{t('reglages.phone')}</span>
+            <input type="tel" value={newClient.telephone} onChange={(e) => setNewClient({ ...newClient, telephone: e.target.value })} />
+          </label>
+          <div className="row-actions span-2">
+            <button type="button" className="btn primary sm" onClick={addClient}>{t('saisie.addClient')}</button>
+            <button type="button" className="btn ghost sm" onClick={() => setNewClient(null)}>{t('common.close')}</button>
+          </div>
+        </div>
+      ) : (
+        <button type="button" className="btn ghost sm" onClick={() => setNewClient({ nom: '', telephone: '' })}>
+          <Icon name="plus" size={14} />{t('saisie.newClient')}
+        </button>
+      ))}
 
       {credit && (
         <div className="grid-2">

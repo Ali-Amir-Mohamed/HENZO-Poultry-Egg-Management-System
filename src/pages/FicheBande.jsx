@@ -16,7 +16,7 @@ export default function FicheBande() {
   const n = (v, d = 0) => (v == null ? '—' : Number(v).toLocaleString(lang, { maximumFractionDigits: d }))
 
   const q = useQuery(async () => {
-    const [bande, ind, bilan, morts, pesees, conso, ventes, depenses, taches] = await Promise.all([
+    const [bande, ind, bilan, morts, pesees, conso, ventes, depenses, taches, resultat] = await Promise.all([
       supabase.from(TABLES.bandes).select('*, fournisseur:tiers(nom)').eq('id', id).single(),
       supabase.from('indicateurs_bandes').select('*').eq('bande_id', id).maybeSingle(),
       supabase.from('bilans_bandes').select('*').eq('bande_id', id).maybeSingle(),
@@ -25,16 +25,17 @@ export default function FicheBande() {
       supabase.from(TABLES.mouvementsStock).select('id, date_mouvement, quantite, created_at, article:articles(nom, unite)').eq('bande_id', id).eq('type_mouvement', 'sortie'),
       supabase.from(TABLES.ventes).select('id, date_vente, produit, unite, quantite, prix_unitaire, montant, nombre_sujets, annulee, created_at, client:tiers(nom)').eq('bande_id', id),
       supabase.from(TABLES.depenses).select('id, date_depense, categorie, libelle, montant, statut, annulee, created_at').eq('bande_id', id),
-      supabase.from(TABLES.taches).select('id, titre, type_tache, date_prevue, statut, fait_le, produit').eq('bande_id', id).neq('statut', 'annule').order('date_prevue')
+      supabase.from(TABLES.taches).select('id, titre, type_tache, date_prevue, statut, fait_le, produit').eq('bande_id', id).neq('statut', 'annule').order('date_prevue'),
+      supabase.from('resultat_bandes').select('*').eq('bande_id', id).maybeSingle()
     ])
     return {
       bande: must(bande), ind: must(ind), bilan: must(bilan), morts: must(morts), pesees: must(pesees),
-      conso: must(conso), ventes: must(ventes), depenses: must(depenses), taches: must(taches)
+      conso: must(conso), ventes: must(ventes), depenses: must(depenses), taches: must(taches), resultat: must(resultat)
     }
   }, [id])
 
   if (!q.data) return <Loading error={q.error} />
-  const { bande, bilan, morts, pesees, conso, ventes, depenses, taches } = q.data
+  const { bande, bilan, morts, pesees, conso, ventes, depenses, taches, resultat } = q.data
   const aVenir = taches.filter((x) => x.statut === 'a_faire')
   // Closed flock: show the frozen report ; otherwise live figures
   const ind = bilan ?? q.data.ind
@@ -95,8 +96,18 @@ export default function FicheBande() {
                 <tr className="sum"><td>{t('fiche.costTotal')}</td><td>{money(ind.cout_total, lang)}</td></tr>
                 <tr><td>{t('fiche.turnover')}</td><td>{money(ind.chiffre_affaires, lang)}</td></tr>
                 <tr className={`sum ${Number(ind.marge_brute) < 0 ? 'bad' : 'good'}`}><td>{t('fiche.margin')}</td><td>{money(ind.marge_brute, lang)}</td></tr>
+                {resultat && (
+                  <>
+                    <tr><td>{t('fiche.overheadsShare')}</td><td>− {money(resultat.charges_generales, lang)}</td></tr>
+                    <tr className={`sum ${Number(resultat.benefice_net) < 0 ? 'bad' : 'good'}`}><td>{t('fiche.netProfit')}</td><td>{money(resultat.benefice_net, lang)}</td></tr>
+                    <tr><td>{t('fiche.investors10')}</td><td>− {money(resultat.dix_pourcent_investisseurs, lang)}</td></tr>
+                    <tr><td>{t('fiche.loanRepaid')}</td><td>− {money(resultat.remboursements_prets, lang)}</td></tr>
+                    <tr className={`sum ${Number(resultat.benefice_disponible) < 0 ? 'bad' : 'good'}`}><td>{t('fiche.availableProfit')}</td><td>{money(resultat.benefice_disponible, lang)}</td></tr>
+                  </>
+                )}
               </tbody>
             </table>
+            {resultat && <p className="muted small">{t('fiche.netNote')}</p>}
             <div className="facts">
               <Fact label={t('fiche.costPerBird')} value={ind.cout_par_poulet_vendu ? money(ind.cout_par_poulet_vendu, lang) : '—'} />
               <Fact label={t('fiche.costPerKg')} value={ind.cout_par_kg ? money(ind.cout_par_kg, lang) : '—'} />

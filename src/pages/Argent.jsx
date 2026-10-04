@@ -47,17 +47,47 @@ function Caisses() {
   const lang = i18n.resolvedLanguage
   const soldes = useQuery(async () => must(await supabase.from('soldes_caisses').select('*')))
   const ecritures = useQuery(async () => must(await supabase.from('ecritures')
-    .select('id, date_operation, sens, montant, nature, libelle, caisse:caisses(activite, mode)')
+    .select('id, date_operation, sens, montant, nature, libelle, caisse_id, source_id, ecriture_corrigee_id, caisse:caisses(activite, mode)')
     .order('created_at', { ascending: false }).limit(40)))
   const [form, setForm] = useState({ caisse_id: '', montant: '' })
+  const [tr, setTr] = useState({ caisse_source: '', caisse_destination: '', montant: '', motif: '', date_transfert: localDate() })
+  const reload = () => { soldes.reload(); ecritures.reload() }
 
   const total = (a) => (soldes.data ?? []).filter((c) => !a || c.activite === a).reduce((s, c) => s + Number(c.solde), 0)
+  const label = (c) => `${t(`types.${c.activite}_pl`)} · ${t(`modes.${c.mode}`)}`
 
   const soldeInitial = async () => {
     must(await supabase.from('ecritures').insert({
       caisse_id: form.caisse_id, sens: 'entree', montant: Number(form.montant), nature: 'solde_initial', libelle: t('argent.openingBalance')
     }))
-    soldes.reload(); ecritures.reload()
+    reload()
+  }
+  const transferer = async () => {
+    must(await supabase.from('transferts_caisses').insert({ ...tr, montant: Number(tr.montant) }))
+    setTr({ ...tr, montant: '', motif: '' })
+    reload()
+  }
+  // Director only: correcting entry linked to the original (the original stays in the history)
+  const corriger = async (e) => {
+    const sensChoice = window.prompt(t('argent.correctionSens'), '2')
+    const sens = sensChoice === '1' ? 'entree' : sensChoice === '2' ? 'sortie' : null
+    if (!sens) return
+    const montant = Number(window.prompt(t('argent.correctionAmount')))
+    if (!montant || montant <= 0) return
+    const motif = askReason(t('argent.correctionReason'))
+    if (!motif) return
+    const { error } = await supabase.from('ecritures').insert({
+      caisse_id: e.caisse_id, sens, montant, nature: 'correction', libelle: motif, ecriture_corrigee_id: e.id
+    })
+    if (error) window.alert(error.message)
+    reload()
+  }
+  const annulerTransfert = async (e) => {
+    const motif = askReason(t('argent.cancelReason'))
+    if (!motif) return
+    const { error } = await supabase.from('transferts_caisses').update({ annulee: true, motif_annulation: motif }).eq('id', e.source_id)
+    if (error) window.alert(error.message)
+    reload()
   }
 
   return (
@@ -84,6 +114,28 @@ function Caisses() {
         </div>
       )}
 
+      {can(role, 'transfert') && soldes.data && (
+        <FormCard title={t('argent.transfer')} icon="sync" onSubmit={transferer}>
+          <div className="grid-2">
+            <Field label={t('argent.from')}>
+              <select required value={tr.caisse_source} onChange={(e) => setTr({ ...tr, caisse_source: e.target.value })}>
+                <option value="" disabled>{t('saisie.choose')}</option>
+                {soldes.data.map((c) => <option key={c.caisse_id} value={c.caisse_id}>{label(c)} ({money(c.solde, lang)})</option>)}
+              </select>
+            </Field>
+            <Field label={t('argent.to')}>
+              <select required value={tr.caisse_destination} onChange={(e) => setTr({ ...tr, caisse_destination: e.target.value })}>
+                <option value="" disabled>{t('saisie.choose')}</option>
+                {soldes.data.filter((c) => c.caisse_id !== tr.caisse_source).map((c) => <option key={c.caisse_id} value={c.caisse_id}>{label(c)}</option>)}
+              </select>
+            </Field>
+            <Field label={t('argent.amount')} className="big"><input type="number" min="1" required value={tr.montant} onChange={(e) => setTr({ ...tr, montant: e.target.value })} /></Field>
+            <Field label={t('saisie.date')}><input type="date" required value={tr.date_transfert} onChange={(e) => setTr({ ...tr, date_transfert: e.target.value })} /></Field>
+          </div>
+          <Field label={t('argent.transferReason')}><input required value={tr.motif} onChange={(e) => setTr({ ...tr, motif: e.target.value })} placeholder={t('argent.transferPh')} /></Field>
+        </FormCard>
+      )}
+
       {can(role, 'soldeInitial') && soldes.data && (
         <FormCard title={t('argent.openingBalance')} icon="wallet" onSubmit={soldeInitial}>
           <div className="grid-2">
@@ -105,9 +157,17 @@ function Caisses() {
           <ul className="list">
             {ecritures.data.map((e) => (
               <li key={e.id}>
-                <div>
+                <div className="grow">
                   <strong>{e.libelle || t(`natures.${e.nature}`)}</strong>
                   <div className="muted small">{day(e.date_operation, lang)} · {t(`types.${e.caisse.activite}_pl`)} · {t(`modes.${e.caisse.mode}`)} · {t(`natures.${e.nature}`)}</div>
+                  {!['correction', 'annulation'].includes(e.nature) && (can(role, 'correction') || (e.nature === 'transfert' && can(role, 'annuler'))) && (
+                    <div className="row-actions">
+                      {can(role, 'correction') && <button className="btn ghost sm" onClick={() => corriger(e)}>{t('argent.correct')}</button>}
+                      {e.nature === 'transfert' && e.sens === 'sortie' && can(role, 'annuler') && (
+                        <button className="btn ghost sm" onClick={() => annulerTransfert(e)}>{t('argent.cancelTransfer')}</button>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <strong className={e.sens === 'entree' ? 'success' : 'error'}>{e.sens === 'entree' ? '+' : '−'}{money(e.montant, lang)}</strong>
               </li>
@@ -142,13 +202,20 @@ function Depenses() {
       supabase.from('effectif_lots').select('lot_id, code').eq('statut', 'en_production'),
       supabase.from(TABLES.tiers).select('id, nom').in('type_tiers', ['fournisseur', 'client_fournisseur']).order('nom'),
       supabase.from(TABLES.articles).select('id, nom, categorie, unite').eq('actif', true).order('nom'),
-      supabase.from('fermes').select('seuil_validation_depense').limit(1)
+      supabase.from('fermes').select('seuil_validation_depense, seuil_tiers_obligatoire').limit(1)
     ])
-    return { bandes: must(b), lots: must(l), fournisseurs: must(f), articles: must(a), seuil: must(s)[0]?.seuil_validation_depense }
+    const ferme = must(s)[0]
+    return {
+      bandes: must(b), lots: must(l), fournisseurs: must(f), articles: must(a),
+      seuil: ferme?.seuil_validation_depense, seuilTiers: ferme?.seuil_tiers_obligatoire
+    }
   })
 
   const credit = form.paiement === 'credit'
   const stockable = ['aliment', 'medicament'].includes(form.categorie)
+  // No big anonymous purchase: supplier required above the threshold (database rule too)
+  const supplierRequired = credit || (refs.data?.seuilTiers != null && Number(form.montant) > Number(refs.data.seuilTiers)
+    && !['salaires', 'retrait_associe'].includes(form.categorie))
   const articles = (refs.data?.articles ?? []).filter((a) => a.categorie === form.categorie)
 
   const create = async () => {
@@ -258,8 +325,8 @@ function Depenses() {
           <div className="grid-2">
             <Field label={t('argent.label')} className="span-2"><input required value={form.libelle} onChange={set('libelle')} /></Field>
             <Field label={t('argent.amount')} className="big"><input type="number" min="1" required value={form.montant} onChange={set('montant')} /></Field>
-            <Field label={t('argent.supplier')}>
-              <select required={credit} value={form.fournisseur_id} onChange={set('fournisseur_id')}>
+            <Field label={supplierRequired ? t('argent.supplierRequired') : t('argent.supplier')}>
+              <select required={supplierRequired} value={form.fournisseur_id} onChange={set('fournisseur_id')}>
                 <option value="">—</option>
                 {(refs.data?.fournisseurs ?? []).map((f) => <option key={f.id} value={f.id}>{f.nom}</option>)}
               </select>
