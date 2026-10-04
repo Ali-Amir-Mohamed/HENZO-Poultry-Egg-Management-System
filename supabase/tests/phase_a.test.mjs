@@ -444,5 +444,18 @@ ok('after hardening: employe still blocked from indicators', (await as('employe'
 ok('journal visible to directeur', (await as('ali', `select * from public.journal_activite`)).rows.length > 10)
 ok('journal hidden from finance', (await as('dahirou', `select * from public.journal_activite`)).rows.length === 0)
 
+// ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
+try {
+  const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))
+  const counts = Object.fromEntries(res.at(-1).rows.map((r) => [r.element, Number(r.nombre)]))
+  ok('reset keeps 6 cash boxes and accounts, empties data',
+    counts['caisses (doivent rester 6)'] === 6 && counts['écritures'] === 0 && counts['bandes'] === 0 && counts['ventes'] === 0 && counts['comptes conservés'] === 4,
+    JSON.stringify(counts))
+  ok('cash balances back to 0', (await as('ali', `select sum(solde)::int s from public.soldes_caisses`)).rows[0].s === 0)
+  ok('vaccination programme kept', (await as('kenfack', `select * from public.modeles_taches`)).rows.length === 5)
+  await expectOk('farm usable after reset: opening balance', 'dahirou', `insert into public.ecritures (caisse_id, sens, montant, nature, libelle) select id, 'entree', 5000000, 'solde_initial', 'Solde initial' from public.caisses where activite = 'chair' and mode = 'especes'`)
+  await expectOk('farm usable after reset: new flock', 'kenfack', `insert into public.bandes (code, date_arrivee, nombre_initial) values ('B1', current_date, 500)`)
+} catch (e) { ok('reset script runs', false, e.message) }
+
 console.log(`\n${pass} passed, ${fail} failed`)
 process.exit(fail ? 1 : 0)
