@@ -22,6 +22,7 @@ export async function enqueue(table, record) {
 }
 
 export const pendingCount = () => db.outbox.where('status').anyOf('pending', 'error').count()
+export const errorCount = () => db.outbox.where('status').equals('error').count()
 export const listOutbox = () => db.outbox.orderBy('createdAt').reverse().toArray()
 
 // An entry rejected by the server (e.g. credit ceiling exceeded) can be discarded by the user

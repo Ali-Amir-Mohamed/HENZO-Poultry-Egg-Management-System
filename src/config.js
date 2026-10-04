@@ -72,6 +72,7 @@ export const PERMISSIONS = {
   'journal': [D],
   'sauvegarde': [D],
   'correction': [D],
+  'correction.request': [X, F],  // ask the director to cancel / correct a financial record
   'transfert': [D, F]
 }
 

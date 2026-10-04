@@ -723,10 +723,8 @@
       "running": "Running flocks",
       "generated": "Report generated on {{d}} by HENZO."
     },
-    "groupTitle": "By strain or by supplier",
     "groupHint": "Averages of closed flocks: the best value is in green.",
     "bySouche": "By strain",
-    "bySupplier": "By chick supplier",
     "groupNone": "No closed flock yet: the comparison will appear after the first closure.",
     "flocksCount": "Flocks",
     "perFlock": "per flock",
@@ -848,8 +846,8 @@
     "export": "Export now",
     "done": "Export finished: {{n}} rows saved in the file.",
     "autoTitle": "Automatic backup",
-    "autoText": "Every Sunday, a full encrypted copy of the database is created on GitHub and kept for 90 days.",
-    "autoWhere": "GitHub > Actions > Weekly backup. Restore: see docs/RESTAURATION.md in the project."
+    "autoText": "Every day, a full encrypted copy of the database is sent to an independent backup storage (30 days of daily copies, 1 year of monthly copies).",
+    "autoWhere": "Backblaze B2 or Cloudflare R2 storage, run by GitHub Actions > Daily backup. Restore: see docs/RESTAURATION.md in the project."
   },
   "tiers": {
     "back": "Back to settings",
@@ -875,7 +873,15 @@
     "error": "Error",
     "waiting": "Waiting",
     "discard": "Delete",
-    "confirmDiscard": "Delete this refused entry? It will not be saved."
+    "confirmDiscard": "Delete this refused entry? It will not be saved.",
+    "refusedAlert_one": "{{count}} entry was refused by the server: open “Sync” to check it.",
+    "refusedAlert_other": "{{count}} entries were refused by the server: open “Sync” to check them.",
+    "refusedHelp": "What to do: read the reason, enter it again correctly (e.g. right number or right flock), then delete this one.",
+    "rulesTitle": "How do offline entries work?",
+    "rule1": "Each entry gets a unique number on the phone: even if the connection drops while sending, it is never recorded twice.",
+    "rule2": "Offline, entries are only added: nothing is edited or deleted, so two people cannot contradict each other on the same record.",
+    "rule3": "When sending, the server checks everything again against current data (flock closed meanwhile, more birds than remaining, credit ceiling…). If the entry is no longer valid it is refused and stays here with the reason.",
+    "rule4": "If two people enter the same thing (same sale, same laying, same mortality), Kenfack and Ali get a “possible duplicate” alert to check."
   },
   "tables": {
     "taches_realisations": "Task done",
@@ -1103,6 +1109,33 @@
       "connexion": "signed in",
       "deconnexion": "signed out",
       "expiration": "signed out (inactivity)"
+    }
+  },
+  "demandes": {
+    "ask": "Request a correction",
+    "askCancel": "Request cancellation",
+    "askTitle": "Correction request to the director",
+    "askHint": "Operation: {{resume}}. Ali will receive the request; if he accepts, the correction is made automatically and logged.",
+    "send": "Send request",
+    "reason": "What is wrong?",
+    "reasonPh": "e.g. the customer paid 45,000, not 54,000",
+    "sentTitle": "Request sent",
+    "sentText": "Ali has been notified. You will see his answer here, at the top of the Money tab.",
+    "titleDirector_one": "{{count}} correction request to handle",
+    "titleDirector_other": "{{count}} correction requests to handle",
+    "titleMine": "My correction requests",
+    "accept": "Accept and correct",
+    "refuse": "Refuse",
+    "refuseTitle": "Refuse the request",
+    "confirmAccept": "Accept this request? The correction will be made right away: {{resume}}",
+    "cancel_ventes": "Cancel the sale",
+    "cancel_depenses": "Cancel the expense",
+    "correctLine": "{{sens}}: {{n}} FCFA",
+    "refusedBecause": "refused: {{motif}}",
+    "statuts": {
+      "en_attente": "Pending",
+      "acceptee": "Corrected",
+      "refusee": "Refused"
     }
   }
 }

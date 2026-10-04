@@ -43,15 +43,16 @@ const METRICS = [
 function Comparaison() {
   const { t, i18n } = useTranslation()
   const lang = i18n.resolvedLanguage
-  const [metric, setMetric] = useState('marge_brute')
+  // Mortality per flock is shown first
+  const [metric, setMetric] = useState('taux_mortalite')
   const q = useQuery(async () => {
     const [closed, open, infos] = await Promise.all([
       supabase.from('bilans_bandes').select('*').order('date_arrivee'),
       supabase.from('indicateurs_bandes').select('*').neq('statut', 'cloturee').order('date_arrivee'),
-      supabase.from('bandes').select('id, souche, fournisseur:tiers(nom)')
+      supabase.from('bandes').select('id, souche')
     ])
     const info = Object.fromEntries(must(infos).map((b) => [b.id, b]))
-    const plus = (b) => ({ ...b, souche: info[b.bande_id]?.souche, fournisseur: info[b.bande_id]?.fournisseur?.nom })
+    const plus = (b) => ({ ...b, souche: info[b.bande_id]?.souche })
     return [...must(closed).map((b) => ({ ...plus(b), closed: true })), ...must(open).map((b) => ({ ...plus(b), closed: false }))]
   })
   if (!q.data) return <Loading error={q.error} />
@@ -121,11 +122,11 @@ function Comparaison() {
   )
 }
 
-// Which strain / which chick supplier gives the best results (closed flocks only: final figures)
+// Which strain gives the best results (closed flocks only: final figures)
 const GROUP_METRICS = ['taux_mortalite', 'fcr', 'poids_moyen_g', 'cout_par_kg', 'marge_brute']
 function ParGroupe({ bandes, fmt }) {
   const { t } = useTranslation()
-  const [by, setBy] = useState('souche')
+  const by = 'souche'
   const closed = bandes.filter((b) => b.closed)
   const groups = Object.values(closed.reduce((acc, b) => {
     const key = b[by] || t('analyses.unknown')
@@ -144,19 +145,13 @@ function ParGroupe({ bandes, fmt }) {
   }
 
   return (
-    <Panel icon="users" tone="yolk" title={t('analyses.groupTitle')} subtitle={t('analyses.groupHint')}
-      actions={(
-        <select className="inline-select" value={by} onChange={(e) => setBy(e.target.value)}>
-          <option value="souche">{t('analyses.bySouche')}</option>
-          <option value="fournisseur">{t('analyses.bySupplier')}</option>
-        </select>
-      )}>
+    <Panel icon="users" tone="yolk" title={t('analyses.bySouche')} subtitle={t('analyses.groupHint')}>
       {!closed.length ? <p className="muted">{t('analyses.groupNone')}</p> : (
         <div className="table-wrap">
           <table className="table compare">
             <thead>
               <tr>
-                <th>{by === 'souche' ? t('ferme.strain') : t('ferme.supplier')}</th>
+                <th>{t('ferme.strain')}</th>
                 <th>{t('analyses.flocksCount')}</th>
                 {GROUP_METRICS.map((k) => <th key={k}>{t(`analyses.metrics.${k}`)}{k === 'marge_brute' ? ` (${t('analyses.perFlock')})` : ''}</th>)}
               </tr>

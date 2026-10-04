@@ -2,7 +2,7 @@
 
 ## Ce qui est sauvegardé
 
-Chaque dimanche (et à la demande), GitHub Actions exécute `.github/workflows/sauvegarde.yml` :
+Chaque jour (et à la demande), GitHub Actions exécute `.github/workflows/sauvegarde.yml` :
 
 - `henzo-public.dump` : toute la structure et toutes les données de l'application (schéma `public`) ;
 - `comptes.csv` : les comptes de connexion (identifiants et mots de passe **chiffrés**).
@@ -10,7 +10,15 @@ Chaque dimanche (et à la demande), GitHub Actions exécute `.github/workflows/s
 Le tout est compressé puis **chiffré (AES-256)** avec le mot de passe `BACKUP_PASSPHRASE`.
 Sans ce mot de passe, le fichier est illisible : conservez-le en lieu sûr (et pas seulement dans GitHub).
 
-Les sauvegardes restent 90 jours dans GitHub > **Actions** > *Sauvegarde hebdomadaire* > une exécution > **Artifacts**.
+Les sauvegardes sont envoyées dans un **stockage de sauvegarde indépendant** (Backblaze B2 ou
+Cloudflare R2), séparé de Supabase et de GitHub :
+
+- `quotidien/` : une sauvegarde par jour, gardée **30 jours** ;
+- `mensuel/` : la sauvegarde du 1er de chaque mois, gardée **1 an**.
+
+Après chaque envoi, la tâche vérifie que le fichier est bien arrivé (même taille).
+GitHub ne garde rien, sauf si le stockage n'est pas encore configuré : une copie de secours reste
+alors 30 jours dans GitHub > **Actions** > *Sauvegarde quotidienne* > une exécution > **Artifacts**.
 
 > GitHub met en pause les tâches planifiées d'un dépôt sans aucune activité depuis 60 jours :
 > vérifiez de temps en temps dans l'onglet **Actions** que les sauvegardes continuent.
@@ -22,7 +30,7 @@ HENZO : **Réglages > Sauvegarde > Exporter toutes les données**.
 
 Il faut le client PostgreSQL 17 (`psql`, `pg_restore`) et GnuPG (`gpg`).
 
-1. Télécharger l'artefact depuis GitHub et le décompresser (fichier `henzo-AAAA-MM-JJ.tar.gz.gpg`).
+1. Télécharger le fichier `henzo-AAAA-MM-JJ.tar.gz.gpg` depuis le stockage de sauvegarde (site de Backblaze ou de Cloudflare, dossier `quotidien` ou `mensuel`).
 2. Déchiffrer :
    ```bash
    gpg --decrypt henzo-AAAA-MM-JJ.tar.gz.gpg > henzo.tar.gz

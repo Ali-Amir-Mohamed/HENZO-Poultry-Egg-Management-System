@@ -606,6 +606,47 @@ await expectOk('ali back to first farm', 'ali', `select public.changer_ferme($1)
 ok('ali sees all 4 accounts of first farm', (await as('ali', `select id from public.profiles`)).rows.length === 4)
 await expectNoRows('kenfack still cannot change accounts', 'kenfack', `update public.profiles set nom_complet = 'x' where id = '${U.employe}' returning id`)
 
+// ---------- 0015: correction requests, probable duplicates ----------
+try {
+  await db.exec(readFileSync(new URL('0015_demandes_doublons.sql', MIG), 'utf8'))
+  ok('migration 0015 runs', true)
+} catch (e) { ok('migration 0015 runs', false, e.message); process.exit(1) }
+const vReq = await one('kenfack', `insert into public.ventes (lot_id, produit, unite, quantite, prix_unitaire, mode_paiement) values ('${P1}', 'oeufs', 'piece', 7, 100, 'especes') returning id`)
+await expectNoRows('kenfack still cannot cancel a sale himself', 'kenfack', `update public.ventes set annulee = true, motif_annulation = 'x' where id = '${vReq.id}' returning id`)
+const dem = await expectOk('kenfack requests the cancellation', 'kenfack', `insert into public.demandes_correction (cible_table, cible_id, action, resume, motif) values ('ventes', '${vReq.id}', 'annuler', '7 œufs', 'Client a rendu les œufs') returning id`)
+await expectErr('second request on same sale refused', 'dahirou', `insert into public.demandes_correction (cible_table, cible_id, action, resume, motif) values ('ventes', '${vReq.id}', 'annuler', '7 œufs', 'x')`, [], 'déjà en attente')
+await expectErr('employe cannot request', 'employe', `insert into public.demandes_correction (cible_table, cible_id, action, resume, motif) values ('ventes', '${vReq.id}', 'annuler', 'x', 'x')`)
+ok('directeur notified of the request', (await as('ali', `select * from public.notifications where type_notification = 'demande_correction'`)).rows.length >= 1)
+ok('kenfack sees his request', (await as('kenfack', `select * from public.demandes_correction`)).rows.length === 1)
+ok('dahirou does not see kenfack request', (await as('dahirou', `select * from public.demandes_correction`)).rows.length === 0)
+await expectNoRows('kenfack cannot approve by editing', 'kenfack', `update public.demandes_correction set statut = 'acceptee' returning id`)
+await expectErr('kenfack cannot decide', 'kenfack', `select public.decider_demande($1, true)`, [dem.rows[0].id], 'directeur')
+await expectOk('ali accepts', 'ali', `select public.decider_demande($1, true)`, [dem.rows[0].id])
+const vAfter = await one('ali', `select annulee, motif_annulation, annulee_par from public.ventes where id = '${vReq.id}'`)
+ok('sale cancelled with the requester reason, by ali', vAfter.annulee && vAfter.motif_annulation.includes('Client a rendu') && vAfter.motif_annulation.includes('Kenfack') && vAfter.annulee_par === U.ali, JSON.stringify(vAfter))
+ok('kenfack notified', (await as('kenfack', `select * from public.notifications where type_notification = 'demande_correction'`)).rows.length >= 1)
+await expectErr('decided request cannot be decided again', 'ali', `select public.decider_demande($1, false, 'x')`, [dem.rows[0].id], 'plus en attente')
+// Cash correction requested by finance, then refused / accepted
+const ecr = await one('dahirou', `select e.id, e.caisse_id from public.ecritures e where e.nature = 'vente' limit 1`)
+const solde0 = Number((await one('ali', `select solde from public.soldes_caisses where caisse_id = '${ecr.caisse_id}'`)).solde)
+const d2 = (await as('dahirou', `insert into public.demandes_correction (cible_table, cible_id, action, sens, montant, resume, motif) values ('ecritures', '${ecr.id}', 'corriger', 'sortie', 500, 'vente', 'Montant tapé trop haut') returning id`)).rows[0].id
+await expectErr('refusal needs a reason', 'ali', `select public.decider_demande($1, false, '')`, [d2], 'motif')
+await expectOk('ali refuses', 'ali', `select public.decider_demande($1, false, 'Le montant est juste')`, [d2])
+const d3 = (await as('dahirou', `insert into public.demandes_correction (cible_table, cible_id, action, sens, montant, resume, motif) values ('ecritures', '${ecr.id}', 'corriger', 'sortie', 500, 'vente', 'Vraiment trop haut') returning id`)).rows[0].id
+await expectOk('ali accepts the cash correction', 'ali', `select public.decider_demande($1, true)`, [d3])
+ok('cash corrected by −500 with a linked correction', Number((await one('ali', `select solde from public.soldes_caisses where caisse_id = '${ecr.caisse_id}'`)).solde) === solde0 - 500)
+await expectErr('correction on a sale (not an entry) refused', 'kenfack', `insert into public.demandes_correction (cible_table, cible_id, action, sens, montant, resume, motif) values ('ventes', '${vReq.id}', 'corriger', 'sortie', 5, 'x', 'x')`)
+// Probable duplicates
+const nb0 = (await as('kenfack', `select * from public.notifications where type_notification = 'doublon'`)).rows.length
+await expectOk('laying entered by employee', 'employe', `insert into public.pontes (lot_id, date_ponte, oeufs_collectes) values ($1, current_date - 3, 777)`, [P1])
+ok('no duplicate warning for a single entry', (await as('kenfack', `select * from public.notifications where type_notification = 'doublon'`)).rows.length === nb0)
+await expectOk('same laying entered again by kenfack', 'kenfack', `insert into public.pontes (lot_id, date_ponte, oeufs_collectes) values ($1, current_date - 3, 777)`, [P1])
+ok('duplicate laying flagged to exploitation', (await as('kenfack', `select * from public.notifications where type_notification = 'doublon'`)).rows.length === nb0 + 1)
+await expectOk('same sale twice', 'kenfack', `insert into public.ventes (lot_id, produit, unite, quantite, prix_unitaire, mode_paiement) values ('${P1}', 'oeufs', 'piece', 33, 100, 'especes'), ('${P1}', 'oeufs', 'piece', 33, 100, 'especes')`)
+ok('duplicate sale flagged', (await as('ali', `select * from public.notifications where type_notification = 'doublon' and message like 'Vente%'`)).rows.length >= 1)
+await expectOk('same mortality twice', 'employe', `insert into public.mortalites (bande_id, nombre, date_constat) values ('${C7}', 4, current_date - 2), ('${C7}', 4, current_date - 2)`)
+ok('duplicate mortality flagged', (await as('kenfack', `select * from public.notifications where type_notification = 'doublon' and message like 'Mortalité%'`)).rows.length >= 1)
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))

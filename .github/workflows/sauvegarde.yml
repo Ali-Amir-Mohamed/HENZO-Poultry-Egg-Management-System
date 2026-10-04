@@ -1,13 +1,20 @@
-# Sauvegarde hebdomadaire chiffrée de la base Supabase.
+# Sauvegarde quotidienne chiffrée de la base Supabase, envoyée vers un stockage de sauvegarde
+# indépendant (Backblaze B2 ou Cloudflare R2, compatibles S3). GitHub ne fait que lancer la tâche.
+#
 # Secrets à créer dans GitHub > Settings > Secrets and variables > Actions :
-#   SUPABASE_DB_URL    : chaîne de connexion « Session pooler » (Supabase > Connect)
-#   BACKUP_PASSPHRASE  : mot de passe de chiffrement (à conserver précieusement)
+#   SUPABASE_DB_URL       : chaîne de connexion « Session pooler » (Supabase > Connect)
+#   BACKUP_PASSPHRASE     : mot de passe de chiffrement (à conserver précieusement, hors de l'ordinateur)
+#   BACKUP_S3_ENDPOINT    : adresse du stockage (ex. https://s3.eu-central-003.backblazeb2.com)
+#   BACKUP_S3_BUCKET      : nom du « bucket » (ex. henzo-sauvegardes)
+#   BACKUP_S3_KEY_ID      : identifiant de la clé d'accès du stockage
+#   BACKUP_S3_SECRET      : clé secrète du stockage
+# Tant que le stockage n'est pas configuré, la sauvegarde reste en secours sur GitHub (30 jours).
 # Restauration : voir docs/RESTAURATION.md
-name: Sauvegarde hebdomadaire
+name: Sauvegarde quotidienne
 
 on:
   schedule:
-    - cron: '0 3 * * 0'   # chaque dimanche à 3 h UTC (4 h au Cameroun)
+    - cron: '0 3 * * *'   # chaque jour à 3 h UTC (4 h au Cameroun)
   workflow_dispatch:       # bouton « Run workflow » pour une sauvegarde immédiate
 
 permissions:
@@ -19,12 +26,25 @@ jobs:
     env:
       SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
       BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+      S3_ENDPOINT: ${{ secrets.BACKUP_S3_ENDPOINT }}
+      S3_BUCKET: ${{ secrets.BACKUP_S3_BUCKET }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.BACKUP_S3_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_S3_SECRET }}
+      AWS_DEFAULT_REGION: auto
+      AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+      AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
     steps:
       - name: Vérifier les secrets
         run: |
           if [ -z "$SUPABASE_DB_URL" ] || [ -z "$BACKUP_PASSPHRASE" ]; then
             echo "::error::Secrets SUPABASE_DB_URL et BACKUP_PASSPHRASE manquants (Settings > Secrets and variables > Actions)."
             exit 1
+          fi
+          if [ -n "$S3_ENDPOINT" ] && [ -n "$S3_BUCKET" ] && [ -n "$AWS_ACCESS_KEY_ID" ] && [ -n "$AWS_SECRET_ACCESS_KEY" ]; then
+            echo "STOCKAGE=oui" >> "$GITHUB_ENV"
+          else
+            echo "::warning::Stockage de sauvegarde pas encore configuré : copie de secours gardée 30 jours sur GitHub."
+            echo "STOCKAGE=non" >> "$GITHUB_ENV"
           fi
 
       - name: Installer le client PostgreSQL 17
@@ -51,10 +71,43 @@ jobs:
           echo "STAMP=$STAMP" >> "$GITHUB_ENV"
           ls -lh henzo-*.gpg
 
-      - name: Conserver la sauvegarde (90 jours)
+      - name: Envoyer vers le stockage de sauvegarde
+        if: env.STOCKAGE == 'oui'
+        run: |
+          set -euo pipefail
+          aws s3 cp "henzo-$STAMP.tar.gz.gpg" "s3://$S3_BUCKET/quotidien/henzo-$STAMP.tar.gz.gpg" --endpoint-url "$S3_ENDPOINT"
+          # Le 1er du mois : une copie mensuelle, gardée un an
+          if [ "$(date -u +%d)" = "01" ]; then
+            aws s3 cp "henzo-$STAMP.tar.gz.gpg" "s3://$S3_BUCKET/mensuel/henzo-$STAMP.tar.gz.gpg" --endpoint-url "$S3_ENDPOINT"
+          fi
+          # Vérification : le fichier est bien arrivé, avec la bonne taille
+          LOCAL=$(stat -c %s "henzo-$STAMP.tar.gz.gpg")
+          DISTANT=$(aws s3api head-object --bucket "$S3_BUCKET" --key "quotidien/henzo-$STAMP.tar.gz.gpg" --endpoint-url "$S3_ENDPOINT" --query ContentLength --output text)
+          [ "$LOCAL" = "$DISTANT" ] || { echo "::error::Taille différente après envoi ($LOCAL / $DISTANT)"; exit 1; }
+          echo "Sauvegarde envoyée et vérifiée : $LOCAL octets"
+
+      - name: Supprimer les anciennes sauvegardes (quotidiennes > 30 jours, mensuelles > 365 jours)
+        if: env.STOCKAGE == 'oui'
+        run: |
+          set -euo pipefail
+          purge() {
+            LIMITE=$(date -u -d "-$2 days" +%Y-%m-%d)
+            aws s3 ls "s3://$S3_BUCKET/$1/" --endpoint-url "$S3_ENDPOINT" | awk '{print $4}' | while read -r f; do
+              D=$(echo "$f" | sed -n 's/^henzo-\([0-9-]\{10\}\)\.tar\.gz\.gpg$/\1/p')
+              if [ -n "$D" ] && [[ "$D" < "$LIMITE" ]]; then
+                echo "Suppression $1/$f"
+                aws s3 rm "s3://$S3_BUCKET/$1/$f" --endpoint-url "$S3_ENDPOINT"
+              fi
+            done
+          }
+          purge quotidien 30
+          purge mensuel 365
+
+      - name: Copie de secours sur GitHub (seulement sans stockage configuré)
+        if: env.STOCKAGE != 'oui'
         uses: actions/upload-artifact@v4
         with:
           name: henzo-sauvegarde-${{ env.STAMP }}
           path: henzo-*.tar.gz.gpg
-          retention-days: 90
+          retention-days: 30
           if-no-files-found: error

@@ -45,7 +45,7 @@ async function loadManager() {
   const since = new Date()
   since.setDate(since.getDate() - 6)
   const [bandes, lots, pontes, pesees, caisses, creances, capitaux, alertes, oeufs] = await Promise.all([
-    supabase.from('effectif_bandes').select('bande_id, code, statut, age_jours, restants, date_vente_prevue')
+    supabase.from('effectif_bandes').select('bande_id, code, statut, age_jours, restants, morts, nombre_initial, date_vente_prevue')
       .neq('statut', 'cloturee').order('date_arrivee'),
     supabase.from('effectif_lots').select('lot_id, code, effectif').eq('statut', 'en_production'),
     supabase.from('ponte_journaliere').select('date_ponte, oeufs_collectes, oeufs_casses').gte('date_ponte', localDate(since)),

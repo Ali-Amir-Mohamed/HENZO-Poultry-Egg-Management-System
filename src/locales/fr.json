@@ -723,10 +723,8 @@
       "running": "Bandes en cours",
       "generated": "Rapport généré le {{d}} par HENZO."
     },
-    "groupTitle": "Par souche ou par fournisseur",
     "groupHint": "Moyennes des bandes clôturées : la meilleure valeur est en vert.",
     "bySouche": "Par souche",
-    "bySupplier": "Par fournisseur de poussins",
     "groupNone": "Aucune bande clôturée pour l’instant : la comparaison apparaîtra après la première clôture.",
     "flocksCount": "Bandes",
     "perFlock": "par bande",
@@ -848,8 +846,8 @@
     "export": "Exporter maintenant",
     "done": "Export terminé : {{n}} lignes enregistrées dans le fichier.",
     "autoTitle": "Sauvegarde automatique",
-    "autoText": "Chaque dimanche, une copie complète et chiffrée de la base est créée sur GitHub et conservée 90 jours.",
-    "autoWhere": "GitHub > Actions > Sauvegarde hebdomadaire. Restauration : voir docs/RESTAURATION.md dans le projet."
+    "autoText": "Chaque jour, une copie complète et chiffrée de la base est envoyée dans un stockage de sauvegarde indépendant (30 jours de copies quotidiennes, 1 an de copies mensuelles).",
+    "autoWhere": "Stockage Backblaze B2 ou Cloudflare R2, lancé par GitHub Actions > Sauvegarde quotidienne. Restauration : voir docs/RESTAURATION.md dans le projet."
   },
   "tiers": {
     "back": "Retour aux réglages",
@@ -875,7 +873,15 @@
     "error": "Erreur",
     "waiting": "En attente",
     "discard": "Supprimer",
-    "confirmDiscard": "Supprimer cette saisie refusée ? Elle ne sera pas enregistrée."
+    "confirmDiscard": "Supprimer cette saisie refusée ? Elle ne sera pas enregistrée.",
+    "refusedAlert_one": "{{count}} saisie a été refusée par le serveur : ouvrez « Synchro » pour la vérifier.",
+    "refusedAlert_other": "{{count}} saisies ont été refusées par le serveur : ouvrez « Synchro » pour les vérifier.",
+    "refusedHelp": "Que faire : lisez la raison, refaites la saisie corrigée (par exemple avec le bon nombre ou la bonne bande), puis supprimez celle-ci.",
+    "rulesTitle": "Comment marchent les saisies hors ligne ?",
+    "rule1": "Chaque saisie reçoit un numéro unique sur le téléphone : même si la connexion coupe pendant l’envoi, elle n’est jamais enregistrée deux fois.",
+    "rule2": "Hors ligne, on ne fait qu’ajouter des saisies : on ne modifie ni ne supprime rien, donc deux personnes ne peuvent pas se contredire sur la même donnée.",
+    "rule3": "À l’envoi, le serveur revérifie tout avec les données du moment (bande clôturée entre-temps, plus d’oiseaux que restants, plafond de crédit…). Si la saisie n’est plus valable, elle est refusée et reste ici avec la raison.",
+    "rule4": "Si deux personnes saisissent la même chose (même vente, même ponte, même mortalité), Kenfack et Ali reçoivent une alerte « peut-être en double » pour vérifier."
   },
   "tables": {
     "taches_realisations": "Tâche faite",
@@ -1103,6 +1109,33 @@
       "connexion": "connexion",
       "deconnexion": "déconnexion",
       "expiration": "déconnecté (inactivité)"
+    }
+  },
+  "demandes": {
+    "ask": "Demander une correction",
+    "askCancel": "Demander l’annulation",
+    "askTitle": "Demande de correction au directeur",
+    "askHint": "Opération : {{resume}}. Ali recevra la demande ; s’il accepte, la correction est faite automatiquement et notée dans le journal.",
+    "send": "Envoyer la demande",
+    "reason": "Qu’est-ce qui est faux ?",
+    "reasonPh": "ex. le client a payé 45 000 et non 54 000",
+    "sentTitle": "Demande envoyée",
+    "sentText": "Ali a été prévenu. Vous verrez sa réponse ici, en haut de l’onglet Argent.",
+    "titleDirector_one": "{{count}} demande de correction à traiter",
+    "titleDirector_other": "{{count}} demandes de correction à traiter",
+    "titleMine": "Mes demandes de correction",
+    "accept": "Accepter et corriger",
+    "refuse": "Refuser",
+    "refuseTitle": "Refuser la demande",
+    "confirmAccept": "Accepter cette demande ? La correction sera faite tout de suite : {{resume}}",
+    "cancel_ventes": "Annuler la vente",
+    "cancel_depenses": "Annuler la dépense",
+    "correctLine": "{{sens}} : {{n}} FCFA",
+    "refusedBecause": "refusée : {{motif}}",
+    "statuts": {
+      "en_attente": "En attente",
+      "acceptee": "Corrigée",
+      "refusee": "Refusée"
     }
   }
 }

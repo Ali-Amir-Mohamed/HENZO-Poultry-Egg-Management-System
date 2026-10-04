@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/AuthProvider'
-import { usePendingCount } from '../hooks'
+import { useErrorCount, usePendingCount } from '../hooks'
 import { loadStats, readCachedStats, saveCachedStats } from '../lib/stats'
 import { enqueue } from '../lib/offlineQueue'
 import { canAccess, TABLES } from '../config'
@@ -12,6 +12,7 @@ export default function Dashboard() {
   const { t, i18n } = useTranslation()
   const { profile, role } = useAuth()
   const pending = usePendingCount()
+  const refused = useErrorCount()
   const [stats, setStats] = useState(() => {
     const cached = readCachedStats()
     return cached?.kind === (role === 'employe' ? 'employe' : 'manager') ? cached : null
@@ -48,8 +49,11 @@ export default function Dashboard() {
         </p>
       )}
       {error && <div className="alert danger"><Icon name="alert" size={18} />{error}</div>}
-      {pending > 0 && (
-        <Link to="/sync" className="note link-note"><Icon name="cloud" size={16} />{t('status.pending', { count: pending })}</Link>
+      {refused > 0 && (
+        <Link to="/sync" className="alert danger"><Icon name="alert" size={18} />{t('sync.refusedAlert', { count: refused })}</Link>
+      )}
+      {pending > refused && (
+        <Link to="/sync" className="note link-note"><Icon name="cloud" size={16} />{t('status.pending', { count: pending - refused })}</Link>
       )}
 
       {/* First week of the month: last month's report is ready to share with the partners */}
@@ -201,7 +205,7 @@ function ManagerHome({ stats }) {
             <table className="table">
               <thead>
                 <tr><th>{t('saisie.bande')}</th><th>{t('dashboard.age')}</th><th>{t('dashboard.birds')}</th>
-                  <th>{t('dashboard.weight')}</th><th>{t('dashboard.saleDate')}</th></tr>
+                  <th>{t('fiche.mortality')}</th><th>{t('dashboard.weight')}</th><th>{t('dashboard.saleDate')}</th></tr>
               </thead>
               <tbody>
                 {stats.chair.map((b) => (
@@ -209,6 +213,9 @@ function ManagerHome({ stats }) {
                     <td><strong>{b.code}</strong>{b.statut === 'cloture_demandee' && <span className="tag warn">{t('ferme.closing')}</span>}</td>
                     <td>{t('dashboard.days', { n: b.age_jours })}</td>
                     <td>{fmt(b.restants)}</td>
+                    <td className={b.nombre_initial && b.morts / b.nombre_initial > 0.05 ? 'error' : ''}>
+                      {b.nombre_initial ? `${fmt(b.morts ?? 0)} (${fmt(((b.morts ?? 0) / b.nombre_initial) * 100, { maximumFractionDigits: 1 })} %)` : '—'}
+                    </td>
                     <td>{b.poids_moyen_g ? `${fmt(b.poids_moyen_g)} g` : '—'}</td>
                     <td>{b.date_vente_prevue ? new Date(`${b.date_vente_prevue}T00:00`).toLocaleDateString(lang) : '—'}</td>
                   </tr>

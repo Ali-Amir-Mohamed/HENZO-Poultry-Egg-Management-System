@@ -12,6 +12,7 @@ import Filtres, { useFiltres } from '../components/Filtres'
 import { exportExcel } from '../lib/export'
 import { Link } from 'react-router-dom'
 import Investisseurs from './argent/Investisseurs'
+import Demandes, { useDemandeCorrection } from './argent/Demandes'
 import Prets from './argent/Prets'
 import Verification from './argent/Verification'
 
@@ -21,6 +22,9 @@ export default function Argent() {
   const [tab, setTab] = useState(() => {
     try { return sessionStorage.getItem('henzo.argent.tab') || 'caisses' } catch { return 'caisses' }
   })
+  // Refreshes the requests panel after a new correction request
+  const [rev, setRev] = useState(0)
+  const asked = () => setRev((r) => r + 1)
   const choose = (k) => { setTab(k); try { sessionStorage.setItem('henzo.argent.tab', k) } catch {} }
   return (
     <div className="stack">
@@ -33,9 +37,10 @@ export default function Argent() {
         { id: 'prets', label: 'argent.tabs.prets', icon: 'receipt' },
         { id: 'verification', label: 'argent.tabs.verification', icon: 'check' }
       ]} />
-      {tab === 'caisses' && <Caisses />}
-      {tab === 'depenses' && <Depenses />}
-      {tab === 'ventes' && <Ventes />}
+      <Demandes key={rev} />
+      {tab === 'caisses' && <Caisses onAsked={asked} />}
+      {tab === 'depenses' && <Depenses onAsked={asked} />}
+      {tab === 'ventes' && <Ventes onAsked={asked} />}
       {tab === 'credits' && <Credits />}
       {tab === 'investisseurs' && <Investisseurs />}
       {tab === 'prets' && <Prets />}
@@ -45,9 +50,10 @@ export default function Argent() {
 }
 
 // ---------- Cash boxes ----------
-function Caisses() {
+function Caisses({ onAsked }) {
   const { t, i18n } = useTranslation()
   const { role } = useAuth()
+  const demander = useDemandeCorrection(onAsked)
   const lang = i18n.resolvedLanguage
   const ask = useAsk()
   const run = useRun()
@@ -190,6 +196,14 @@ function Caisses() {
                       )}
                     </div>
                   )}
+                  {!['correction', 'annulation'].includes(e.nature) && can(role, 'correction.request') && (
+                    <div className="row-actions">
+                      <button className="btn ghost sm" onClick={() => demander('ecritures', e.id,
+                        `${e.libelle || t(`natures.${e.nature}`)} · ${e.sens === 'entree' ? '+' : '−'}${money(e.montant, lang)} · ${day(e.date_operation, lang)}`)}>
+                        {t('demandes.ask')}
+                      </button>
+                    </div>
+                  )}
                 </div>
                 <strong className={e.sens === 'entree' ? 'success' : 'error'}>{e.sens === 'entree' ? '+' : '−'}{money(e.montant, lang)}</strong>
               </li>
@@ -208,9 +222,10 @@ const emptyDepense = (portee) => ({
   mode_paye: 'especes', date_echeance: '', article_id: '', quantite: '', date_depense: localDate(), notes: ''
 })
 
-function Depenses() {
+function Depenses({ onAsked }) {
   const { t, i18n } = useTranslation()
   const { role } = useAuth()
+  const demander = useDemandeCorrection(onAsked)
   const lang = i18n.resolvedLanguage
   const ask = useAsk()
   const run = useRun()
@@ -444,6 +459,11 @@ function Depenses() {
                     {!d.annulee && d.statut !== 'rejetee' && can(role, 'annuler') && (
                       <button className="btn ghost sm" onClick={() => annuler(d)}>{t('argent.cancel')}</button>
                     )}
+                    {!d.annulee && d.statut !== 'rejetee' && can(role, 'correction.request') && (
+                      <button className="btn ghost sm" onClick={() => demander('depenses', d.id, `${d.libelle} · ${money(d.montant, lang)} · ${day(d.date_depense, lang)}`)}>
+                        {t('demandes.askCancel')}
+                      </button>
+                    )}
                   </div>
                 </div>
                 <div className="right">
@@ -462,9 +482,10 @@ function Depenses() {
 }
 
 // ---------- Sales ----------
-function Ventes() {
+function Ventes({ onAsked }) {
   const { t, i18n } = useTranslation()
   const { role } = useAuth()
+  const demander = useDemandeCorrection(onAsked)
   const lang = i18n.resolvedLanguage
   const ask = useAsk()
   const run = useRun()
@@ -522,6 +543,12 @@ function Ventes() {
                   <div className="row-actions">
                     <Link to={`/recu/${v.id}`} className="btn ghost sm"><Icon name="receipt" size={14} />{t('recu.open')}</Link>
                     {can(role, 'annuler') && <button className="btn ghost sm" onClick={() => annuler(v)}>{t('argent.cancel')}</button>}
+                    {can(role, 'correction.request') && (
+                      <button className="btn ghost sm" onClick={() => demander('ventes', v.id,
+                        `${t(`produits.${v.produit}`)} ${v.bande?.code ?? v.lot?.code ?? ''} · ${money(v.montant, lang)} · ${day(v.date_vente, lang)}`)}>
+                        {t('demandes.askCancel')}
+                      </button>
+                    )}
                   </div>
                 )}
               </div>

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { onQueueChange, pendingCount } from './lib/offlineQueue'
+import { errorCount, onQueueChange, pendingCount } from './lib/offlineQueue'
 
 // Runs an async loader (online data for office screens) and exposes reload().
 export function useQuery(loader, deps = []) {
@@ -33,6 +33,17 @@ export function usePendingCount() {
   const [count, setCount] = useState(0)
   useEffect(() => {
     const refresh = () => pendingCount().then(setCount)
+    refresh()
+    return onQueueChange(refresh)
+  }, [])
+  return count
+}
+
+// Entries refused by the server on this device (to check on the Sync page)
+export function useErrorCount() {
+  const [count, setCount] = useState(0)
+  useEffect(() => {
+    const refresh = () => errorCount().then(setCount)
     refresh()
     return onQueueChange(refresh)
   }, [])
