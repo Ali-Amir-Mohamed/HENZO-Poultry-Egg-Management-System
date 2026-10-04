@@ -270,7 +270,8 @@
     "confirmClose": "Approve closure of flock {{code}}? It can no longer be changed.",
     "confirmRefuse": "Refuse closure of flock {{code}}?",
     "reform": "Cull flock",
-    "confirmReform": "Mark flock {{code}} as culled?"
+    "confirmReform": "Mark flock {{code}} as culled?",
+    "newBandeDirect": "New flock (chicks already received, no order)"
   },
   "argent": {
     "tabs": {
@@ -594,7 +595,8 @@
     "disabled": "disabled",
     "newStep": "New programme step",
     "production": "Production",
-    "ageDay": "Birds' age (days)"
+    "ageDay": "Birds' age (days)",
+    "receiveInFarm": "Receive in Farm"
   },
   "alertes": {
     "mortalite": "Abnormal mortality: {{morts}} dead in {{code}} ({{pct}}%) on {{date}}",
@@ -774,7 +776,8 @@
       "prix_vente": "Price",
       "profiles": "Account",
       "fermes": "Farm settings",
-      "livraisons_poussins": "Chick delivery"
+      "livraisons_poussins": "Chick delivery",
+      "commandes_poussins": "Chick order"
     }
   },
   "sauvegarde": {
@@ -837,5 +840,36 @@
     "numberPrompt": "Number of chicks delivered:",
     "confirmRemove": "Delete the delivery of {{n}} chicks on {{d}}?",
     "hint": "Delivered in several times: add each delivery here, the flock number updates. Record the payment in Money → Expenses (category Chicks, this flock)."
+  },
+  "commandes": {
+    "title_one": "Chick order in progress ({{count}})",
+    "title_other": "Chick orders in progress ({{count}})",
+    "ordered": "{{n}} chicks ordered",
+    "received": "{{n}} / {{total}} received",
+    "noSupplier": "No supplier given",
+    "deliveredLine": "{{n}} delivered on {{d}}",
+    "plannedLine": "{{n}} expected on {{d}}",
+    "cancelledLine": "{{n}} cancelled",
+    "delivered": "Delivered",
+    "new": "New chick order",
+    "flockCode": "Code of the future flock",
+    "quantity": "Quantity ordered",
+    "expectedDate": "Announced delivery date",
+    "unitPrice": "Price per chick (optional)",
+    "hint": "On delivery day, tick “Delivered” and enter the number received: the flock is created at the first reception. If some are missing, enter the new date announced for the rest.",
+    "created": "Order saved: the delivery appears in the Planning.",
+    "receivedPrompt": "How many chicks did you receive? ({{n}} expected)",
+    "receivedDatePrompt": "Reception date (YYYY-MM-DD):",
+    "restPrompt": "{{n}} chicks are missing. Date announced for the rest (YYYY-MM-DD)? Leave empty if the rest will not be delivered.",
+    "postponePrompt": "New announced date (YYYY-MM-DD):",
+    "confirmCancel": "Cancel the expected delivery of {{n}} chicks?",
+    "done_one": "{{count}} finished order",
+    "done_other": "{{count}} finished orders",
+    "statuts": {
+      "en_attente": "Waiting",
+      "partielle": "Partly delivered",
+      "livree": "Delivered",
+      "annulee": "Cancelled"
+    }
   }
 }

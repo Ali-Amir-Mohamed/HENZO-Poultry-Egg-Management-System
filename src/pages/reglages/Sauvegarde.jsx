@@ -6,7 +6,7 @@ import { Panel } from '../../components/ui'
 
 // Backup (director): readable copy of all data, downloaded as a JSON file.
 // The automatic weekly encrypted backup runs on GitHub (see docs/RESTAURATION.md).
-const TABLES = ['fermes', 'profiles', 'batiments', 'tiers', 'articles', 'prix_vente', 'bandes', 'livraisons_poussins', 'lots_pondeuses',
+const TABLES = ['fermes', 'profiles', 'batiments', 'tiers', 'articles', 'prix_vente', 'bandes', 'commandes_poussins', 'livraisons_poussins', 'lots_pondeuses',
   'mortalites', 'pontes', 'pesees', 'observations', 'mouvements_stock', 'caisses', 'ventes', 'paiements_clients',
   'depenses', 'paiements_fournisseurs', 'ecritures', 'bilans_bandes', 'investisseurs', 'operations_investisseurs',
   'distributions_investisseurs', 'prets', 'echeances_prets', 'remboursements_prets', 'verifications_caisse',

@@ -46,8 +46,15 @@ function Taches() {
   const today = localDate()
   const inAWeek = (() => { const d = new Date(); d.setDate(d.getDate() + 7); return localDate(d) })()
 
-  const list = useQuery(async () => must(await supabase.from(TABLES.taches)
-    .select('*, bande:bandes(code), lot:lots_pondeuses(code)').eq('statut', 'a_faire').order('date_prevue').limit(300)))
+  const list = useQuery(async () => {
+    const [taches, livraisons] = await Promise.all([
+      supabase.from(TABLES.taches).select('*, bande:bandes(code), lot:lots_pondeuses(code)').eq('statut', 'a_faire').order('date_prevue').limit(300),
+      supabase.from('livraisons_poussins').select('tache_id').eq('statut', 'prevue')
+    ])
+    // Chick deliveries are ticked in Ferme (number received), not here
+    const reception = new Set(must(livraisons).map((l) => l.tache_id))
+    return must(taches).map((x) => ({ ...x, reception: reception.has(x.id) }))
+  })
   const doneList = useQuery(async () => must(await supabase.from(TABLES.taches)
     .select('id, titre, fait_le, statut, bande:bandes(code), lot:lots_pondeuses(code)').eq('statut', 'fait')
     .order('fait_le', { ascending: false }).limit(15)))
@@ -147,7 +154,11 @@ function Taches() {
                       {tc.repeter_jours ? ` · ${t('planning.every', { n: tc.repeter_jours })}` : ''}
                     </div>
                     {tc.description && <div className="small">{tc.description}</div>}
-                    {can(role, 'tache.plan') && (
+                    {tc.reception ? (
+                      <div className="row-actions">
+                        <Link to="/ferme" className="btn primary sm"><Icon name="drumstick" size={14} />{t('planning.receiveInFarm')}</Link>
+                      </div>
+                    ) : can(role, 'tache.plan') && (
                       <div className="row-actions">
                         <button className="btn primary sm" onClick={() => done(tc)}><Icon name="check" size={14} />{t('planning.markDone')}</button>
                         <button className="btn ghost sm" onClick={() => postpone(tc)}>{t('planning.postpone')}</button>

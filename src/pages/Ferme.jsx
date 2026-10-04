@@ -8,6 +8,7 @@ import { can, TABLES } from '../config'
 import { localDate } from '../lib/stats'
 import Icon from '../components/Icon'
 import { day, Empty, Field, FormCard, Loading, money, Tabs } from '../components/ui'
+import Commandes from './ferme/Commandes'
 
 // Broiler flocks and layer lots: list, creation, closure workflow
 export default function Ferme() {
@@ -79,8 +80,9 @@ function Bandes() {
 
   return (
     <>
+      <Commandes onChange={list.reload} />
       {can(role, 'bande.create') && (
-        <FormCard title={t('ferme.newBande')} onSubmit={create}>
+        <FormCard title={t('ferme.newBandeDirect')} onSubmit={create}>
           <div className="grid-2">
             <Field label={t('ferme.code')}><input required value={form.code} onChange={set('code')} placeholder="ex. C-2026-10" /></Field>
             <Field label={t('ferme.arrival')}><input type="date" required value={form.date_arrivee} onChange={set('date_arrivee')} /></Field>

@@ -1,4 +1,4 @@
-# Migrations Supabase
+﻿# Migrations Supabase
 
 | Fichier | Contenu |
 |---|---|

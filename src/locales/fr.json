@@ -270,7 +270,8 @@
     "confirmClose": "Valider la clôture de la bande {{code}} ? Elle ne pourra plus être modifiée.",
     "confirmRefuse": "Refuser la clôture de la bande {{code}} ?",
     "reform": "Réformer le lot",
-    "confirmReform": "Marquer le lot {{code}} comme réformé ?"
+    "confirmReform": "Marquer le lot {{code}} comme réformé ?",
+    "newBandeDirect": "Nouvelle bande (poussins déjà reçus, sans commande)"
   },
   "argent": {
     "tabs": {
@@ -594,7 +595,8 @@
     "disabled": "désactivé",
     "newStep": "Nouvelle étape de programme",
     "production": "Production",
-    "ageDay": "Âge des oiseaux (jours)"
+    "ageDay": "Âge des oiseaux (jours)",
+    "receiveInFarm": "Réceptionner dans Ferme"
   },
   "alertes": {
     "mortalite": "Mortalité anormale : {{morts}} morts dans {{code}} ({{pct}} %) le {{date}}",
@@ -774,7 +776,8 @@
       "prix_vente": "Prix",
       "profiles": "Compte",
       "fermes": "Paramètres de la ferme",
-      "livraisons_poussins": "Livraison de poussins"
+      "livraisons_poussins": "Livraison de poussins",
+      "commandes_poussins": "Commande de poussins"
     }
   },
   "sauvegarde": {
@@ -837,5 +840,36 @@
     "numberPrompt": "Nombre de poussins livrés :",
     "confirmRemove": "Supprimer la livraison de {{n}} poussins du {{d}} ?",
     "hint": "Livraison en plusieurs fois : ajoutez chaque livraison ici, le nombre de la bande se met à jour. Enregistrez le paiement dans Argent → Dépenses (catégorie Poussins, cette bande)."
+  },
+  "commandes": {
+    "title_one": "Commande de poussins en cours ({{count}})",
+    "title_other": "Commandes de poussins en cours ({{count}})",
+    "ordered": "{{n}} poussins commandés",
+    "received": "{{n}} / {{total}} reçus",
+    "noSupplier": "Fournisseur non indiqué",
+    "deliveredLine": "{{n}} livrés le {{d}}",
+    "plannedLine": "{{n}} prévus le {{d}}",
+    "cancelledLine": "{{n}} annulés",
+    "delivered": "Livré",
+    "new": "Nouvelle commande de poussins",
+    "flockCode": "Code de la future bande",
+    "quantity": "Nombre commandé",
+    "expectedDate": "Date de livraison annoncée",
+    "unitPrice": "Prix par poussin (facultatif)",
+    "hint": "Le jour de la livraison, cochez « Livré » et indiquez le nombre reçu : la bande est créée à la première réception. S’il en manque, indiquez la nouvelle date annoncée pour le reste.",
+    "created": "Commande enregistrée : la livraison apparaît dans le Planning.",
+    "receivedPrompt": "Combien de poussins avez-vous reçus ? ({{n}} prévus)",
+    "receivedDatePrompt": "Date de réception (AAAA-MM-JJ) :",
+    "restPrompt": "Il manque {{n}} poussins. Date annoncée pour le reste (AAAA-MM-JJ) ? Laissez vide si le reste ne sera pas livré.",
+    "postponePrompt": "Nouvelle date annoncée (AAAA-MM-JJ) :",
+    "confirmCancel": "Annuler la livraison prévue de {{n}} poussins ?",
+    "done_one": "{{count}} commande terminée",
+    "done_other": "{{count}} commandes terminées",
+    "statuts": {
+      "en_attente": "En attente",
+      "partielle": "Livrée en partie",
+      "livree": "Livrée",
+      "annulee": "Annulée"
+    }
   }
 }

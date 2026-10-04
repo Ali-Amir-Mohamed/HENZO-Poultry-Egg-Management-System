@@ -473,6 +473,39 @@ await expectOk('wrong delivery removed', 'kenfack', `delete from public.livraiso
 ok('initial number back to 250', (await one('kenfack', `select nombre_initial from public.bandes where code = 'L1'`)).nombre_initial === 250)
 await expectErr('last delivery cannot be removed', 'kenfack', `delete from public.livraisons_poussins where bande_id = $1`, [L1], 'au moins une')
 
+// ---------- 0011: chick orders, planned deliveries, tick « Livré » ----------
+try {
+  await db.exec(readFileSync(new URL('0011_commandes_poussins.sql', MIG), 'utf8'))
+  ok('migration 0011 runs', true)
+} catch (e) { ok('migration 0011 runs', false, e.message); process.exit(1) }
+
+await expectOk('kenfack orders 1000 chicks', 'kenfack', `insert into public.commandes_poussins (fournisseur_id, code_bande, souche, nombre_commande, date_livraison_prevue) values ($1, 'CMD1', 'Cobb 500', 1000, current_date)`, [FOU])
+await expectErr('dahirou cannot order chicks', 'dahirou', `insert into public.commandes_poussins (code_bande, nombre_commande, date_livraison_prevue) values ('X', 1, current_date)`)
+const liv1 = await one('kenfack', `select l.id, l.nombre, l.statut, l.tache_id from public.livraisons_poussins l join public.commandes_poussins c on c.id = l.commande_id where c.code_bande = 'CMD1'`)
+ok('planned delivery of 1000 created', liv1?.nombre === 1000 && liv1.statut === 'prevue', JSON.stringify(liv1))
+ok('delivery task in exploitation planning', (await one('kenfack', `select assigne_role, type_tache from public.taches where id = '${liv1.tache_id}'`)).type_tache === 'arrivee_poussins')
+ok('no flock before first reception', (await as('kenfack', `select * from public.bandes where code = 'CMD1'`)).rows.length === 0)
+await expectErr('employe cannot receive chicks', 'employe', `select public.receptionner_livraison($1, 500, current_date, current_date + 3)`, [liv1.id], 'réceptionnent')
+await expectOk('kenfack ticks « Livré »: 500 received, rest in 3 days', 'kenfack', `select public.receptionner_livraison($1, 500, current_date, current_date + 3)`, [liv1.id])
+const b1 = await one('kenfack', `select id, nombre_initial, statut from public.bandes where code = 'CMD1'`)
+ok('flock created with 500 chicks', b1?.nombre_initial === 500, JSON.stringify(b1))
+ok('first delivery task done', (await one('kenfack', `select statut from public.taches where id = '${liv1.tache_id}'`)).statut === 'fait')
+ok('vaccination programme generated for the new flock', (await as('kenfack', `select * from public.taches where bande_id = $1 and type_tache = 'vaccination'`, [b1.id])).rows.length === 3)
+const liv2 = await one('kenfack', `select id, nombre, statut, date_prevue - current_date as dans from public.livraisons_poussins where commande_id = (select id from public.commandes_poussins where code_bande = 'CMD1') and statut = 'prevue'`)
+ok('rest of 500 planned in 3 days', liv2?.nombre === 500 && liv2.dans === 3, JSON.stringify(liv2))
+ok('order is partial', (await one('kenfack', `select statut from public.commandes_poussins where code_bande = 'CMD1'`)).statut === 'partielle')
+await expectErr('cannot tick twice', 'kenfack', `select public.receptionner_livraison($1, 500, current_date, null)`, [liv1.id], 'plus en attente')
+await expectOk('supplier postpones the rest', 'kenfack', `select public.reporter_livraison($1, current_date + 5)`, [liv2.id])
+await expectOk('kenfack ticks the rest: 480 received, no more expected', 'kenfack', `select public.receptionner_livraison($1, 480, current_date + 5, null)`, [liv2.id])
+ok('flock now 980 chicks', (await one('kenfack', `select nombre_initial from public.bandes where code = 'CMD1'`)).nombre_initial === 980)
+ok('order delivered', (await one('kenfack', `select statut from public.commandes_poussins where code_bande = 'CMD1'`)).statut === 'livree')
+ok('flock headcount 980', (await one('employe', `select restants from public.effectif_bandes where code = 'CMD1'`)).restants === 980)
+await expectOk('second order', 'kenfack', `insert into public.commandes_poussins (code_bande, nombre_commande, date_livraison_prevue) values ('CMD2', 300, current_date + 10)`)
+const liv3 = await one('kenfack', `select id from public.livraisons_poussins where commande_id = (select id from public.commandes_poussins where code_bande = 'CMD2')`)
+await expectOk('order cancelled before delivery', 'kenfack', `select public.annuler_livraison_prevue($1)`, [liv3.id])
+ok('cancelled order status', (await one('kenfack', `select statut from public.commandes_poussins where code_bande = 'CMD2'`)).statut === 'annulee')
+await expectErr('internal planning function not callable', 'kenfack', `select public.prevoir_livraison(null, 1, current_date, null)`, [], 'permission denied')
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))
