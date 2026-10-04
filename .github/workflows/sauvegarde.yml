@@ -114,7 +114,9 @@ jobs:
           set -euo pipefail
           purge() {
             LIMITE=$(date -u -d "-$2 days" +%Y-%m-%d)
-            aws s3 ls "s3://$S3_BUCKET/$1/" --endpoint-url "$S3_ENDPOINT" | awk '{print $4}' | while read -r f; do
+            # Dossier vide ou pas encore créé (ex. « mensuel » avant le 1er du mois) : rien à supprimer
+            LISTE=$(aws s3 ls "s3://$S3_BUCKET/$1/" --endpoint-url "$S3_ENDPOINT" || true)
+            echo "$LISTE" | awk 'NF {print $4}' | while read -r f; do
               D=$(echo "$f" | sed -n 's/^henzo-\([0-9-]\{10\}\)\.tar\.gz\.gpg$/\1/p')
               if [ -n "$D" ] && [[ "$D" < "$LIMITE" ]]; then
                 echo "Suppression $1/$f"
