@@ -416,6 +416,30 @@ await expectErr('directeur cannot demote himself', 'ali', `update public.profile
 await expectOk('directeur changes an employee role', 'ali', `update public.profiles set nom_complet = 'Employé 1' where identifiant = 'employe'`)
 await expectNoRows('kenfack cannot change roles', 'kenfack', `update public.profiles set role = 'directeur' where identifiant = 'employe' returning id`)
 
+// ---------- Function privileges hardening: everything must still work ----------
+try {
+  await db.exec(readFileSync(new URL('0008_securite_fonctions.sql', MIG), 'utf8'))
+  ok('migration 0008 runs', true)
+} catch (e) { ok('migration 0008 runs', false, e.message); process.exit(1) }
+
+await expectErr('internal function no longer callable', 'kenfack', `select public.solde_caisse(id) from public.caisses limit 1`, [], 'permission denied')
+await expectErr('trigger function not callable by anon', null, `select public.ecrire_source(null, null, 'entree', 1, 'vente', 'x', current_date, null)`, [], 'permission denied')
+await expectOk('after hardening: employe mortality', 'employe', `insert into public.mortalites (bande_id, nombre) values ($1, 1)`, [C7])
+await expectOk('after hardening: employe laying', 'employe', `insert into public.pontes (lot_id, oeufs_collectes) values ($1, 500)`, [P1])
+await expectOk('after hardening: employe feed used', 'employe', `insert into public.mouvements_stock (article_id, type_mouvement, quantite, bande_id) values ($1, 'sortie', 1, $2)`, [ART2, C7])
+await expectOk('after hardening: employe sale', 'employe', `insert into public.ventes (bande_id, produit, unite, quantite, prix_unitaire, nombre_sujets, mode_paiement) values ($1, 'poulets', 'piece', 1, 3000, 1, 'especes')`, [C7])
+await expectOk('after hardening: kenfack expense', 'kenfack', `insert into public.depenses (portee, activite, bande_id, categorie, libelle, montant, mode_paiement) values ('ferme', 'chair', $1, 'transport', 'Transport', 5000, 'especes')`, [C7])
+await expectOk('after hardening: dahirou client payment', 'dahirou', `insert into public.paiements_clients (vente_id, montant, mode_paiement) select vente_id, 1000, 'especes' from public.creances_clients limit 1`)
+await expectOk('after hardening: task ticked', 'employe', `insert into public.taches_realisations (tache_id) select id from public.taches where statut = 'a_faire' and (assigne_role = 'employe' or assigne_role is null) limit 1`)
+for (const [who, view] of [['employe', 'effectif_bandes'], ['employe', 'effectif_lots'], ['kenfack', 'stock_articles'], ['kenfack', 'indicateurs_bandes'],
+  ['kenfack', 'indicateurs_lots'], ['dahirou', 'resultat_activites'], ['kenfack', 'alertes_responsables'], ['dahirou', 'resultat_bandes'],
+  ['dahirou', 'creances_clients'], ['dahirou', 'dettes_fournisseurs'], ['kenfack', 'soldes_caisses'], ['kenfack', 'situation_investisseurs'],
+  ['kenfack', 'situation_prets'], ['kenfack', 'capitaux_engages'], ['employe', 'prix_actuels'], ['kenfack', 'ponte_journaliere']]) {
+  await expectOk(`after hardening: ${who} reads ${view}`, who, `select * from public.${view} limit 5`)
+}
+await expectOk('after hardening: monthly report', 'dahirou', `select public.rapport_mensuel(current_date)`)
+ok('after hardening: employe still blocked from indicators', (await as('employe', `select * from public.indicateurs_bandes`)).rows.length === 0)
+
 // ---------- Journal ----------
 ok('journal visible to directeur', (await as('ali', `select * from public.journal_activite`)).rows.length > 10)
 ok('journal hidden from finance', (await as('dahirou', `select * from public.journal_activite`)).rows.length === 0)

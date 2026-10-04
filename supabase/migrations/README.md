@@ -8,6 +8,11 @@
 | `0004_phase_c_argent.sql` | Investisseurs (capital, 10 % à chaque fin de bande de chair), prêts, vérification de caisse |
 | `0005_phase_d_organisation.sql` | Tâches, programmes, réalisations hors ligne, alerte de mortalité, vue des alertes |
 | `0006_phase_e_analyses.sql` | Capital initial et prêts existants (sans mouvement de caisse), fonction `rapport_mensuel` |
+| `0007_complements.sql` | Client / fournisseur obligatoire au-delà d'un seuil, bénéfice net et disponible par bande, transferts entre caisses, identifiants des comptes, durée de session |
+| `0008_securite_fonctions.sql` | Fonctions internes non exécutables par les utilisateurs (Security Advisor) |
+
+Le Security Advisor signale encore « Security Definer View » sur les vues de calcul (effectifs,
+indicateurs, résultats, alertes) : c'est voulu, chacune filtre elle-même la ferme et les rôles.
 
 ## Installation
 
@@ -27,4 +32,6 @@ les droits de chaque rôle et les règles de gestion (200 vérifications).
 - `ferme_id uuid not null default public.ferme_actuelle()` et `saisi_par uuid default auth.uid()` ;
 - RLS activée ; utiliser `public.a_role('directeur', …)` dans les règles ;
 - opération financière : pas de modification ni suppression, annulation par le directeur uniquement ;
-- une fonction appelée par une vue s'exécute avec les droits de l'utilisateur : elle doit lui être accessible.
+- une fonction appelée par une vue s'exécute avec les droits de l'utilisateur : elle doit lui être accessible ;
+- depuis 0008, une nouvelle fonction n'est exécutable par personne : accordez explicitement
+  `grant execute … to authenticated` seulement si une règle RLS, une vue ou l'appli l'appelle.
