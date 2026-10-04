@@ -56,7 +56,7 @@ export function HenMark({ size }) {
       <path d="M9.6 9.2c-.4-2 1-3.4 2.3-2.6.3-1.7 2.4-2.1 3.1-.5 1.3-.9 3 .3 2.5 2.2z" fill="#e2513c" />
       <path d="M7.7 12.6 4 14.4l3.9 1.6z" fill="#f5b52e" />
       <path d="M8.6 16.6c-.9 1.6-.3 3.3 1 3.3s1.6-1.8.6-3.4z" fill="#e2513c" />
-      <circle cx="12.2" cy="12.6" r="1.15" fill="#16382b" />
+      <circle cx="12.2" cy="12.6" r="1.15" fill="#132a47" />
       <path d="M16.5 24c3 4.5 8.5 5 12.5.5" stroke="#e8d6ae" strokeWidth="1.8" strokeLinecap="round" fill="none" />
     </svg>
   )
