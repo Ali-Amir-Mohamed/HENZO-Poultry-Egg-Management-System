@@ -9,6 +9,13 @@ import { startAutoSync } from './lib/offlineQueue'
 
 startAutoSync()
 
+// The mouse wheel must never change a number field (scrolling the page over a focused
+// quantity used to turn 2 into 1.12): the field loses focus and the page scrolls normally.
+document.addEventListener('wheel', (e) => {
+  const el = document.activeElement
+  if (el?.type === 'number' && el === e.target) el.blur()
+}, { passive: true })
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
