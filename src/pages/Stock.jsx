@@ -17,7 +17,7 @@ export default function Stock() {
 
   const stock = useQuery(async () => must(await supabase.from('stock_articles').select('*').order('nom')))
   const moves = useQuery(async () => must(await supabase.from(TABLES.mouvementsStock)
-    .select('id, date_mouvement, type_mouvement, quantite, notes, article:articles(nom, unite), bande:bandes(code), lot:lots_pondeuses(code)')
+    .select('id, date_mouvement, type_mouvement, quantite, notes, depense_id, article:articles(nom, unite), bande:bandes(code), lot:lots_pondeuses(code)')
     .order('created_at', { ascending: false }).limit(40)))
   const reload = () => { stock.reload(); moves.reload() }
 
@@ -34,6 +34,14 @@ export default function Stock() {
     setArticle({ ...article, nom: '' })
     reload()
   }
+  // A manual entry or adjustment typed by mistake can be removed (not purchases: cancel the expense instead)
+  const removeMove = async (m) => {
+    if (!window.confirm(t('stock.confirmRemove', { q: fmt(m.quantite), unite: t(`unites.${m.article?.unite}`), nom: m.article?.nom }))) return
+    const { error } = await supabase.from(TABLES.mouvementsStock).delete().eq('id', m.id)
+    if (error) window.alert(error.message)
+    reload()
+  }
+
   const createMove = async () => {
     must(await supabase.from(TABLES.mouvementsStock).insert({
       ...move,
@@ -137,7 +145,13 @@ export default function Stock() {
                     {day(m.date_mouvement, lang)} · {t(`stock.types.${m.type_mouvement}`)}
                     {m.bande ? ` · ${m.bande.code}` : m.lot ? ` · ${m.lot.code}` : ''}
                     {m.notes ? ` · ${m.notes}` : ''}
+                    {m.depense_id ? ` · ${t('stock.fromPurchase')}` : ''}
                   </div>
+                  {!m.depense_id && m.type_mouvement !== 'sortie' && can(role, 'stock.manual') && (
+                    <div className="row-actions">
+                      <button className="btn ghost sm" onClick={() => removeMove(m)}><Icon name="trash" size={14} />{t('stock.remove')}</button>
+                    </div>
+                  )}
                 </div>
                 <strong className={m.type_mouvement === 'sortie' || Number(m.quantite) < 0 ? 'error' : 'success'}>
                   {m.type_mouvement === 'sortie' ? '−' : Number(m.quantite) > 0 ? '+' : ''}{fmt(m.quantite)} {t(`unites.${m.article?.unite}`)}

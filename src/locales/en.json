@@ -371,7 +371,10 @@
     "unitWeight": "Weight of one {{unite}} (kg)",
     "unitCost": "Unit cost (FCFA)",
     "history": "Stock movements",
-    "noMoves": "No movement."
+    "noMoves": "No movement.",
+    "remove": "Delete",
+    "fromPurchase": "purchase",
+    "confirmRemove": "Delete the manual entry of {{q}} {{unite}} of {{nom}}? (Purchases are cancelled in Money → Expenses.)"
   },
   "reglages": {
     "tabs": {

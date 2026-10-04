@@ -371,7 +371,10 @@
     "unitWeight": "Poids d’un {{unite}} (kg)",
     "unitCost": "Coût unitaire (FCFA)",
     "history": "Historique des mouvements",
-    "noMoves": "Aucun mouvement."
+    "noMoves": "Aucun mouvement.",
+    "remove": "Supprimer",
+    "fromPurchase": "achat",
+    "confirmRemove": "Supprimer l’entrée manuelle de {{q}} {{unite}} de {{nom}} ? (Les achats, eux, s’annulent dans Argent → Dépenses.)"
   },
   "reglages": {
     "tabs": {
