@@ -30,7 +30,6 @@ jobs:
       S3_BUCKET: ${{ secrets.BACKUP_S3_BUCKET }}
       AWS_ACCESS_KEY_ID: ${{ secrets.BACKUP_S3_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_S3_SECRET }}
-      AWS_DEFAULT_REGION: auto
       AWS_REQUEST_CHECKSUM_CALCULATION: when_required
       AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
     steps:
@@ -42,6 +41,11 @@ jobs:
           fi
           if [ -n "$S3_ENDPOINT" ] && [ -n "$S3_BUCKET" ] && [ -n "$AWS_ACCESS_KEY_ID" ] && [ -n "$AWS_SECRET_ACCESS_KEY" ]; then
             echo "STOCKAGE=oui" >> "$GITHUB_ENV"
+            # Région : Backblaze l'exige dans la signature (ex. us-east-005, lue dans l'adresse) ; R2 utilise « auto »
+            REGION=$(echo "$S3_ENDPOINT" | sed -n 's#^\(https://\)\{0,1\}s3\.\([a-z0-9-]*\)\.backblazeb2\.com.*#\2#p')
+            echo "AWS_DEFAULT_REGION=${REGION:-auto}" >> "$GITHUB_ENV"
+            echo "Région du stockage : ${REGION:-auto}"
+            case "$S3_ENDPOINT" in https://*) ;; *) echo "::error::BACKUP_S3_ENDPOINT doit commencer par https://"; exit 1 ;; esac
           else
             echo "::warning::Stockage de sauvegarde pas encore configuré : copie de secours gardée 30 jours sur GitHub."
             echo "STOCKAGE=non" >> "$GITHUB_ENV"
@@ -75,6 +79,12 @@ jobs:
         if: env.STOCKAGE == 'oui'
         run: |
           set -euo pipefail
+          # Test d'accès d'abord, avec un message clair en cas de clé ou de bucket incorrect
+          if ! aws s3api head-bucket --bucket "$S3_BUCKET" --endpoint-url "$S3_ENDPOINT" 2> erreur.txt; then
+            echo "::error::Accès au stockage refusé. Vérifiez BACKUP_S3_KEY_ID / BACKUP_S3_SECRET (clé Read and Write sur ce bucket), BACKUP_S3_BUCKET et BACKUP_S3_ENDPOINT."
+            sed -E 's/[A-Za-z0-9+\/]{30,}/***/g' erreur.txt
+            exit 1
+          fi
           aws s3 cp "henzo-$STAMP.tar.gz.gpg" "s3://$S3_BUCKET/quotidien/henzo-$STAMP.tar.gz.gpg" --endpoint-url "$S3_ENDPOINT"
           # Le 1er du mois : une copie mensuelle, gardée un an
           if [ "$(date -u +%d)" = "01" ]; then
