@@ -546,3 +546,14 @@ details[open] summary { margin-bottom: .6rem; }
 }
 /* Phone notifications switch */
 .push-toggle{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:6px 0 10px;border-bottom:1px solid var(--line, #e3e6ee);margin-bottom:8px}
+
+/* Notifications panel: inside the screen on phones (the bell is not at the right edge),
+   messages are links but not underlined */
+.notif-panel a { color: inherit; text-decoration: none; display: block; }
+.notif-panel a:hover strong { text-decoration: underline; }
+@media (max-width: 640px) {
+  .notif-panel {
+    position: fixed; left: .5rem; right: .5rem; width: auto;
+    top: calc(env(safe-area-inset-top, 0px) + 4.5rem); max-height: calc(100vh - 9rem);
+  }
+}
