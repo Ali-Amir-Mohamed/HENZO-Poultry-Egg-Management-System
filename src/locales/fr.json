@@ -366,7 +366,8 @@
     "cancelTitle": "Annuler « {{libelle}} »",
     "cancelSaleTitle": "Annuler la vente de {{n}}",
     "collectFrom": "Encaisser – {{nom}}",
-    "payTo": "Payer – {{nom}}"
+    "payTo": "Payer – {{nom}}",
+    "willNeedValidationAll": "Cette dépense sera envoyée à Dahirou (finance) pour validation : l’argent ne sortira de la caisse qu’une fois validée."
   },
   "stock": {
     "empty": "Aucun produit. Créez d’abord vos aliments et médicaments.",

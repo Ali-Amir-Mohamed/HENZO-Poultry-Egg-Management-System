@@ -427,7 +427,9 @@ function Depenses({ onAsked }) {
             </div>
           )}
           {role === 'exploitation' && refs.data?.seuil != null && Number(form.montant) > Number(refs.data.seuil) && (
-            <p className="note"><Icon name="clock" size={16} />{t('argent.willNeedValidation', { n: money(refs.data.seuil, lang) })}</p>
+            <p className="note"><Icon name="clock" size={16} />{Number(refs.data.seuil) === 0
+              ? t('argent.willNeedValidationAll')
+              : t('argent.willNeedValidation', { n: money(refs.data.seuil, lang) })}</p>
           )}
         </FormCard>
       )}
