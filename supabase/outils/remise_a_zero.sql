@@ -9,12 +9,14 @@
 -- Efface   : bandes, lots, saisies, ventes, dépenses, paiements, écritures,
 --            stock et produits, clients / fournisseurs, prix, investisseurs,
 --            prêts, vérifications, transferts, tâches, notifications,
---            journal, bilans.
+--            journal, bilans, demandes de correction, historique des connexions.
+-- Conserve aussi : les téléphones abonnés aux notifications.
 -- TRUNCATE ne déclenche pas les protections ligne par ligne (registre non
 -- modifiable) : c'est volontaire, uniquement pour ce nettoyage.
 -- =====================================================================
 
 truncate table
+  public.demandes_correction,
   public.taches_realisations,
   public.taches,
   public.verifications_caisse,
@@ -55,4 +57,5 @@ select 'caisses (6 par ferme)' as element, count(*) as nombre from public.caisse
 union all select 'écritures', count(*) from public.ecritures
 union all select 'bandes', count(*) from public.bandes
 union all select 'ventes', count(*) from public.ventes
-union all select 'comptes conservés', count(*) from public.profiles;
+union all select 'comptes conservés', count(*) from public.profiles
+union all select 'fermes : ' || string_agg(nom, ', '), count(*) from public.fermes;
