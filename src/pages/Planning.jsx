@@ -153,11 +153,16 @@ function Taches() {
                       <div className="row-actions">
                         <Link to="/ferme" className="btn primary sm"><Icon name="drumstick" size={14} />{t('planning.receiveInFarm')}</Link>
                       </div>
-                    ) : can(role, 'tache.plan') && (
+                    ) : can(role, 'tache.plan') ? (
                       <div className="row-actions">
                         <button className="btn primary sm" onClick={() => done(tc)}><Icon name="check" size={14} />{t('planning.markDone')}</button>
                         <button className="btn ghost sm" onClick={() => postpone(tc)}>{t('planning.postpone')}</button>
                         <button className="btn ghost sm" onClick={() => cancel(tc)}>{t('argent.cancel')}</button>
+                      </div>
+                    ) : tc.assigne_role === role && (
+                      // Read-only planning (finance): only his own tasks can be ticked
+                      <div className="row-actions">
+                        <button className="btn primary sm" onClick={() => done(tc)}><Icon name="check" size={14} />{t('planning.markDone')}</button>
                       </div>
                     )}
                   </div>

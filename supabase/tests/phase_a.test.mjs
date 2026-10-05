@@ -656,7 +656,21 @@ await expectErr('dahirou cannot record a feed purchase', 'dahirou', `insert into
 await expectOk('dahirou still records a general expense', 'dahirou', `insert into public.depenses (portee, activite, categorie, libelle, montant, mode_paiement, montant_paye) values ('generale', 'chair', 'charges', 'Électricité', 1000, 'especes', 1000)`)
 await expectOk('kenfack still records a feed purchase', 'kenfack', `insert into public.depenses (portee, activite, categorie, libelle, montant, mode_paiement, montant_paye) values ('ferme', 'chair', 'aliment', 'Aliment', 1000, 'especes', 1000)`)
 ok('dahirou still reads the stock', (await as('dahirou', `select * from public.articles`)).rows.length > 0)
-ok('duplicate mortality flagged',(await as('kenfack', `select * from public.notifications where type_notification = 'doublon' and message like 'Mortalité%'`)).rows.length >= 1)
+ok('duplicate mortality flagged', (await as('kenfack', `select * from public.notifications where type_notification = 'doublon' and message like 'Mortalité%'`)).rows.length >= 1)
+
+// ---------- 0017: finance reads the planning ----------
+try {
+  await db.exec(readFileSync(new URL('0017_planning_lecture_finance.sql', MIG), 'utf8'))
+  ok('migration 0017 runs', true)
+} catch (e) { ok('migration 0017 runs', false, e.message); process.exit(1) }
+await expectErr('dahirou cannot plan a task', 'dahirou', `insert into public.taches (titre, type_tache, date_prevue) values ('X', 'autre', current_date)`)
+const tFin = await one('kenfack', `insert into public.taches (titre, type_tache, date_prevue, assigne_role) values ('Rembourser prêt', 'remboursement', current_date, 'finance') returning id`)
+const tEmp = await one('kenfack', `insert into public.taches (titre, type_tache, date_prevue, assigne_role) values ('Nettoyer', 'nettoyage', current_date, 'employe') returning id`)
+await expectNoRows('dahirou cannot postpone a task', 'dahirou', `update public.taches set date_prevue = current_date + 1 where id = '${tFin.id}' returning id`)
+ok('dahirou still sees the planning', (await as('dahirou', `select * from public.taches where id in ('${tFin.id}', '${tEmp.id}')`)).rows.length === 2)
+await expectOk('dahirou ticks his own task', 'dahirou', `insert into public.taches_realisations (tache_id) values ($1)`, [tFin.id])
+await expectErr('dahirou cannot tick an employee task', 'dahirou', `insert into public.taches_realisations (tache_id) values ($1)`, [tEmp.id])
+await expectOk('employe still ticks his task', 'employe', `insert into public.taches_realisations (tache_id) values ($1)`, [tEmp.id])
 
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {

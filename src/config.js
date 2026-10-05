@@ -65,7 +65,7 @@ export const PERMISSIONS = {
   'pret.manage': [D, F],
   'caisse.verify': [D, F],
   'caisse.adjust': [D],
-  'tache.plan': [D, X, F],
+  'tache.plan': [D, X],          // plan / postpone / cancel tasks (finance: read-only planning)
   'programme.edit': [D, X],
   'demarrage': [D, F],          // initial setup (opening balances, existing capital / loans)
   'ferme.settings': [D],
