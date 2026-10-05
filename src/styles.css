@@ -557,3 +557,15 @@ details[open] summary { margin-bottom: .6rem; }
     top: calc(env(safe-area-inset-top, 0px) + 4.5rem); max-height: calc(100vh - 9rem);
   }
 }
+/* Phones: nothing may widen the page (otherwise iOS zooms the whole app out).
+   Rows wrap, wide report tables scroll inside their own box. */
+html, body { overflow-x: clip; }
+.row { flex-wrap: wrap; }
+.panel, .card-item, .stack > * { min-width: 0; }
+.report-section { overflow-x: auto; }
+.report-section .table { min-width: 100%; }
+@media (max-width: 640px) {
+  .report-section .table { font-size: .8rem; }
+  .report-section .table th, .report-section .table td { padding-left: .35rem; padding-right: .35rem; white-space: nowrap; }
+  .releve-head h1 { font-size: 1.15rem; }
+}
