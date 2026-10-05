@@ -58,7 +58,8 @@ export const PERMISSIONS = {
   'credit.grant': [D, X],
   'tiers.edit': [D, X, F],
   'prix.set': [D, X, F],
-  'article.edit': [D, X, F],
+  'article.edit': [D, X],        // stock product sheets (finance: read-only stock)
+  'stock.achat': [D, X],         // purchases that enter stock (feed, medicines)
   'stock.manual': [D, X],
   'capital.manage': [D, F],      // investors, contributions, withdrawals, 10 % decisions
   'pret.manage': [D, F],

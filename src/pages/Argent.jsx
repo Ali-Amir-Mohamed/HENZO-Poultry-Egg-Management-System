@@ -216,6 +216,8 @@ function Caisses({ onAsked }) {
 }
 
 // ---------- Expenses ----------
+// Purchases that enter stock: entered by exploitation / director only (finance has a read-only stock)
+const STOCKABLES = ['aliment', 'medicament']
 const emptyDepense = (portee) => ({
   portee, activite: 'chair', cible: '', categorie: CATEGORIES_DEPENSE[portee][0], categorie_retrait: 'avance_benefice',
   beneficiaire: '', libelle: '', montant: '', fournisseur_id: '', paiement: 'especes', montant_paye: '',
@@ -269,7 +271,7 @@ function Depenses({ onAsked }) {
   })
 
   const credit = form.paiement === 'credit'
-  const stockable = ['aliment', 'medicament'].includes(form.categorie)
+  const stockable = STOCKABLES.includes(form.categorie)
   // No big anonymous purchase: supplier required above the threshold (database rule too)
   const supplierRequired = credit || (refs.data?.seuilTiers != null && Number(form.montant) > Number(refs.data.seuilTiers)
     && !['salaires', 'retrait_associe'].includes(form.categorie))
@@ -338,7 +340,8 @@ function Depenses({ onAsked }) {
             <Field label={t('saisie.date')}><input type="date" required value={form.date_depense} onChange={set('date_depense')} /></Field>
             <Field label={t('argent.category')}>
               <select value={form.categorie} onChange={(e) => setForm({ ...form, categorie: e.target.value, article_id: '', quantite: '' })}>
-                {CATEGORIES_DEPENSE[form.portee].map((c) => <option key={c} value={c}>{t(`categories.${c}`)}</option>)}
+                {CATEGORIES_DEPENSE[form.portee].filter((c) => can(role, 'stock.achat') || !STOCKABLES.includes(c))
+                  .map((c) => <option key={c} value={c}>{t(`categories.${c}`)}</option>)}
               </select>
             </Field>
             {form.portee === 'ferme' ? (

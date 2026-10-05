@@ -645,7 +645,18 @@ ok('duplicate laying flagged to exploitation', (await as('kenfack', `select * fr
 await expectOk('same sale twice', 'kenfack', `insert into public.ventes (lot_id, produit, unite, quantite, prix_unitaire, mode_paiement) values ('${P1}', 'oeufs', 'piece', 33, 100, 'especes'), ('${P1}', 'oeufs', 'piece', 33, 100, 'especes')`)
 ok('duplicate sale flagged', (await as('ali', `select * from public.notifications where type_notification = 'doublon' and message like 'Vente%'`)).rows.length >= 1)
 await expectOk('same mortality twice', 'employe', `insert into public.mortalites (bande_id, nombre, date_constat) values ('${C7}', 4, current_date - 2), ('${C7}', 4, current_date - 2)`)
-ok('duplicate mortality flagged', (await as('kenfack', `select * from public.notifications where type_notification = 'doublon' and message like 'Mortalité%'`)).rows.length >= 1)
+// ---------- 0016: finance has a read-only stock ----------
+try {
+  await db.exec(readFileSync(new URL('0016_stock_lecture_finance.sql', MIG), 'utf8'))
+  ok('migration 0016 runs', true)
+} catch (e) { ok('migration 0016 runs', false, e.message); process.exit(1) }
+await expectNoRows('dahirou cannot create a stock product', 'dahirou', `insert into public.articles (nom, categorie, unite) select 'X', categorie, unite from public.articles limit 1 returning id`)
+await expectNoRows('dahirou cannot edit a stock product', 'dahirou', `update public.articles set seuil_minimum = 1 returning id`)
+await expectErr('dahirou cannot record a feed purchase', 'dahirou', `insert into public.depenses (portee, activite, categorie, libelle, montant, mode_paiement, montant_paye) values ('ferme', 'chair', 'aliment', 'Aliment', 1000, 'especes', 1000)`, [], 'exploitation')
+await expectOk('dahirou still records a general expense', 'dahirou', `insert into public.depenses (portee, activite, categorie, libelle, montant, mode_paiement, montant_paye) values ('generale', 'chair', 'charges', 'Électricité', 1000, 'especes', 1000)`)
+await expectOk('kenfack still records a feed purchase', 'kenfack', `insert into public.depenses (portee, activite, categorie, libelle, montant, mode_paiement, montant_paye) values ('ferme', 'chair', 'aliment', 'Aliment', 1000, 'especes', 1000)`)
+ok('dahirou still reads the stock', (await as('dahirou', `select * from public.articles`)).rows.length > 0)
+ok('duplicate mortality flagged',(await as('kenfack', `select * from public.notifications where type_notification = 'doublon' and message like 'Mortalité%'`)).rows.length >= 1)
 
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
