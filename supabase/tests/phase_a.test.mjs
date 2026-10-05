@@ -672,6 +672,21 @@ await expectOk('dahirou ticks his own task', 'dahirou', `insert into public.tach
 await expectErr('dahirou cannot tick an employee task', 'dahirou', `insert into public.taches_realisations (tache_id) values ($1)`, [tEmp.id])
 await expectOk('employe still ticks his task', 'employe', `insert into public.taches_realisations (tache_id) values ($1)`, [tEmp.id])
 
+// ---------- 0018: alert when a cash box goes negative ----------
+try {
+  await db.exec(readFileSync(new URL('0018_alerte_caisse_negative.sql', MIG), 'utf8'))
+  ok('migration 0018 runs', true)
+} catch (e) { ok('migration 0018 runs', false, e.message); process.exit(1) }
+const negCount = async () => (await as('dahirou', `select * from public.notifications where type_notification = 'caisse_negative'`)).rows.length
+const cx = await one('ali', `select activite, mode, solde from public.soldes_caisses where solde >= 0 order by solde limit 1`)
+const soldeCx = Number(cx.solde)
+const n0 = await negCount()
+await expectOk('expense larger than the cash box is not blocked', 'kenfack', `insert into public.depenses (portee, activite, categorie, libelle, montant, mode_paiement) values ('ferme', '${cx.activite}', 'transport', 'Transport avancé', ${soldeCx + 1000}, '${cx.mode}')`)
+ok('cash box is now negative', Number((await one('ali', `select solde from public.soldes_caisses where activite = '${cx.activite}' and mode = '${cx.mode}'`)).solde) === -1000)
+ok('finance and director alerted once', (await negCount()) === n0 + 1 && (await as('ali', `select * from public.notifications where type_notification = 'caisse_negative'`)).rows.length >= 1)
+await expectOk('second expense on a negative box', 'kenfack', `insert into public.depenses (portee, activite, categorie, libelle, montant, mode_paiement) values ('ferme', '${cx.activite}', 'transport', 'Transport 2', 500, '${cx.mode}')`)
+ok('no repeated alert while already negative', (await negCount()) === n0 + 1)
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))
