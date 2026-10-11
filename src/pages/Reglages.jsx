@@ -7,19 +7,20 @@ import { can, PRODUITS, TABLES } from '../config'
 import { localDate } from '../lib/stats'
 import { day, Empty, Field, FormCard, Loading, money, Panel, Tabs } from '../components/ui'
 import Icon from '../components/Icon'
-import Demarrage from './reglages/Demarrage'
+import { ReglagesFerme } from './reglages/Demarrage'
 import { useAsk, useRun } from '../components/Dialog'
 import Comptes from './reglages/Comptes'
 import Journal from './reglages/Journal'
 import Connexions from './reglages/Connexions'
 import Fermes from './reglages/Fermes'
 import Sauvegarde from './reglages/Sauvegarde'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 
 // Settings: customers & suppliers (with credit authorisation), current sale prices, initial setup
 export default function Reglages() {
   const { role } = useAuth()
-  const [tab, setTab] = useState('tiers')
+  const [params] = useSearchParams()
+  const [tab, setTab] = useState(() => params.get('tab') || 'tiers')
   const tabs = [
     { id: 'tiers', label: 'reglages.tabs.tiers', icon: 'users' },
     { id: 'prix', label: 'reglages.tabs.prix', icon: 'tag' },
@@ -27,7 +28,7 @@ export default function Reglages() {
     ...(can(role, 'journal') ? [{ id: 'journal', label: 'reglages.tabs.journal', icon: 'note' }, { id: 'connexions', label: 'reglages.tabs.connexions', icon: 'clock' }] : []),
     ...(can(role, 'comptes') ? [{ id: 'fermes', label: 'reglages.tabs.fermes', icon: 'barn' }] : []),
     ...(can(role, 'sauvegarde') ? [{ id: 'sauvegarde', label: 'reglages.tabs.sauvegarde', icon: 'download' }] : []),
-    ...(can(role, 'demarrage') ? [{ id: 'demarrage', label: 'reglages.tabs.demarrage', icon: 'flag' }] : [])
+    ...(can(role, 'ferme.settings') ? [{ id: 'ferme', label: 'reglages.tabs.ferme', icon: 'settings' }] : [])
   ]
   return (
     <div className="stack">
@@ -39,7 +40,7 @@ export default function Reglages() {
       {tab === 'connexions' && <Connexions />}
       {tab === 'fermes' && <Fermes />}
       {tab === 'sauvegarde' && <Sauvegarde />}
-      {tab === 'demarrage' && <Demarrage />}
+      {tab === 'ferme' && <ReglagesFerme />}
     </div>
   )
 }

@@ -15,10 +15,12 @@ import Investisseurs from './argent/Investisseurs'
 import Demandes, { useDemandeCorrection } from './argent/Demandes'
 import Prets from './argent/Prets'
 import Verification from './argent/Verification'
+import Demarrage from './reglages/Demarrage'
 
 // Money: cash boxes, sales, expenses, receivables and payables.
 // Financial records are never edited: only validated, rejected or cancelled (database rules).
 export default function Argent() {
+  const { role } = useAuth()
   const [tab, setTab] = useState(() => {
     try { return sessionStorage.getItem('henzo.argent.tab') || 'caisses' } catch { return 'caisses' }
   })
@@ -35,7 +37,8 @@ export default function Argent() {
         { id: 'credits', label: 'argent.tabs.credits', icon: 'users' },
         { id: 'investisseurs', label: 'argent.tabs.investisseurs', icon: 'users' },
         { id: 'prets', label: 'argent.tabs.prets', icon: 'receipt' },
-        { id: 'verification', label: 'argent.tabs.verification', icon: 'check' }
+        { id: 'verification', label: 'argent.tabs.verification', icon: 'check' },
+        ...(can(role, 'demarrage') ? [{ id: 'demarrage', label: 'argent.tabs.demarrage', icon: 'flag' }] : [])
       ]} />
       <Demandes key={rev} />
       {tab === 'caisses' && <Caisses onAsked={asked} />}
@@ -45,6 +48,7 @@ export default function Argent() {
       {tab === 'investisseurs' && <Investisseurs />}
       {tab === 'prets' && <Prets />}
       {tab === 'verification' && <Verification />}
+      {tab === 'demarrage' && <Demarrage />}
     </div>
   )
 }

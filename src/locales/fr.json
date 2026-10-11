@@ -287,7 +287,8 @@
       "credits": "Créances & dettes",
       "investisseurs": "Investisseurs",
       "prets": "Prêts",
-      "verification": "Vérif. caisse"
+      "verification": "Vérif. caisse",
+      "demarrage": "Démarrage"
     },
     "caisse": {
       "chair": "Caisse chair",
@@ -403,12 +404,12 @@
     "tabs": {
       "tiers": "Clients & fournisseurs",
       "prix": "Prix du moment",
-      "demarrage": "Démarrage",
       "comptes": "Comptes",
       "journal": "Journal",
       "sauvegarde": "Sauvegarde",
       "connexions": "Connexions",
-      "fermes": "Fermes"
+      "fermes": "Fermes",
+      "ferme": "Paramètres"
     },
     "newTiers": "Nouveau client / fournisseur",
     "type": "Type",

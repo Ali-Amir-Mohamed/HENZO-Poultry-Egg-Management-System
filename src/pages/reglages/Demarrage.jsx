@@ -9,8 +9,9 @@ import { localDate } from '../../lib/stats'
 import Icon from '../../components/Icon'
 import { Field, FormCard, Loading, money, Panel } from '../../components/ui'
 
-// Initial setup: farm settings and the situation existing before HENZO
-// (opening balances, investor capital, running loans, stock, flocks) — without double counting cash.
+// Money start-up (Argent > Démarrage): the situation existing before HENZO
+// (opening balances, investor capital, running loans) and reminders for stock and flocks — without double counting cash.
+// The farm settings are in Réglages > Ferme (ReglagesFerme below).
 export default function Demarrage() {
   const { t, i18n } = useTranslation()
   const { role } = useAuth()
@@ -54,13 +55,14 @@ export default function Demarrage() {
           {steps.map((s) => (
             <li key={s.key} className={s.ok ? 'ok' : ''}>
               <span className="task-check">{s.ok ? <Icon name="check" size={14} /> : null}</span>
-              {t(`demarrage.steps.${s.key}`)}
+              {s.key === 'ferme' && can(role, 'ferme.settings')
+                ? <Link to="/reglages?tab=ferme">{t('demarrage.steps.ferme')}</Link>
+                : t(`demarrage.steps.${s.key}`)}
             </li>
           ))}
         </ol>
       </Panel>
 
-      {can(role, 'ferme.settings') && <ParametresFerme ferme={q.data.ferme} onSaved={q.reload} />}
       <SoldesInitiaux caisses={q.data.caisses} already={done.soldes} onSaved={q.reload} lang={lang} />
       <CapitalInitial investisseurs={q.data.investisseurs} onSaved={q.reload} />
       <PretExistant onSaved={q.reload} />
@@ -71,6 +73,12 @@ export default function Demarrage() {
         actions={<Link to="/ferme" className="btn ghost sm">{t('nav.ferme')}</Link>} />
     </>
   )
+}
+
+export function ReglagesFerme() {
+  const q = useQuery(async () => must(await supabase.from('fermes').select('*').limit(1).single()))
+  if (!q.data) return <Loading error={q.error} />
+  return <ParametresFerme ferme={q.data} onSaved={q.reload} />
 }
 
 function ParametresFerme({ ferme, onSaved }) {
@@ -91,7 +99,7 @@ function ParametresFerme({ ferme, onSaved }) {
     onSaved()
   }
   return (
-    <FormCard title={t('demarrage.settings')} icon="settings" onSubmit={save}>
+    <FormCard title={t('demarrage.settings')} icon="settings" onSubmit={save} startOpen>
       <div className="grid-2">
         <Field label={t('demarrage.farmName')} className="span-2"><input required value={form.nom} onChange={set('nom')} /></Field>
         <Field label={t('demarrage.threshold')}><input type="number" min="0" required value={form.seuil_validation_depense} onChange={set('seuil_validation_depense')} /></Field>

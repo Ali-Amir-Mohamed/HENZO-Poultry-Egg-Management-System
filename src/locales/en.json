@@ -287,7 +287,8 @@
       "credits": "Credit & debts",
       "investisseurs": "Investors",
       "prets": "Loans",
-      "verification": "Cash check"
+      "verification": "Cash check",
+      "demarrage": "Start-up"
     },
     "caisse": {
       "chair": "Broiler cash",
@@ -403,12 +404,12 @@
     "tabs": {
       "tiers": "Customers & suppliers",
       "prix": "Current prices",
-      "demarrage": "Initial setup",
       "comptes": "Accounts",
       "journal": "Log",
       "sauvegarde": "Backup",
       "connexions": "Logins",
-      "fermes": "Farms"
+      "fermes": "Farms",
+      "ferme": "Farm settings"
     },
     "newTiers": "New customer / supplier",
     "type": "Type",
