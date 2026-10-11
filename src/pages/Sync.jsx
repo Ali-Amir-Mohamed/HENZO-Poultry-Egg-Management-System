@@ -4,6 +4,7 @@ import { discardOutboxItem, listOutbox, onQueueChange, syncOutbox } from '../lib
 import { useOnline } from '../hooks'
 import Icon from '../components/Icon'
 import { useAsk } from '../components/Dialog'
+import { APP_VERSION, forcerMiseAJour } from '../lib/version'
 
 // What the entry contained, so the person can enter it again correctly
 function resumeSaisie(r, t) {
@@ -38,6 +39,7 @@ export default function Sync() {
   }
 
   return (
+    <>
     <section className="panel">
       <div className="panel-head">
         <span className="kpi-icon sky"><Icon name="sync" size={22} /></span>
@@ -87,5 +89,16 @@ export default function Sync() {
         </ul>
       )}
     </section>
+    <section className="panel version-panel">
+      <div className="grow">
+        <strong>{t('version.label')} {APP_VERSION}</strong>
+        <div className="muted small">{t('version.hint')}</div>
+      </div>
+      <button className="btn ghost sm" onClick={async () => {
+        if (items.length && !(await ask.confirm(t('version.pendingWarn', { count: items.length }), { title: t('version.force'), icon: 'sync' }))) return
+        forcerMiseAJour()
+      }}><Icon name="sync" size={14} />{t('version.force')}</button>
+    </section>
+    </>
   )
 }

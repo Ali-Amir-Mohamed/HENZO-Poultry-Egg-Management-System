@@ -6,6 +6,7 @@ import ThemeSwitch from '../components/ThemeSwitch'
 import Icon, { Logo } from '../components/Icon'
 import { EXPIRED_FLAG } from '../components/SessionGuard'
 import { faceIdActiveIci, faceIdSupported, messageFaceId, nomBiometrie } from '../lib/faceid'
+import { APP_VERSION, forcerMiseAJour } from '../lib/version'
 
 export default function Login() {
   const { t } = useTranslation()
@@ -76,7 +77,10 @@ export default function Login() {
         </button>
         {!faceIdActiveIci() && boutonFaceId && <><p className="login-or">{t('faceid.or')}</p>{boutonFaceId}</>}
       </form>
-      <p className="login-foot">© {new Date().getFullYear()} HENZO</p>
+      <p className="login-foot">
+        © {new Date().getFullYear()} HENZO · {t('version.label')} {APP_VERSION}
+        <br /><button type="button" className="link-btn" onClick={forcerMiseAJour}>{t('version.force')}</button>
+      </p>
     </div>
   )
 }

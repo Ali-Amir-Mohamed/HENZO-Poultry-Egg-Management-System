@@ -1194,5 +1194,12 @@
       "ciel": "Sky",
       "sahel": "Sahel"
     }
+  },
+  "version": {
+    "label": "Version",
+    "force": "Force update",
+    "hint": "If something new does not show up, “Force update” reloads the latest version of HENZO (your data stays in the database).",
+    "pendingWarn_one": "{{count}} entry has not been sent yet: it stays saved on this phone, but it is better to sync first. Continue?",
+    "pendingWarn_other": "{{count}} entries have not been sent yet: they stay saved on this phone, but it is better to sync first. Continue?"
   }
 }

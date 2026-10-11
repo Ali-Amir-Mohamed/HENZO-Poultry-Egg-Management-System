@@ -694,3 +694,7 @@ html, body { overflow-x: clip; }
 @media (prefers-color-scheme: dark) { :root[data-palette="sahel"]:not([data-theme="light"]) { --green-100: #3a1d12; --green-500: #f0a07c; --yolk-100: #3a2a14; } }
 :root[data-palette="sahel"][data-theme="dark"] { --green-100: #3a1d12; --green-500: #f0a07c; --yolk-100: #3a2a14; }
 .theme-panel { max-height: calc(100vh - 7rem); overflow-y: auto; }
+
+/* App version / force update */
+.link-btn { background: none; border: none; padding: 0; color: inherit; text-decoration: underline; font: inherit; cursor: pointer; }
+.version-panel { flex-direction: row; align-items: center; gap: .8rem; flex-wrap: wrap; }

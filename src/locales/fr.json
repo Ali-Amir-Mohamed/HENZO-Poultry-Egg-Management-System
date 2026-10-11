@@ -1194,5 +1194,12 @@
       "ciel": "Ciel",
       "sahel": "Sahel"
     }
+  },
+  "version": {
+    "label": "Version",
+    "force": "Forcer la mise à jour",
+    "hint": "Si une nouveauté n’apparaît pas, « Forcer la mise à jour » recharge la dernière version de HENZO (vos données restent dans la base).",
+    "pendingWarn_one": "{{count}} saisie n’est pas encore envoyée : elle reste gardée sur ce téléphone, mais il vaut mieux synchroniser d’abord. Continuer ?",
+    "pendingWarn_other": "{{count}} saisies ne sont pas encore envoyées : elles restent gardées sur ce téléphone, mais il vaut mieux synchroniser d’abord. Continuer ?"
   }
 }

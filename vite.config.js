@@ -1,8 +1,16 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import { execSync } from 'node:child_process'
+
+// Version shown in the app (login page, Synchro): build date + short commit
+const commit = (process.env.WORKERS_CI_COMMIT_SHA || process.env.CF_PAGES_COMMIT_SHA || (() => {
+  try { return execSync('git rev-parse HEAD').toString().trim() } catch { return '' }
+})()).slice(0, 7)
+const version = `${new Date().toISOString().slice(0, 16).replace('T', ' ')}${commit ? ' · ' + commit : ''}`
 
 export default defineConfig({
+  define: { __APP_VERSION__: JSON.stringify(version) },
   build: {
     rollupOptions: {
       output: {

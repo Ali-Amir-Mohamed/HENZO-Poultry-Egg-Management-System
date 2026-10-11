@@ -5,6 +5,7 @@ import { canAccess } from '../config'
 import { SECTIONS } from '../components/Layout'
 import Icon from '../components/Icon'
 import { faceIdSupported, nomBiometrie } from '../lib/faceid'
+import { APP_VERSION, forcerMiseAJour } from '../lib/version'
 
 // Phone-only page listing the sections that do not fit in the bottom bar
 export default function Plus() {
@@ -22,6 +23,7 @@ export default function Plus() {
         )}
         <li><button onClick={signOut}><Icon name="logout" size={20} />{t('nav.logout')}</button></li>
       </ul>
+      <p className="muted small center">{t('version.label')} {APP_VERSION} · <button type="button" className="link-btn" onClick={forcerMiseAJour}>{t('version.force')}</button></p>
     </section>
   )
 }
