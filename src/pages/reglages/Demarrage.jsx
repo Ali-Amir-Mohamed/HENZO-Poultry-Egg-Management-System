@@ -8,6 +8,7 @@ import { can, MODES_PAIEMENT } from '../../config'
 import { localDate } from '../../lib/stats'
 import Icon from '../../components/Icon'
 import { Field, FormCard, Loading, money, Panel } from '../../components/ui'
+import { useAsk } from '../../components/Dialog'
 
 // Money start-up (Argent > Démarrage): the situation existing before HENZO
 // (opening balances, investor capital, running loans) and reminders for stock and flocks — without double counting cash.
@@ -41,9 +42,7 @@ export default function Demarrage() {
   const { done } = q.data
   const steps = [
     { key: 'ferme', ok: true },
-    { key: 'soldes', ok: done.soldes > 0 },
-    { key: 'investisseurs', ok: done.investisseurs > 0 },
-    { key: 'prets', ok: done.prets > 0 },
+    { key: 'argent', ok: done.soldes > 0 },
     { key: 'stock', ok: done.stock > 0 },
     { key: 'bandes', ok: done.bandes > 0 }
   ]
@@ -63,9 +62,7 @@ export default function Demarrage() {
         </ol>
       </Panel>
 
-      <SoldesInitiaux caisses={q.data.caisses} already={done.soldes} onSaved={q.reload} lang={lang} />
-      <CapitalInitial investisseurs={q.data.investisseurs} onSaved={q.reload} />
-      <PretExistant onSaved={q.reload} />
+      <ArgentDeDepart investisseurs={q.data.investisseurs} already={done.soldes} onSaved={q.reload} lang={lang} />
 
       <Panel icon="box" tone="sky" title={t('demarrage.steps.stock')} subtitle={t('demarrage.stockHint')}
         actions={<Link to="/stock" className="btn ghost sm">{t('nav.stock')}</Link>} />
@@ -94,7 +91,8 @@ function ParametresFerme({ ferme, onSaved }) {
       seuil_mortalite_pct: Number(form.seuil_mortalite_pct),
       alerte_autonomie_jours: Number(form.alerte_autonomie_jours),
       seuil_tiers_obligatoire: Number(form.seuil_tiers_obligatoire),
-      session_minutes: Number(form.session_minutes)
+      session_minutes: Number(form.session_minutes),
+      oeufs_par_plateau: Number(form.oeufs_par_plateau)
     }).eq('id', ferme.id))
     onSaved()
   }
@@ -108,109 +106,141 @@ function ParametresFerme({ ferme, onSaved }) {
         <Field label={t('demarrage.autonomyAlert')}><input type="number" min="1" required value={form.alerte_autonomie_jours} onChange={set('alerte_autonomie_jours')} /></Field>
         <Field label={t('demarrage.partyThreshold')}><input type="number" min="0" required value={form.seuil_tiers_obligatoire} onChange={set('seuil_tiers_obligatoire')} /></Field>
         <Field label={t('demarrage.sessionMinutes')}><input type="number" min="5" max="1440" required value={form.session_minutes} onChange={set('session_minutes')} /></Field>
+        <Field label={t('demarrage.eggsPerTray')}><input type="number" min="1" required value={form.oeufs_par_plateau ?? 30} onChange={set('oeufs_par_plateau')} /></Field>
       </div>
     </FormCard>
   )
 }
 
-function SoldesInitiaux({ caisses, already, onSaved, lang }) {
+// Money present at start-up, by origin: partners' money, investors, loans.
+// HENZO adds everything up; investors and loans also keep their capital / debt (10 %, repayments).
+const CAISSES = ['chair', 'pondeuse'].flatMap((a) => MODES_PAIEMENT.map((m) => `${a}|${m}`))
+const ligneAssocie = () => ({ caisse: 'chair|especes', montant: '' })
+const ligneInvestisseur = () => ({ investisseur_id: '', nom: '', montant: '', caisse: 'chair|especes', disponible: '' })
+const lignePret = () => ({ preteur: '', type_preteur: 'banque', montant: '', interets: '0', deja_rembourse: '0', caisse: 'chair|banque', disponible: '' })
+
+function ArgentDeDepart({ investisseurs, already, onSaved, lang }) {
   const { t } = useTranslation()
-  const [values, setValues] = useState({})
+  const ask = useAsk()
   const [date, setDate] = useState(localDate())
-  const total = Object.values(values).reduce((s, v) => s + (Number(v) || 0), 0)
-  const save = async () => {
-    const rows = caisses.filter((c) => Number(values[c.id]) > 0).map((c) => ({
-      caisse_id: c.id, sens: 'entree', montant: Number(values[c.id]), nature: 'solde_initial',
-      libelle: t('argent.openingBalance'), date_operation: date
-    }))
-    if (!rows.length) throw new Error(t('demarrage.nothing'))
-    must(await supabase.from('ecritures').insert(rows))
-    setValues({})
-    onSaved()
-  }
-  return (
-    <FormCard title={t('demarrage.steps.soldes')} icon="wallet" onSubmit={save}>
-      {already > 0 && <div className="alert warn"><Icon name="alert" size={18} />{t('demarrage.alreadyBalances', { count: already })}</div>}
-      <p className="note"><Icon name="clock" size={16} />{t('demarrage.balancesHint')}</p>
-      <div className="grid-2">
-        {caisses.map((c) => (
-          <Field key={c.id} label={`${t(`argent.caisse.${c.activite}`)} · ${t(`modes.${c.mode}`)}`}>
-            <input type="number" min="0" value={values[c.id] ?? ''} onChange={(e) => setValues({ ...values, [c.id]: e.target.value })} placeholder="0" />
-          </Field>
-        ))}
-        <Field label={t('demarrage.balanceDate')}><input type="date" required value={date} onChange={(e) => setDate(e.target.value)} /></Field>
-      </div>
-      <div className="total-box"><span>{t('analyses.r.total')}</span><strong>{money(total, lang)}</strong></div>
-    </FormCard>
-  )
-}
+  const [associes, setAssocies] = useState([ligneAssocie()])
+  const [invs, setInvs] = useState([])
+  const [prets, setPrets] = useState([])
+  const [busy, setBusy] = useState(false)
+  const n = (v) => Number(v) || 0
+  // "Encore en caisse" left empty = the whole amount
+  const dispo = (l) => (l.disponible === '' ? n(l.montant) : Math.min(n(l.disponible), n(l.montant)))
 
-function CapitalInitial({ investisseurs, onSaved }) {
-  const { t } = useTranslation()
-  const [form, setForm] = useState({ investisseur_id: '', nom: '', montant: '' })
-  const save = async () => {
-    let id = form.investisseur_id
-    if (!id) {
-      const created = must(await supabase.from('investisseurs').insert({ nom: form.nom }).select('id').single())
-      id = created.id
+  const parCaisse = {}
+  const ajoute = (caisse, v) => { if (v > 0) parCaisse[caisse] = (parCaisse[caisse] ?? 0) + v }
+  associes.forEach((l) => ajoute(l.caisse, n(l.montant)))
+  invs.forEach((l) => ajoute(l.caisse, dispo(l)))
+  prets.forEach((l) => ajoute(l.caisse, dispo(l)))
+  const total = Object.values(parCaisse).reduce((a, b) => a + b, 0)
+  const nomCaisse = (c) => { const [a, m] = c.split('|'); return `${t(`argent.caisse.${a}`)} · ${t(`modes.${m}`)}` }
+  const dette = prets.reduce((s, l) => s + n(l.montant) + n(l.interets) - n(l.deja_rembourse), 0)
+  const capital = invs.reduce((s, l) => s + n(l.montant), 0)
+
+  const maj = (setter) => (i, k) => (e) => setter((rows) => rows.map((r, j) => (j === i ? { ...r, [k]: e.target.value } : r)))
+  const retire = (setter) => (i) => setter((rows) => rows.filter((_, j) => j !== i))
+  const caisseSelect = (value, onChange) => (
+    <select value={value} onChange={onChange}>{CAISSES.map((c) => <option key={c} value={c}>{nomCaisse(c)}</option>)}</select>
+  )
+  const split = (c) => { const [activite, mode] = c.split('|'); return { activite, mode } }
+
+  const enregistrer = async () => {
+    if (total <= 0 && !invs.length && !prets.length) return ask.error(t('demarrage.nothing'))
+    const lignes = Object.entries(parCaisse).map(([c, v]) => `${nomCaisse(c)} : ${money(v, lang)}`).join('\n')
+    if (!(await ask.confirm(t('demarrage.confirm', { total: money(total, lang), lignes }), { title: t('demarrage.saveTitle'), icon: 'wallet', submit: t('demarrage.save') }))) return
+    setBusy(true)
+    const payload = {
+      date,
+      associes: associes.filter((l) => n(l.montant) > 0).map((l) => ({ ...split(l.caisse), montant: n(l.montant) })),
+      investisseurs: invs.filter((l) => n(l.montant) > 0).map((l) => ({ investisseur_id: l.investisseur_id || null, nom: l.nom, montant: n(l.montant), disponible: dispo(l), ...split(l.caisse) })),
+      prets: prets.filter((l) => n(l.montant) > 0).map((l) => ({ preteur: l.preteur, type_preteur: l.type_preteur, montant: n(l.montant), interets: n(l.interets), deja_rembourse: n(l.deja_rembourse), disponible: dispo(l), ...split(l.caisse) }))
     }
-    must(await supabase.from('operations_investisseurs').insert({
-      investisseur_id: id, type_operation: 'capital_initial', montant: Number(form.montant), notes: t('demarrage.beforeHenzo')
-    }))
-    setForm({ investisseur_id: '', nom: '', montant: '' })
+    const { error } = await supabase.rpc('enregistrer_demarrage', { p: payload })
+    setBusy(false)
+    if (error) return ask.error(error.message)
+    setAssocies([ligneAssocie()]); setInvs([]); setPrets([])
     onSaved()
+    await ask.info(t('demarrage.savedTitle'), t('demarrage.savedText', { total: money(total, lang) }))
   }
-  return (
-    <FormCard title={t('demarrage.steps.investisseurs')} icon="users" onSubmit={save}>
-      <p className="note"><Icon name="clock" size={16} />{t('demarrage.capitalHint')}</p>
-      <div className="grid-2">
-        <Field label={t('capital.investor')}>
-          <select value={form.investisseur_id} onChange={(e) => setForm({ ...form, investisseur_id: e.target.value })}>
-            <option value="">{t('demarrage.newInvestor')}</option>
-            {investisseurs.map((i) => <option key={i.id} value={i.id}>{i.nom}</option>)}
-          </select>
-        </Field>
-        {!form.investisseur_id && <Field label={t('reglages.name')}><input required value={form.nom} onChange={(e) => setForm({ ...form, nom: e.target.value })} /></Field>}
-        <Field label={t('demarrage.capitalAmount')} className="big"><input type="number" min="1" required value={form.montant} onChange={(e) => setForm({ ...form, montant: e.target.value })} /></Field>
-      </div>
-    </FormCard>
-  )
-}
 
-function PretExistant({ onSaved }) {
-  const { t } = useTranslation()
-  const empty = { type_preteur: 'banque', preteur: '', montant_initial: '', interets: '0', deja_rembourse: '0', activite: 'chair', date_pret: localDate() }
-  const [form, setForm] = useState(empty)
-  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
-  const save = async () => {
-    must(await supabase.from('prets').insert({
-      ...form, montant_initial: Number(form.montant_initial), interets: Number(form.interets) || 0,
-      deja_rembourse: Number(form.deja_rembourse) || 0, mode_paiement: MODES_PAIEMENT[2], existant: true
-    }))
-    setForm(empty)
-    onSaved()
-  }
   return (
-    <FormCard title={t('demarrage.steps.prets')} icon="receipt" onSubmit={save}>
-      <p className="note"><Icon name="clock" size={16} />{t('demarrage.loanHint')}</p>
-      <div className="grid-2">
-        <Field label={t('prets.lender')}><input required value={form.preteur} onChange={set('preteur')} /></Field>
-        <Field label={t('reglages.type')}>
-          <select value={form.type_preteur} onChange={set('type_preteur')}>
-            {['banque', 'particulier'].map((k) => <option key={k} value={k}>{t(`prets.types.${k}`)}</option>)}
-          </select>
-        </Field>
-        <Field label={t('prets.amount')}><input type="number" min="1" required value={form.montant_initial} onChange={set('montant_initial')} /></Field>
-        <Field label={t('prets.interestTotal')}><input type="number" min="0" value={form.interets} onChange={set('interets')} /></Field>
-        <Field label={t('demarrage.alreadyRepaid')}><input type="number" min="0" value={form.deja_rembourse} onChange={set('deja_rembourse')} /></Field>
-        <Field label={t('prets.activity')}>
-          <select value={form.activite} onChange={set('activite')}>
-            <option value="chair">{t('argent.caisse.chair')}</option>
-            <option value="pondeuse">{t('argent.caisse.pondeuse')}</option>
-          </select>
-        </Field>
-        <Field label={t('demarrage.loanDate')}><input type="date" required value={form.date_pret} onChange={set('date_pret')} /></Field>
+    <Panel icon="wallet" tone="green" title={t('demarrage.moneyTitle')} subtitle={t('demarrage.moneyHint')}>
+      {already > 0 && <div className="alert warn"><Icon name="alert" size={18} />{t('demarrage.alreadyBalances', { count: already })}</div>}
+      <Field label={t('demarrage.balanceDate')}><input type="date" required value={date} onChange={(e) => setDate(e.target.value)} /></Field>
+
+      <h3 className="start-title">1. {t('demarrage.partners')}</h3>
+      <p className="muted small">{t('demarrage.partnersHint')}</p>
+      {associes.map((l, i) => (
+        <div key={i} className="start-line">
+          <Field label={t('demarrage.cashBox')}>{caisseSelect(l.caisse, maj(setAssocies)(i, 'caisse'))}</Field>
+          <Field label={t('demarrage.amount')}><input type="number" min="0" value={l.montant} onChange={maj(setAssocies)(i, 'montant')} placeholder="0" /></Field>
+          {associes.length > 1 && <button type="button" className="icon-btn dark" onClick={() => retire(setAssocies)(i)} aria-label={t('stock.remove')}><Icon name="trash" size={16} /></button>}
+        </div>
+      ))}
+      <button type="button" className="btn ghost sm" onClick={() => setAssocies([...associes, ligneAssocie()])}><Icon name="plus" size={14} />{t('demarrage.addCashBox')}</button>
+
+      <h3 className="start-title">2. {t('demarrage.investors')}</h3>
+      <p className="muted small">{t('demarrage.investorsHint')}</p>
+      {invs.map((l, i) => (
+        <div key={i} className="start-line">
+          <Field label={t('capital.investor')}>
+            <select value={l.investisseur_id} onChange={maj(setInvs)(i, 'investisseur_id')}>
+              <option value="">{t('demarrage.newInvestor')}</option>
+              {investisseurs.map((x) => <option key={x.id} value={x.id}>{x.nom}</option>)}
+            </select>
+          </Field>
+          {!l.investisseur_id && <Field label={t('reglages.name')}><input value={l.nom} onChange={maj(setInvs)(i, 'nom')} /></Field>}
+          <Field label={t('demarrage.invested')}><input type="number" min="0" value={l.montant} onChange={maj(setInvs)(i, 'montant')} placeholder="0" /></Field>
+          <Field label={t('demarrage.cashBox')}>{caisseSelect(l.caisse, maj(setInvs)(i, 'caisse'))}</Field>
+          <Field label={t('demarrage.stillInCash')}><input type="number" min="0" value={l.disponible} onChange={maj(setInvs)(i, 'disponible')} placeholder={String(n(l.montant))} /></Field>
+          <button type="button" className="icon-btn dark" onClick={() => retire(setInvs)(i)} aria-label={t('stock.remove')}><Icon name="trash" size={16} /></button>
+        </div>
+      ))}
+      <button type="button" className="btn ghost sm" onClick={() => setInvs([...invs, ligneInvestisseur()])}><Icon name="plus" size={14} />{t('demarrage.addInvestor')}</button>
+
+      <h3 className="start-title">3. {t('demarrage.loans')}</h3>
+      <p className="muted small">{t('demarrage.loansHint')}</p>
+      {prets.map((l, i) => (
+        <div key={i} className="start-line">
+          <Field label={t('prets.lender')}><input value={l.preteur} onChange={maj(setPrets)(i, 'preteur')} /></Field>
+          <Field label={t('reglages.type')}>
+            <select value={l.type_preteur} onChange={maj(setPrets)(i, 'type_preteur')}>
+              {['banque', 'particulier'].map((k) => <option key={k} value={k}>{t(`prets.types.${k}`)}</option>)}
+            </select>
+          </Field>
+          <Field label={t('demarrage.lent')}><input type="number" min="0" value={l.montant} onChange={maj(setPrets)(i, 'montant')} placeholder="0" /></Field>
+          <Field label={t('prets.interestTotal')}><input type="number" min="0" value={l.interets} onChange={maj(setPrets)(i, 'interets')} /></Field>
+          <Field label={t('demarrage.alreadyRepaid')}><input type="number" min="0" value={l.deja_rembourse} onChange={maj(setPrets)(i, 'deja_rembourse')} /></Field>
+          <Field label={t('demarrage.cashBox')}>{caisseSelect(l.caisse, maj(setPrets)(i, 'caisse'))}</Field>
+          <Field label={t('demarrage.stillInCash')}><input type="number" min="0" value={l.disponible} onChange={maj(setPrets)(i, 'disponible')} placeholder={String(n(l.montant))} /></Field>
+          <button type="button" className="icon-btn dark" onClick={() => retire(setPrets)(i)} aria-label={t('stock.remove')}><Icon name="trash" size={16} /></button>
+        </div>
+      ))}
+      <button type="button" className="btn ghost sm" onClick={() => setPrets([...prets, lignePret()])}><Icon name="plus" size={14} />{t('demarrage.addLoan')}</button>
+
+      <div className="start-summary">
+        <h3 className="start-title">{t('demarrage.summary')}</h3>
+        {Object.keys(parCaisse).length === 0 ? <p className="muted small">{t('demarrage.summaryEmpty')}</p> : (
+          <table className="table money-table">
+            <tbody>
+              {Object.entries(parCaisse).map(([c, v]) => <tr key={c}><td>{nomCaisse(c)}</td><td>{money(v, lang)}</td></tr>)}
+              <tr className="sum"><td>{t('demarrage.totalCash')}</td><td>{money(total, lang)}</td></tr>
+            </tbody>
+          </table>
+        )}
+        {(capital > 0 || dette > 0) && (
+          <p className="muted small">
+            {capital > 0 && t('demarrage.ofWhichCapital', { n: money(capital, lang) })}
+            {capital > 0 && dette > 0 && ' · '}
+            {dette > 0 && t('demarrage.ofWhichDebt', { n: money(dette, lang) })}
+          </p>
+        )}
       </div>
-    </FormCard>
+      <button className="btn primary block" onClick={enregistrer} disabled={busy}><Icon name="check" size={18} />{busy ? t('common.loading') : t('demarrage.save')}</button>
+    </Panel>
   )
 }

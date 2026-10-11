@@ -687,6 +687,27 @@ ok('finance and director alerted once', (await negCount()) === n0 + 1 && (await 
 await expectOk('second expense on a negative box', 'kenfack', `insert into public.depenses (portee, activite, categorie, libelle, montant, mode_paiement) values ('ferme', '${cx.activite}', 'transport', 'Transport 2', 500, '${cx.mode}')`)
 ok('no repeated alert while already negative', (await negCount()) === n0 + 1)
 
+// ---------- 0019: start-up by origin of the money ----------
+try {
+  await db.exec(readFileSync(new URL('0019_demarrage_par_origine.sql', MIG), 'utf8'))
+  ok('migration 0019 runs', true)
+} catch (e) { ok('migration 0019 runs', false, e.message); process.exit(1) }
+const caisseSum = async () => Number((await one('ali', `select coalesce(sum(solde), 0) s from public.soldes_caisses`)).s)
+const cash0 = await caisseSum()
+const demarrage = { date: '2026-10-01',
+  associes: [{ activite: 'chair', mode: 'especes', montant: 5000000 }],
+  investisseurs: [{ nom: 'Investisseur Démarrage', montant: 1000000, activite: 'chair', mode: 'banque' }],
+  prets: [{ preteur: 'Banque Démarrage', type_preteur: 'banque', montant: 2000000, interets: 200000, deja_rembourse: 0, activite: 'pondeuse', mode: 'banque', disponible: 1500000 }] }
+const tot = await expectOk('dahirou records the start-up in one go', 'dahirou', `select public.enregistrer_demarrage($1::jsonb) as t`, [JSON.stringify(demarrage)])
+ok('total in cash = 5 000 000 + 1 000 000 + 1 500 000', Number(tot?.rows[0].t) === 7500000 && (await caisseSum()) - cash0 === 7500000, `total=${tot?.rows[0].t} delta=${(await caisseSum()) - cash0}`)
+ok('investor capital counted (for the 10 %)', Number((await one('ali', `select capital_apporte from public.situation_investisseurs where nom = 'Investisseur Démarrage'`))?.capital_apporte) === 1000000)
+const pretD = await one('ali', `select montant_initial, existant from public.prets where preteur = 'Banque Démarrage'`)
+ok('loan to repay = full 2 000 000, marked as existing', Number(pretD?.montant_initial) === 2000000 && pretD?.existant === true)
+await expectErr('kenfack cannot record a start-up', 'kenfack', `select public.enregistrer_demarrage($1::jsonb)`, [JSON.stringify({ associes: [{ activite: 'chair', mode: 'especes', montant: 10 }] })])
+const cash1 = await caisseSum()
+await expectErr('one wrong line cancels everything', 'dahirou', `select public.enregistrer_demarrage($1::jsonb)`, [JSON.stringify({ associes: [{ activite: 'chair', mode: 'especes', montant: 999 }], prets: [{ preteur: 'X', montant: 100, disponible: 500, activite: 'chair', mode: 'especes' }] })], 'encore en caisse')
+ok('nothing recorded after the error', (await caisseSum()) === cash1)
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))
