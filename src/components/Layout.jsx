@@ -5,6 +5,7 @@ import { useAuth } from '../auth/AuthProvider'
 import { canAccess } from '../config'
 import { useInstallPrompt, useOnline, usePendingCount } from '../hooks'
 import LanguageSwitch from './LanguageSwitch'
+import ThemeSwitch from './ThemeSwitch'
 import Notifications from './Notifications'
 import SessionGuard from './SessionGuard'
 import FarmSwitch from './FarmSwitch'
@@ -56,6 +57,7 @@ export default function Layout() {
               </button>
             )}
             {role !== 'employe' && <Notifications />}
+            <ThemeSwitch />
             <LanguageSwitch />
             <button className="icon-btn" onClick={signOut} title={t('nav.logout')} aria-label={t('nav.logout')}>
               <Icon name="logout" size={18} />

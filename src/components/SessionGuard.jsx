@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../auth/AuthProvider'
 import { SESSION_EXPIRY_ROLES } from '../config'
+import { faceIdActiveIci } from '../lib/faceid'
 
 // Automatic sign-out after a period of inactivity (farm setting, 30 min by default).
 // Employees are excluded: they often work offline and could not sign in again without network.
@@ -17,6 +18,8 @@ export default function SessionGuard() {
 
   useEffect(() => {
     if (!SESSION_EXPIRY_ROLES.includes(role)) return
+    // Phone with Face ID turned on for HENZO: no automatic sign-out (the phone itself is locked by Face ID)
+    if (faceIdActiveIci() && /iPhone|iPad|Android/.test(navigator.userAgent)) return
 
     let minutes = read(MINUTES_KEY, 30)
     if (navigator.onLine) {

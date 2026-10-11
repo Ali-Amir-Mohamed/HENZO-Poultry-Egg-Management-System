@@ -55,6 +55,7 @@ export default function FaceId() {
           <li>{t('faceid.point1', { nom })}</li>
           <li>{t('faceid.point2')}</li>
           <li>{t('faceid.point3')}</li>
+          <li>{t('faceid.point4', { nom })}</li>
         </ul>
         <button className="btn primary block" onClick={activer}><Icon name="plus" size={16} />{t('faceid.activate', { nom })}</button>
       </Panel>

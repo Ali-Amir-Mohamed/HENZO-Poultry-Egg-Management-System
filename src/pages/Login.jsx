@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/AuthProvider'
 import LanguageSwitch from '../components/LanguageSwitch'
+import ThemeSwitch from '../components/ThemeSwitch'
 import Icon, { Logo } from '../components/Icon'
 import { EXPIRED_FLAG } from '../components/SessionGuard'
 import { faceIdActiveIci, faceIdSupported, messageFaceId, nomBiometrie } from '../lib/faceid'
@@ -47,7 +48,7 @@ export default function Login() {
 
   return (
     <div className="login-page">
-      <div className="login-lang"><LanguageSwitch className="icon-btn light" /></div>
+      <div className="login-lang"><ThemeSwitch className="icon-btn light" /><LanguageSwitch className="icon-btn light" /></div>
       <div className="login-hero">
         <Logo size={72} />
         <h1>{t('app.name')}</h1>

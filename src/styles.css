@@ -32,8 +32,9 @@
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
 }
+/* Dark colours: phone/computer in dark mode (theme "Automatique"), or theme "Sombre" chosen in HENZO */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #0c1420;
     --surface: #142033;
     --surface-2: #1a283d;
@@ -50,6 +51,26 @@
     --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px -12px rgba(0, 0, 0, .6);
   }
 }
+:root[data-theme="dark"] {
+    --bg: #0c1420;
+    --surface: #142033;
+    --surface-2: #1a283d;
+    --text: #e8eef6;
+    --muted: #9aa9bd;
+    --border: #26364d;
+    --green-100: #1b2d47;
+    --green-500: #7fa8d6;
+    --yolk-100: #3d2610;
+    --ok: #4ade80;
+    --ok-100: #12301f;
+    --rose-100: #3a1d23;
+    --sky-100: #172a3a;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px -12px rgba(0, 0, 0, .6);
+}
+/* Native controls (date pickers, scrollbars) follow the chosen theme */
+:root { color-scheme: light dark; }
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
 
 html { font-size: 14px; }
 * { box-sizing: border-box; }
@@ -131,7 +152,7 @@ a { color: inherit; }
     linear-gradient(160deg, var(--green-800), var(--green-900));
   position: relative;
 }
-.login-lang { position: absolute; top: 1rem; right: 1rem; }
+.login-lang { position: absolute; top: 1rem; right: 1rem; display: flex; gap: .4rem; }
 .login-hero { text-align: center; color: #fff; display: flex; flex-direction: column; align-items: center; gap: .5rem; }
 .login-hero h1 { font-size: 2.4rem; letter-spacing: .08em; margin-top: .5rem; }
 .login-hero p { color: rgba(255, 255, 255, .7); }
@@ -204,7 +225,10 @@ a { color: inherit; }
   .content { padding-bottom: 6.5rem; }
 }
 @media (prefers-color-scheme: dark) and (max-width: 720px) {
-  .nav-item.active { color: var(--yolk); }
+  :root:not([data-theme="light"]) .nav-item.active { color: var(--yolk); }
+}
+@media (max-width: 720px) {
+  :root[data-theme="dark"] .nav-item.active { color: var(--yolk); }
 }
 
 /* ---------- Panels ---------- */
@@ -310,7 +334,8 @@ a { color: inherit; }
   font-weight: 700;
 }
 .total-box strong { font-size: 1.4rem; font-weight: 700; }
-@media (prefers-color-scheme: dark) { .total-box { color: var(--text); } }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .total-box { color: var(--text); } }
+:root[data-theme="dark"] .total-box { color: var(--text); }
 
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: .9rem; }
 .card-item {

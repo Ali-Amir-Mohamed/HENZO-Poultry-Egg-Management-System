@@ -1170,6 +1170,13 @@
     "failed": "Face ID sign-in failed.",
     "tip": "Sign in faster with {{nom}}, without typing your password.",
     "tipActivate": "Turn on",
-    "later": "Later"
+    "later": "Later",
+    "point4": "On this phone HENZO then stays signed in: no more sign-out after 30 minutes, since the phone is already locked by {{nom}}."
+  },
+  "theme": {
+    "title": "Theme",
+    "auto": "automatic",
+    "light": "light",
+    "dark": "dark"
   }
 }

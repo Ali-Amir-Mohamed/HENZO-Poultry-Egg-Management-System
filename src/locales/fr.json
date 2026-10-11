@@ -1170,6 +1170,13 @@
     "failed": "La connexion par Face ID a échoué.",
     "tip": "Connectez-vous plus vite avec {{nom}}, sans taper votre mot de passe.",
     "tipActivate": "Activer",
-    "later": "Plus tard"
+    "later": "Plus tard",
+    "point4": "Sur ce téléphone, HENZO reste ensuite connecté : plus de déconnexion après 30 minutes, le téléphone étant déjà verrouillé par {{nom}}."
+  },
+  "theme": {
+    "title": "Thème",
+    "auto": "automatique",
+    "light": "clair",
+    "dark": "sombre"
   }
 }
