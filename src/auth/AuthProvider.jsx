@@ -65,6 +65,12 @@ export function AuthProvider({ children }) {
     if (!res.error) noterConnexion('connexion')
     return res
   }
+  // Face ID / fingerprint (passkey registered beforehand from the Face ID page)
+  const signInWithFaceId = async () => {
+    const res = await supabase.auth.signInWithPasskey()
+    if (!res.error) noterConnexion('connexion')
+    return res
+  }
   // reason: 'deconnexion' (button) or 'expiration' (inactivity)
   const signOut = async (reason) => {
     if (navigator.onLine) await noterConnexion(reason === 'expiration' ? 'expiration' : 'deconnexion')
@@ -73,7 +79,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ session, profile, role: profile?.role, loading, signIn, signOut }}>
+    <AuthContext.Provider value={{ session, profile, role: profile?.role, loading, signIn, signInWithFaceId, signOut }}>
       {children}
     </AuthContext.Provider>
   )

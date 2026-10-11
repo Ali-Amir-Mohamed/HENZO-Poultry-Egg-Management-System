@@ -7,12 +7,17 @@ import { loadStats, readCachedStats, saveCachedStats } from '../lib/stats'
 import { enqueue } from '../lib/offlineQueue'
 import { canAccess, TABLES } from '../config'
 import Icon from '../components/Icon'
+import { faceIdActiveIci, faceIdSupported, nomBiometrie } from '../lib/faceid'
 
 export default function Dashboard() {
   const { t, i18n } = useTranslation()
   const { profile, role } = useAuth()
   const pending = usePendingCount()
   const refused = useErrorCount()
+  // Suggest Face ID / fingerprint on phones where it is not active yet ("Plus tard" hides it for 30 days)
+  const [faceIdPlusTard, setFaceIdPlusTard] = useState(() => { try { return Number(localStorage.getItem('henzo.faceid.plustard')) > Date.now() } catch { return false } })
+  const proposerFaceId = faceIdSupported() && !faceIdActiveIci() && !faceIdPlusTard && /iPhone|iPad|Android/.test(navigator.userAgent)
+  const plusTard = () => { try { localStorage.setItem('henzo.faceid.plustard', String(Date.now() + 30 * 864e5)) } catch {}; setFaceIdPlusTard(true) }
   const [stats, setStats] = useState(() => {
     const cached = readCachedStats()
     return cached?.kind === (role === 'employe' ? 'employe' : 'manager') ? cached : null
@@ -49,6 +54,14 @@ export default function Dashboard() {
         </p>
       )}
       {error && <div className="alert danger"><Icon name="alert" size={18} />{error}</div>}
+      {proposerFaceId && (
+        <div className="alert info faceid-tip">
+          <Icon name="check" size={18} />
+          <span className="grow">{t('faceid.tip', { nom: nomBiometrie() })}</span>
+          <Link to="/face-id" className="btn primary sm">{t('faceid.tipActivate')}</Link>
+          <button className="btn ghost sm" onClick={plusTard}>{t('faceid.later')}</button>
+        </div>
+      )}
       {refused > 0 && (
         <Link to="/sync" className="alert danger"><Icon name="alert" size={18} />{t('sync.refusedAlert', { count: refused })}</Link>
       )}

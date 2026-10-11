@@ -4,10 +4,11 @@ import { useAuth } from '../auth/AuthProvider'
 import LanguageSwitch from '../components/LanguageSwitch'
 import Icon, { Logo } from '../components/Icon'
 import { EXPIRED_FLAG } from '../components/SessionGuard'
+import { faceIdActiveIci, faceIdSupported, messageFaceId, nomBiometrie } from '../lib/faceid'
 
 export default function Login() {
   const { t } = useTranslation()
-  const { signIn } = useAuth()
+  const { signIn, signInWithFaceId } = useAuth()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState(null)
@@ -28,6 +29,22 @@ export default function Login() {
     if (error) setError(t('auth.error'))
   }
 
+  // Face ID / fingerprint: no username needed, the phone finds its HENZO passkey itself
+  const faceId = async () => {
+    if (!navigator.onLine) return setError(t('auth.offline'))
+    setBusy(true)
+    setError(null)
+    try { localStorage.setItem('henzo.lastActivity', String(Date.now())) } catch {}
+    const { error } = await signInWithFaceId()
+    setBusy(false)
+    if (error) setError(messageFaceId(error, t))
+  }
+  const boutonFaceId = faceIdSupported() && (
+    <button type="button" className={`btn ${faceIdActiveIci() ? 'primary' : 'ghost'} block`} onClick={faceId} disabled={busy}>
+      <Icon name="check" size={18} />{t('faceid.signIn', { nom: nomBiometrie() })}
+    </button>
+  )
+
   return (
     <div className="login-page">
       <div className="login-lang"><LanguageSwitch className="icon-btn light" /></div>
@@ -40,6 +57,8 @@ export default function Login() {
         <h2>{t('auth.title')}</h2>
         <p className="muted">{t('auth.subtitle')}</p>
         {expired && <div className="alert warn"><Icon name="clock" size={18} />{t('auth.expired')}</div>}
+        {/* Face ID first on a phone where it was activated, otherwise offered under the password form */}
+        {faceIdActiveIci() && boutonFaceId && <>{boutonFaceId}<p className="login-or">{t('faceid.orPassword')}</p></>}
         <label className="field">
           <span>{t('auth.username')}</span>
           <input type="text" autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck="false"
@@ -54,6 +73,7 @@ export default function Login() {
         <button type="submit" className="btn primary block" disabled={busy}>
           {busy ? t('common.loading') : t('auth.submit')}
         </button>
+        {!faceIdActiveIci() && boutonFaceId && <><p className="login-or">{t('faceid.or')}</p>{boutonFaceId}</>}
       </form>
       <p className="login-foot">© {new Date().getFullYear()} HENZO</p>
     </div>

@@ -23,6 +23,7 @@ const FicheTiers = lazy(() => import('./pages/reglages/FicheTiers'))
 const Sync = lazy(() => import('./pages/Sync'))
 const Plus = lazy(() => import('./pages/Plus'))
 const Recu = lazy(() => import('./pages/Recu'))
+const FaceId = lazy(() => import('./pages/FaceId'))
 
 function Guard({ section, children }) {
   const { role } = useAuth()
@@ -66,6 +67,7 @@ export default function App() {
         <Route path="sync" element={<Guard section="sync"><Sync /></Guard>} />
         <Route path="plus" element={<Plus />} />
         <Route path="recu/:id" element={<Recu />} />
+        <Route path="face-id" element={<FaceId />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

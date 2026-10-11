@@ -569,3 +569,9 @@ html, body { overflow-x: clip; }
   .report-section .table th, .report-section .table td { padding-left: .35rem; padding-right: .35rem; white-space: nowrap; }
   .releve-head h1 { font-size: 1.15rem; }
 }
+
+/* Face ID / fingerprint sign-in */
+.login-or { text-align: center; color: var(--muted); font-size: .8rem; margin: .2rem 0; }
+.faceid-tip { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+.faceid-tip .grow { flex: 1 1 180px; }
+.alert.info { background: var(--sky-100); color: var(--sky); }

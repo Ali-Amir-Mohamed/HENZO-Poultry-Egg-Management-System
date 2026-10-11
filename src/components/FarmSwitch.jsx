@@ -5,7 +5,7 @@ import { usePendingCount } from '../hooks'
 import { useAsk } from './Dialog'
 
 // Accounts kept for the whole device (language, last activity); every other henzo.* cache belongs to a farm
-const KEEP = ['henzo.lastActivity']
+const KEEP = ['henzo.lastActivity', 'henzo.faceid', 'henzo.faceid.plustard']
 
 export async function changerFerme(id) {
   const { error } = await supabase.rpc('changer_ferme', { p_ferme: id })

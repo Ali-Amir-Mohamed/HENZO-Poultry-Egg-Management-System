@@ -1138,5 +1138,38 @@
       "acceptee": "Corrigée",
       "refusee": "Refusée"
     }
+  },
+  "faceid": {
+    "signIn": "Se connecter avec {{nom}}",
+    "or": "ou",
+    "orPassword": "ou avec votre mot de passe :",
+    "menu": "Connexion {{nom}}",
+    "title": "Connexion avec {{nom}}",
+    "subtitle": "Ouvrez HENZO sans taper votre mot de passe : votre téléphone vous reconnaît.",
+    "point1": "Votre visage ou votre empreinte ne quittent jamais le téléphone : HENZO ne les reçoit pas. Le téléphone confirme seulement que c’est bien vous.",
+    "point2": "Votre mot de passe reste valable : vous pouvez toujours l’utiliser, par exemple sur un autre appareil.",
+    "point3": "Si vous perdez ce téléphone, retirez-le de la liste ci-dessous (ou demandez à Ali de changer votre mot de passe).",
+    "activate": "Activer {{nom}} sur cet appareil",
+    "activateTitle": "Activer {{nom}}",
+    "continue": "Continuer",
+    "activateHint": "Par sécurité, confirmez d’abord votre mot de passe HENZO. Le téléphone vous demandera ensuite {{nom}}.",
+    "wrongPassword": "Mot de passe incorrect.",
+    "doneTitle": "{{nom}} activé",
+    "doneText": "C’est prêt : à la prochaine connexion, touchez « Se connecter avec {{nom}} ».",
+    "devices": "Appareils enregistrés",
+    "none": "Aucun appareil pour l’instant.",
+    "device": "Appareil",
+    "addedOn": "ajouté le {{d}}",
+    "lastUsed": "dernière connexion {{d}}",
+    "remove": "Retirer",
+    "confirmRemove": "Retirer « {{nom}} » ? Cet appareil ne pourra plus se connecter sans mot de passe.",
+    "unsupported": "Cet appareil ou ce navigateur ne permet pas la connexion par Face ID ou empreinte.",
+    "cancelled": "Connexion annulée.",
+    "disabled": "La connexion par Face ID n’est pas encore activée sur le serveur (Supabase > Authentication > Passkeys).",
+    "unknown": "Aucun accès Face ID enregistré pour HENZO sur cet appareil : connectez-vous avec le mot de passe, puis activez Face ID.",
+    "failed": "La connexion par Face ID a échoué.",
+    "tip": "Connectez-vous plus vite avec {{nom}}, sans taper votre mot de passe.",
+    "tipActivate": "Activer",
+    "later": "Plus tard"
   }
 }

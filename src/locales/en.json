@@ -1138,5 +1138,38 @@
       "acceptee": "Corrected",
       "refusee": "Refused"
     }
+  },
+  "faceid": {
+    "signIn": "Sign in with {{nom}}",
+    "or": "or",
+    "orPassword": "or with your password:",
+    "menu": "{{nom}} sign-in",
+    "title": "Sign in with {{nom}}",
+    "subtitle": "Open HENZO without typing your password: your phone recognises you.",
+    "point1": "Your face or fingerprint never leaves the phone: HENZO never receives it. The phone only confirms it is you.",
+    "point2": "Your password still works: you can always use it, for example on another device.",
+    "point3": "If you lose this phone, remove it from the list below (or ask Ali to change your password).",
+    "activate": "Turn on {{nom}} on this device",
+    "activateTitle": "Turn on {{nom}}",
+    "continue": "Continue",
+    "activateHint": "For safety, confirm your HENZO password first. The phone will then ask for {{nom}}.",
+    "wrongPassword": "Wrong password.",
+    "doneTitle": "{{nom}} turned on",
+    "doneText": "All set: next time, tap “Sign in with {{nom}}”.",
+    "devices": "Registered devices",
+    "none": "No device yet.",
+    "device": "Device",
+    "addedOn": "added on {{d}}",
+    "lastUsed": "last sign-in {{d}}",
+    "remove": "Remove",
+    "confirmRemove": "Remove “{{nom}}”? This device will no longer sign in without the password.",
+    "unsupported": "This device or browser does not support Face ID or fingerprint sign-in.",
+    "cancelled": "Sign-in cancelled.",
+    "disabled": "Face ID sign-in is not enabled on the server yet (Supabase > Authentication > Passkeys).",
+    "unknown": "No Face ID access saved for HENZO on this device: sign in with your password, then turn on Face ID.",
+    "failed": "Face ID sign-in failed.",
+    "tip": "Sign in faster with {{nom}}, without typing your password.",
+    "tipActivate": "Turn on",
+    "later": "Later"
   }
 }

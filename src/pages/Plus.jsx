@@ -4,6 +4,7 @@ import { useAuth } from '../auth/AuthProvider'
 import { canAccess } from '../config'
 import { SECTIONS } from '../components/Layout'
 import Icon from '../components/Icon'
+import { faceIdSupported, nomBiometrie } from '../lib/faceid'
 
 // Phone-only page listing the sections that do not fit in the bottom bar
 export default function Plus() {
@@ -16,6 +17,9 @@ export default function Plus() {
         {sections.map((s) => (
           <li key={s.key}><Link to={s.to}><Icon name={s.icon} size={20} />{t(`nav.${s.key}`)}<Icon name="chevron" size={18} /></Link></li>
         ))}
+        {faceIdSupported() && (
+          <li><Link to="/face-id"><Icon name="check" size={20} />{t('faceid.menu', { nom: nomBiometrie() })}<Icon name="chevron" size={18} /></Link></li>
+        )}
         <li><button onClick={signOut}><Icon name="logout" size={20} />{t('nav.logout')}</button></li>
       </ul>
     </section>
