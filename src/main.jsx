@@ -9,6 +9,10 @@ import { DialogProvider } from './components/Dialog'
 import { startAutoSync } from './lib/offlineQueue'
 import { applyTheme, readTheme } from './components/ThemeSwitch'
 import { registerSW } from 'virtual:pwa-register'
+import ErrorBoundary, { reloadOnce } from './components/ErrorBoundary'
+
+// A page file of an older version is gone (app updated while open): reload on the new version instead of a blank screen
+window.addEventListener('vite:preloadError', (e) => { if (reloadOnce()) e.preventDefault() })
 
 // Updates: look for a new version each time the app comes back on screen (and every hour).
 // Installed iPhone apps otherwise keep an old version for a long time. autoUpdate reloads once it is ready.
@@ -40,7 +44,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <BrowserRouter>
       <AuthProvider>
         <DialogProvider>
-          <App />
+          <ErrorBoundary>
+            <App />
+          </ErrorBoundary>
         </DialogProvider>
       </AuthProvider>
     </BrowserRouter>

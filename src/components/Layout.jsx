@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/AuthProvider'
 import { canAccess } from '../config'
@@ -9,6 +9,7 @@ import ThemeSwitch from './ThemeSwitch'
 import Notifications from './Notifications'
 import SessionGuard from './SessionGuard'
 import FarmSwitch from './FarmSwitch'
+import ErrorBoundary from './ErrorBoundary'
 import Icon, { Logo } from './Icon'
 
 export const SECTIONS = [
@@ -29,6 +30,7 @@ const MOBILE_SLOTS = 4
 export default function Layout() {
   const { t } = useTranslation()
   const { role, profile, signOut } = useAuth()
+  const location = useLocation()
   const online = useOnline()
   const pending = usePendingCount()
   const install = useInstallPrompt()
@@ -86,7 +88,12 @@ export default function Layout() {
           )}
         </nav>
       </header>
-      <main className="content"><Suspense fallback={<p className="muted">{t('common.loading')}</p>}><Outlet /></Suspense></main>
+      <main className="content">
+        {/* key: a page error is forgotten when changing page */}
+        <ErrorBoundary key={location.pathname}>
+          <Suspense fallback={<p className="muted">{t('common.loading')}</p>}><Outlet /></Suspense>
+        </ErrorBoundary>
+      </main>
       <SessionGuard />
     </div>
   )

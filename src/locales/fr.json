@@ -1230,5 +1230,11 @@
     "hint": "Si une nouveauté n’apparaît pas, « Forcer la mise à jour » recharge la dernière version de HENZO (vos données restent dans la base).",
     "pendingWarn_one": "{{count}} saisie n’est pas encore envoyée : elle reste gardée sur ce téléphone, mais il vaut mieux synchroniser d’abord. Continuer ?",
     "pendingWarn_other": "{{count}} saisies ne sont pas encore envoyées : elles restent gardées sur ce téléphone, mais il vaut mieux synchroniser d’abord. Continuer ?"
+  },
+  "erreur": {
+    "title": "Cette page n’a pas pu s’afficher.",
+    "update": "HENZO vient d’être mis à jour : touchez « Recharger » pour ouvrir la nouvelle version. Vos saisies ne sont pas perdues.",
+    "text": "Une erreur est survenue. Touchez « Recharger » ; si cela se reproduit, envoyez une capture de cet écran.",
+    "reload": "Recharger"
   }
 }
