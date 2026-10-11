@@ -1174,9 +1174,19 @@
     "point4": "On this phone HENZO then stays signed in: no more sign-out after 30 minutes, since the phone is already locked by {{nom}}."
   },
   "theme": {
-    "title": "Theme",
-    "auto": "automatic",
-    "light": "light",
-    "dark": "dark"
+    "title": "Appearance",
+    "mode": "Mode",
+    "colours": "Colours",
+    "auto": "Auto",
+    "light": "Light",
+    "dark": "Dark",
+    "palettes": {
+      "marine": "Navy",
+      "foret": "Forest",
+      "ocean": "Ocean",
+      "terre": "Earth",
+      "violet": "Violet",
+      "ardoise": "Slate"
+    }
   }
 }

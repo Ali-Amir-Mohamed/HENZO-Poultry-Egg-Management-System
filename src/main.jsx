@@ -10,8 +10,8 @@ import { startAutoSync } from './lib/offlineQueue'
 import { applyTheme, readTheme } from './components/ThemeSwitch'
 
 // Theme chosen on this device; in automatic mode, follow the phone when it switches light / dark
-applyTheme(readTheme())
-window.matchMedia?.('(prefers-color-scheme: dark)').addEventListener?.('change', () => { if (readTheme() === 'auto') applyTheme('auto') })
+applyTheme()
+window.matchMedia?.('(prefers-color-scheme: dark)').addEventListener?.('change', () => { if (readTheme() === 'auto') applyTheme() })
 
 startAutoSync()
 

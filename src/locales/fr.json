@@ -1174,9 +1174,19 @@
     "point4": "Sur ce téléphone, HENZO reste ensuite connecté : plus de déconnexion après 30 minutes, le téléphone étant déjà verrouillé par {{nom}}."
   },
   "theme": {
-    "title": "Thème",
-    "auto": "automatique",
-    "light": "clair",
-    "dark": "sombre"
+    "title": "Apparence",
+    "mode": "Mode",
+    "colours": "Couleurs",
+    "auto": "Auto",
+    "light": "Clair",
+    "dark": "Sombre",
+    "palettes": {
+      "marine": "Marine",
+      "foret": "Forêt",
+      "ocean": "Océan",
+      "terre": "Terre",
+      "violet": "Violet",
+      "ardoise": "Ardoise"
+    }
   }
 }
