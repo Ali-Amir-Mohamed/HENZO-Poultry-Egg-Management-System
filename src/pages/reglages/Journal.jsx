@@ -16,7 +16,7 @@ export async function nomsComptes() {
 const TABLES = ['', 'ventes', 'depenses', 'ecritures', 'paiements_clients', 'paiements_fournisseurs', 'bandes', 'commandes_poussins', 'livraisons_poussins', 'lots_pondeuses',
   'operations_investisseurs', 'distributions_investisseurs', 'prets', 'remboursements_prets', 'verifications_caisse',
   'transferts_caisses', 'tiers', 'prix_vente', 'profiles', 'fermes',
-  'mortalites', 'pontes', 'pesees', 'observations', 'mouvements_stock', 'articles', 'ajustements_oeufs', 'batiments']
+  'mortalites', 'pontes', 'pesees', 'observations', 'mouvements_stock', 'articles', 'ajustements_oeufs', 'batiments', 'demandes_correction', 'capital_bandes']
 const IGNORED = ['created_at', 'annulee_le', 'valide_le', 'decide_le', 'fait_le']
 
 export default function Journal() {

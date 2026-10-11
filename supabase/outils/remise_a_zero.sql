@@ -17,6 +17,7 @@
 
 truncate table
   public.demandes_correction,
+  public.capital_bandes,
   public.taches_realisations,
   public.taches,
   public.verifications_caisse,

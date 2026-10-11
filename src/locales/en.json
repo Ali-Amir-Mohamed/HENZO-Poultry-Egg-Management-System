@@ -867,7 +867,9 @@
       "mouvements_stock": "Stock move",
       "articles": "Stock product",
       "ajustements_oeufs": "Egg adjustment",
-      "batiments": "Building"
+      "batiments": "Building",
+      "capital_bandes": "Capital per flock",
+      "demandes_correction": "Correction request"
     }
   },
   "sauvegarde": {
@@ -1236,5 +1238,24 @@
     "update": "HENZO has just been updated: tap “Reload” to open the new version. Your entries are not lost.",
     "text": "An error occurred. Tap “Reload”; if it happens again, send a screenshot of this screen.",
     "reload": "Reload"
+  },
+  "capitalBande": {
+    "title": "Investors’ capital in this flock",
+    "hint": "At closure, each investor receives {{taux}} % of the amount placed here (fixed). Capital placed in no flock earns nothing.",
+    "closedHint": "Closed flock: the amounts below were used for the 10 %.",
+    "none": "No capital placed in this flock.",
+    "amount": "Placed in the flock",
+    "due": "{{taux}} % at closure",
+    "place": "Place capital in this flock",
+    "placeTitle": "Capital placed in {{code}}",
+    "placeHint": "For each investor, enter how much of their free capital is placed in this flock (leave 0 otherwise). {{taux}} % of this amount will be due at closure.",
+    "freeN": "free: {{n}}",
+    "save": "Save",
+    "confirm": "Allocation for {{code}}:\n{{resume}}\n\nOnce saved it is locked: only Ali can cancel it.",
+    "cancelTitle": "Cancel the placement of {{nom}} ({{n}})",
+    "noFree": "No free capital: all investors’ capital is already placed in running flocks.",
+    "locked": "A saved allocation is locked: only the director can cancel it, with a reason, before closure.",
+    "placed": "Placed (running flocks)",
+    "free": "Free"
   }
 }

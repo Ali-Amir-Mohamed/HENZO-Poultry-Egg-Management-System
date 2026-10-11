@@ -708,6 +708,52 @@ const cash1 = await caisseSum()
 await expectErr('one wrong line cancels everything', 'dahirou', `select public.enregistrer_demarrage($1::jsonb)`, [JSON.stringify({ associes: [{ activite: 'chair', mode: 'especes', montant: 999 }], prets: [{ preteur: 'X', montant: 100, disponible: 500, activite: 'chair', mode: 'especes' }] })], 'encore en caisse')
 ok('nothing recorded after the error', (await caisseSum()) === cash1)
 
+// ---------- 0020: investor capital allocated per flock ----------
+try {
+  await db.exec(readFileSync(new URL('0020_capital_par_bande.sql', MIG), 'utf8'))
+  ok('migration 0020 runs', true)
+} catch (e) { ok('migration 0020 runs', false, e.message); process.exit(1) }
+const newInv = async (nom, montant) => {
+  const id = (await as('dahirou', `insert into public.investisseurs (nom) values ($1) returning id`, [nom])).rows[0].id
+  await as('dahirou', `insert into public.operations_investisseurs (investisseur_id, type_operation, montant, activite, mode_paiement) values ($1, 'apport', $2, 'chair', 'banque')`, [id, montant])
+  return id
+}
+const IA = await newInv('Invest A', 1000000), IB = await newInv('Invest B', 500000), IC = await newInv('Invest C', 300000)
+const notif0 = (await as('dahirou', `select * from public.notifications where type_notification = 'capital_bande'`)).rows.length
+const BX1 = (await one('kenfack', `insert into public.bandes (code, date_arrivee, nombre_initial) values ('BX1', current_date, 1000) returning id`)).id
+const BX2 = (await one('kenfack', `insert into public.bandes (code, date_arrivee, nombre_initial) values ('BX2', current_date, 500) returning id`)).id
+ok('finance reminded to allocate capital for a new flock', (await as('dahirou', `select * from public.notifications where type_notification = 'capital_bande'`)).rows.length > notif0)
+const allocFn = (who, b, i, m) => as(who, `insert into public.capital_bandes (bande_id, investisseur_id, montant) values ($1, $2, $3) returning id`, [b, i, m])
+await expectOk('A: 600 000 in BX1', 'dahirou', `insert into public.capital_bandes (bande_id, investisseur_id, montant) values ($1, $2, 600000)`, [BX1, IA])
+await expectOk('A: 400 000 in BX2', 'ali', `insert into public.capital_bandes (bande_id, investisseur_id, montant) values ($1, $2, 400000)`, [BX2, IA])
+await expectErr('more than the free capital refused', 'dahirou', `insert into public.capital_bandes (bande_id, investisseur_id, montant) values ($1, $2, 600000)`, [BX2, IB], 'Capital libre insuffisant')
+await expectOk('B: all 500 000 in BX1 (100 / 0)', 'dahirou', `insert into public.capital_bandes (bande_id, investisseur_id, montant) values ($1, $2, 500000)`, [BX1, IB])
+await expectErr('employe cannot allocate capital', 'employe', `insert into public.capital_bandes (bande_id, investisseur_id, montant) values ($1, $2, 1000)`, [BX2, IC])
+await expectOk('kenfack allocates capital too', 'kenfack', `insert into public.capital_bandes (bande_id, investisseur_id, montant) values ($1, $2, 100000)`, [BX2, IC])
+await expectNoRows('kenfack cannot cancel an allocation', 'kenfack', `update public.capital_bandes set annulee = true, motif_annulation = 'x' where investisseur_id = '${IC}' returning id`)
+const libA = await one('ali', `select capital, place, libre from public.capital_libre_investisseurs where investisseur_id = '${IA}'`)
+ok('A: capital 1 000 000, placed 1 000 000, free 0', Number(libA.capital) === 1000000 && Number(libA.place) === 1000000 && Number(libA.libre) === 0, JSON.stringify(libA))
+await expectErr('withdrawal of placed capital refused', 'dahirou', `insert into public.operations_investisseurs (investisseur_id, type_operation, montant, activite, mode_paiement) values ($1, 'retrait_capital', 100000, 'chair', 'banque')`, [IA], 'Retrait impossible')
+const allocA1 = (await one('ali', `select id from public.capital_bandes where bande_id = '${BX1}' and investisseur_id = '${IA}'`)).id
+await expectErr('allocation is locked (amount cannot change)', 'ali', `update public.capital_bandes set montant = 1 where id = $1`, [allocA1], 'bloquée')
+await expectNoRows('dahirou cannot cancel an allocation', 'dahirou', `update public.capital_bandes set annulee = true, motif_annulation = 'x' where id = '${allocA1}' returning id`)
+await expectErr('cancellation needs a reason', 'ali', `update public.capital_bandes set annulee = true where id = $1`, [allocA1], 'motif')
+await expectOk('ali cancels with a reason', 'ali', `update public.capital_bandes set annulee = true, motif_annulation = 'Erreur de montant' where id = $1`, [allocA1])
+await expectOk('A re-allocated: 600 000 in BX1', 'dahirou', `insert into public.capital_bandes (bande_id, investisseur_id, montant) values ($1, $2, 600000)`, [BX1, IA])
+// C keeps his 300 000 unallocated: earns nothing
+await as('kenfack', `update public.bandes set statut = 'cloture_demandee' where id = '${BX1}'`)
+await expectOk('BX1 closure validated', 'dahirou', `update public.bandes set statut = 'cloturee' where id = $1`, [BX1])
+const dists = Object.fromEntries((await as('ali', `select investisseur_id, montant, capital_base from public.distributions_investisseurs where bande_id = '${BX1}'`)).rows.map((r) => [r.investisseur_id, Number(r.montant)]))
+ok('BX1: A gets 10 % of 600 000, B 10 % of 500 000', dists[IA] === 60000 && dists[IB] === 50000, JSON.stringify(dists))
+ok('C (nothing placed in BX1) gets nothing from BX1', !(IC in dists))
+ok('after closure A has 600 000 free again', Number((await one('ali', `select libre from public.capital_libre_investisseurs where investisseur_id = '${IA}'`)).libre) === 600000)
+await expectErr('no allocation on a closed flock', 'dahirou', `insert into public.capital_bandes (bande_id, investisseur_id, montant) values ($1, $2, 1000)`, [BX1, IC], 'clôturée')
+await as('kenfack', `update public.bandes set statut = 'cloture_demandee' where id = '${BX2}'`)
+await as('dahirou', `update public.bandes set statut = 'cloturee' where id = '${BX2}'`)
+const distBX2 = (await as('ali', `select investisseur_id, montant from public.distributions_investisseurs where bande_id = '${BX2}'`)).rows
+const dBX2 = Object.fromEntries(distBX2.map((r) => [r.investisseur_id, Number(r.montant)]))
+ok('BX2: A 10 % of 400 000, C 10 % of 100 000 (A total = 10 % of his capital)', dBX2[IA] === 40000 && dBX2[IC] === 10000 && !(IB in dBX2), JSON.stringify(dBX2))
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))

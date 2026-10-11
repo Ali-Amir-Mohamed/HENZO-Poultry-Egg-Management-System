@@ -11,7 +11,7 @@ const TABLES = ['fermes', 'profiles', 'batiments', 'tiers', 'articles', 'prix_ve
   'depenses', 'paiements_fournisseurs', 'ecritures', 'bilans_bandes', 'investisseurs', 'operations_investisseurs',
   'distributions_investisseurs', 'prets', 'echeances_prets', 'remboursements_prets', 'verifications_caisse',
   'transferts_caisses', 'modeles_taches', 'taches', 'taches_realisations', 'notifications', 'journal_activite',
-  'ajustements_oeufs', 'connexions']
+  'ajustements_oeufs', 'connexions', 'demandes_correction', 'capital_bandes']
 
 async function fetchAll(table) {
   const rows = []

@@ -867,7 +867,9 @@
       "mouvements_stock": "Mouvement de stock",
       "articles": "Produit du stock",
       "ajustements_oeufs": "Ajustement d’œufs",
-      "batiments": "Bâtiment"
+      "batiments": "Bâtiment",
+      "capital_bandes": "Capital par bande",
+      "demandes_correction": "Demande de correction"
     }
   },
   "sauvegarde": {
@@ -1236,5 +1238,24 @@
     "update": "HENZO vient d’être mis à jour : touchez « Recharger » pour ouvrir la nouvelle version. Vos saisies ne sont pas perdues.",
     "text": "Une erreur est survenue. Touchez « Recharger » ; si cela se reproduit, envoyez une capture de cet écran.",
     "reload": "Recharger"
+  },
+  "capitalBande": {
+    "title": "Capital des investisseurs dans cette bande",
+    "hint": "À la clôture, chaque investisseur reçoit {{taux}} % du montant placé ici (fixe). Le capital placé dans aucune bande ne rapporte rien.",
+    "closedHint": "Bande clôturée : les montants ci-dessous ont servi au calcul des 10 %.",
+    "none": "Aucun capital placé dans cette bande.",
+    "amount": "Placé dans la bande",
+    "due": "{{taux}} % à la clôture",
+    "place": "Placer du capital dans cette bande",
+    "placeTitle": "Capital placé dans {{code}}",
+    "placeHint": "Pour chaque investisseur, indiquez combien de son capital libre est placé dans cette bande (laissez 0 sinon). {{taux}} % de ce montant lui seront dus à la clôture.",
+    "freeN": "libre : {{n}}",
+    "save": "Enregistrer",
+    "confirm": "Répartition pour {{code}} :\n{{resume}}\n\nUne fois enregistrée, elle est bloquée : seul Ali peut l’annuler.",
+    "cancelTitle": "Annuler le placement de {{nom}} ({{n}})",
+    "noFree": "Aucun capital libre : tout le capital des investisseurs est déjà placé dans des bandes en cours.",
+    "locked": "Une répartition enregistrée est bloquée : seul le directeur peut l’annuler, avec un motif, avant la clôture.",
+    "placed": "Placé (bandes en cours)",
+    "free": "Libre"
   }
 }

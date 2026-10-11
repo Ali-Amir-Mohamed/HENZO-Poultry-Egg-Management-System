@@ -62,6 +62,7 @@ export const PERMISSIONS = {
   'stock.achat': [D, X],         // purchases that enter stock (feed, medicines)
   'stock.manual': [D, X],
   'capital.manage': [D, F],      // investors, contributions, withdrawals, 10 % decisions
+  'capital.allocate': [D, X, F], // investors' capital placed in each flock
   'pret.manage': [D, F],
   'caisse.verify': [D, F],
   'caisse.adjust': [D],

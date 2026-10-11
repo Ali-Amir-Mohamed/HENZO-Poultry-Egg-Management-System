@@ -19,7 +19,15 @@ export default function Investisseurs() {
   const ask = useAsk()
   const run = useRun()
 
-  const list = useQuery(async () => must(await supabase.from('situation_investisseurs').select('*').order('nom')))
+  const list = useQuery(async () => {
+    const [sit, libre] = await Promise.all([
+      supabase.from('situation_investisseurs').select('*').order('nom'),
+      // capital placed in running flocks / free (migration 0020; ignored if not run yet)
+      supabase.from('capital_libre_investisseurs').select('investisseur_id, place, libre')
+    ])
+    const parInv = Object.fromEntries((libre.data ?? []).map((x) => [x.investisseur_id, x]))
+    return must(sit).map((i) => ({ ...i, place: parInv[i.investisseur_id]?.place, libre: parInv[i.investisseur_id]?.libre }))
+  })
   const pending = useQuery(async () => must(await supabase.from('distributions_investisseurs')
     .select('*, investisseur:investisseurs(nom), bande:bandes(code)').eq('statut', 'en_attente').order('created_at')))
   const reload = () => { list.reload(); pending.reload() }
@@ -88,6 +96,8 @@ export default function Investisseurs() {
                 <div className="fact"><span>{t('capital.reinvested')}</span><strong>{money(i.capital_reinvesti, lang)}</strong></div>
                 <div className="fact"><span>{t('capital.withdrawn')}</span><strong>{money(i.capital_retire, lang)}</strong></div>
                 <div className="fact"><span>{t('capital.paid10')}</span><strong>{money(i.dix_pourcent_verses, lang)}</strong></div>
+                {i.place != null && <div className="fact"><span>{t('capitalBande.placed')}</span><strong>{money(i.place, lang)}</strong></div>}
+                {i.libre != null && <div className="fact"><span>{t('capitalBande.free')}</span><strong>{money(i.libre, lang)}</strong></div>}
               </div>
               <footer>
                 <Link to={`/argent/investisseur/${i.investisseur_id}`} className="btn primary"><Icon name="note" size={16} />{t('capital.statement')}</Link>
