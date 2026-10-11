@@ -1186,7 +1186,13 @@
       "ocean": "Ocean",
       "terre": "Earth",
       "violet": "Violet",
-      "ardoise": "Slate"
+      "ardoise": "Slate",
+      "bordeaux": "Burgundy",
+      "nuit": "Night",
+      "savane": "Savanna",
+      "indigo": "Indigo",
+      "ciel": "Sky",
+      "sahel": "Sahel"
     }
   }
 }

@@ -1186,7 +1186,13 @@
       "ocean": "Océan",
       "terre": "Terre",
       "violet": "Violet",
-      "ardoise": "Ardoise"
+      "ardoise": "Ardoise",
+      "bordeaux": "Bordeaux",
+      "nuit": "Nuit",
+      "savane": "Savane",
+      "indigo": "Indigo",
+      "ciel": "Ciel",
+      "sahel": "Sahel"
     }
   }
 }

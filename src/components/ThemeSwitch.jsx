@@ -16,6 +16,12 @@ export const PALETTES = {
   terre: ['#4a2a1a', '#e0a526'],
   violet: ['#2e1a4f', '#f472b6'],
   ardoise: ['#1f2937', '#34d399'],
+  bordeaux: ['#5b1428', '#e9b949'],
+  nuit: ['#111317', '#d4af37'],
+  savane: ['#3f4a15', '#f08a24'],
+  indigo: ['#25266b', '#fbbf24'],
+  ciel: ['#0b4a7a', '#ffd23f'],
+  sahel: ['#7c2d12', '#eab676'],
 }
 
 const read = (k, allowed, def) => { try { const v = localStorage.getItem(k); return allowed.includes(v) ? v : def } catch { return def } }
