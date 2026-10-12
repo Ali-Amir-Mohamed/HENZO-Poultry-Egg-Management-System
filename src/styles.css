@@ -705,3 +705,10 @@ html, body { overflow-x: clip; }
 .start-line .field { flex: 1 1 140px; min-width: 0; }
 .start-summary { border-top: 2px solid var(--border); padding-top: .6rem; }
 .dialog-message { white-space: pre-line; }
+
+/* Touch screens (iPhone / Android): fields at least 16px, otherwise iOS zooms in when a field is
+   tapped and stays zoomed (the user had to zoom back out by hand). Big number fields keep their size. */
+@media (pointer: coarse), (max-width: 720px) {
+  input, select, textarea { font-size: 16px !important; }
+  .field.big input { font-size: 1.6rem !important; }
+}
