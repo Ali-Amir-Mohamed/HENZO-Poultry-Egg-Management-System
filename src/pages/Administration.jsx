@@ -9,7 +9,8 @@ import { day, Empty, Field, FormCard, Loading, money, Panel, Tabs } from '../com
 import { useAsk, useRun } from '../components/Dialog'
 
 // Administration: the director has deadlines with phone reminders, company documents (private storage),
-// land and bank accounts; finance sees and manages the bank accounts only. Never a password or a PIN code here.
+// land and bank accounts; finance manages the bank accounts and sees the land; operations sees the land.
+// Never a password or a PIN code here.
 const BUCKET = 'administration'
 const CAT_DOCS = ['entreprise', 'impots', 'banque', 'foncier', 'contrat', 'autre']
 const CAT_ECH = ['impots', 'entreprise', 'banque', 'foncier', 'autre']
@@ -26,7 +27,8 @@ const joursAvant = (d) => Math.round((new Date(`${d}T00:00`) - new Date(`${today
 
 export default function Administration() {
   const { role } = useAuth()
-  const tabs = can(role, 'admin.complet') ? TABS : TABS.filter((x) => x.id === 'banques')
+  const tabs = can(role, 'admin.complet') ? TABS
+    : TABS.filter((x) => (x.id === 'terrains' && can(role, 'admin.terrains')) || (x.id === 'banques' && can(role, 'admin.banques')))
   const [choix, setTab] = useState(() => { try { return localStorage.getItem('henzo.admin.tab') || 'echeances' } catch { return 'echeances' } })
   const tab = tabs.some((x) => x.id === choix) ? choix : tabs[0].id
   useEffect(() => { try { localStorage.setItem('henzo.admin.tab', tab) } catch { /* ignore */ } }, [tab])
@@ -271,6 +273,8 @@ function Documents() {
 
 // ---------------------------------------------------------------- Land
 function Terrains() {
+  const { role } = useAuth()
+  const gere = can(role, 'admin.complet')
   const { t, i18n } = useTranslation()
   const lang = i18n.resolvedLanguage
   const ask = useAsk()
@@ -278,10 +282,10 @@ function Terrains() {
   const q = useQuery(async () => {
     const [terrains, docs] = await Promise.all([
       supabase.from('admin_terrains').select('*').order('created_at', { ascending: false }),
-      supabase.from('admin_documents').select('id, terrain_id').not('terrain_id', 'is', null)
+      gere ? supabase.from('admin_documents').select('id, terrain_id').not('terrain_id', 'is', null) : { data: [] }
     ])
     return { terrains: must(terrains), docs: must(docs) }
-  })
+  }, [gere])
   const vide = { nom: '', localisation: '', surface_m2: '', prix: '', statut: 'prospection', date_acquisition: '', vendeur: '', notes: '' }
   const [form, setForm] = useState(vide)
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
@@ -314,7 +318,7 @@ function Terrains() {
   const tone = { prospection: 'muted', en_cours: 'warn', achete: 'ok', titre: 'ok' }
   return (
     <>
-      <Panel icon="flag" tone="green" title={t('admin.land.title')} subtitle={t('admin.land.hint')}>
+      <Panel icon="flag" tone="green" title={t('admin.land.title')} subtitle={gere ? t('admin.land.hint') : t('admin.land.readOnly')}>
         {q.data.terrains.length === 0 ? <Empty icon="flag" text={t('admin.land.none')} /> : (
           <ul className="list">
             {q.data.terrains.map((x) => {
@@ -325,13 +329,15 @@ function Terrains() {
                     <strong>{x.nom}</strong>
                     <div className="muted small">
                       {[x.localisation, x.surface_m2 && `${Number(x.surface_m2).toLocaleString(lang)} m²`, x.prix != null && money(x.prix, lang),
-                        x.date_acquisition && day(x.date_acquisition, lang), x.vendeur, t('admin.land.docs', { count: nDocs })].filter(Boolean).join(' · ')}
+                        x.date_acquisition && day(x.date_acquisition, lang), x.vendeur, gere && t('admin.land.docs', { count: nDocs })].filter(Boolean).join(' · ')}
                     </div>
                     {x.notes && <div className="muted small">{x.notes}</div>}
-                    <div className="row-actions">
-                      <button className="btn ghost sm" onClick={() => modifier(x)}>{t('common.edit')}</button>
-                      <button className="btn ghost sm" onClick={() => supprimer(x)} aria-label={t('admin.delete')}><Icon name="trash" size={14} /></button>
-                    </div>
+                    {gere && (
+                      <div className="row-actions">
+                        <button className="btn ghost sm" onClick={() => modifier(x)}>{t('common.edit')}</button>
+                        <button className="btn ghost sm" onClick={() => supprimer(x)} aria-label={t('admin.delete')}><Icon name="trash" size={14} /></button>
+                      </div>
+                    )}
                   </div>
                   <span className={`tag ${tone[x.statut]}`}>{t(`admin.land.statut.${x.statut}`)}</span>
                 </li>
@@ -341,7 +347,7 @@ function Terrains() {
         )}
       </Panel>
 
-      <FormCard title={t('admin.land.new')} icon="flag" onSubmit={creer}>
+      {gere && <FormCard title={t('admin.land.new')} icon="flag" onSubmit={creer}>
         <div className="grid-2">
           <Field label={t('reglages.name')}><input required value={form.nom} onChange={set('nom')} placeholder={t('admin.land.namePh')} /></Field>
           <Field label={t('admin.land.place')}><input value={form.localisation} onChange={set('localisation')} /></Field>
@@ -352,7 +358,7 @@ function Terrains() {
           <Field label={t('admin.land.seller')}><input value={form.vendeur} onChange={set('vendeur')} /></Field>
         </div>
         <Field label={t('admin.notes')}><textarea rows={2} value={form.notes} onChange={set('notes')} /></Field>
-      </FormCard>
+      </FormCard>}
     </>
   )
 }

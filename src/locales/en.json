@@ -1572,7 +1572,8 @@
         "en_cours": "Purchase in progress",
         "achete": "Bought",
         "titre": "Titled"
-      }
+      },
+      "readOnly": "Read-only: only Ali adds or edits land."
     },
     "bank": {
       "title": "Bank accounts",

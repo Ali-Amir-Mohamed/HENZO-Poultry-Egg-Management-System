@@ -987,6 +987,19 @@ ok('kenfack still sees no bank account', (await as('kenfack', `select * from pub
 ok('dahirou still sees no deadline nor document', (await as('dahirou', `select * from public.admin_echeances`)).rows.length === 0
   && (await as('dahirou', `select * from public.admin_documents`)).rows.length === 0)
 
+// ---------- 0032: land visible to operations and finance (read-only) ----------
+try {
+  await db.exec(readFileSync(new URL('0032_terrains_lecture.sql', MIG), 'utf8'))
+  ok('migration 0032 runs', true)
+} catch (e) { ok('migration 0032 runs', false, e.message); process.exit(1) }
+ok('kenfack and dahirou see the land', (await as('kenfack', `select * from public.admin_terrains`)).rows.length === 1
+  && (await as('dahirou', `select * from public.admin_terrains`)).rows.length === 1)
+await expectErr('kenfack cannot add land', 'kenfack', `insert into public.admin_terrains (nom) values ('x')`)
+await expectNoRows('dahirou cannot edit land', 'dahirou', `update public.admin_terrains set prix = 1 returning id`)
+await expectNoRows('kenfack cannot delete land', 'kenfack', `delete from public.admin_terrains returning id`)
+await expectOk('ali still edits land', 'ali', `update public.admin_terrains set statut = 'achete'`)
+ok('the employee sees no land', (await as('employe', `select * from public.admin_terrains`)).rows.length === 0)
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))

@@ -1572,7 +1572,8 @@
         "en_cours": "Achat en cours",
         "achete": "Acheté",
         "titre": "Titré"
-      }
+      },
+      "readOnly": "Lecture seule : seul Ali ajoute ou modifie les terrains."
     },
     "bank": {
       "title": "Comptes bancaires",
