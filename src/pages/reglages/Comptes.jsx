@@ -29,20 +29,25 @@ export default function Comptes() {
   const ask = useAsk()
   const run = useRun()
   const list = useQuery(async () => must(await supabase.rpc('membres_ferme')))
-  const [form, setForm] = useState({ identifiant: '', nom_complet: '', role: 'employe', password: '' })
+  const investisseurs = useQuery(async () => (await supabase.from('investisseurs').select('id, nom, profile_id').order('nom')).data ?? [])
+  const [form, setForm] = useState({ identifiant: '', nom_complet: '', role: 'employe', password: '', investisseur_id: '' })
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
   const roleOptions = ROLES_LIST.map((r) => ({ value: r, label: t(`roles.${r}`) }))
 
   const create = async () => {
     try {
-      await callAdmin({ action: 'create', ...form })
+      if (form.role === 'investisseur' && !form.investisseur_id) throw new Error(t('comptes.chooseInvestor'))
+      const { investisseur_id, ...compte } = form
+      await callAdmin({ action: 'create', ...compte })
+      // Investor account: linked to his investor file (he only sees that file)
+      if (form.role === 'investisseur') must(await supabase.rpc('lier_compte_investisseur', { p_investisseur: investisseur_id, p_identifiant: form.identifiant }))
     } catch (e) {
       if (/Failed to send|not found|404|FunctionsFetchError|FunctionsHttpError/i.test(e.message)) throw new Error(t('comptes.noFunction'))
       throw e
     }
     const msg = t('comptes.created', { id: form.identifiant })
-    setForm({ identifiant: '', nom_complet: '', role: 'employe', password: '' })
-    list.reload()
+    setForm({ identifiant: '', nom_complet: '', role: 'employe', password: '', investisseur_id: '' })
+    list.reload(); investisseurs.reload()
     return msg
   }
   const changeRole = async (p) => {
@@ -59,6 +64,13 @@ export default function Comptes() {
       await callAdmin({ action: 'reset_password', user_id: p.user_id, password: v.password })
       await ask.info(t('comptes.passwordDone'), t('comptes.passwordDoneText', { id: p.identifiant }))
     } catch (e) { ask.error(e.message) }
+  }
+  // Link an investor account to an investor file (or change the link)
+  const lier = async (p) => {
+    const v = await ask.form({ title: t('comptes.linkTitle', { nom: p.nom_complet || p.identifiant }), icon: 'users', submit: t('dialog.save'),
+      fields: [{ name: 'inv', label: t('capital.investor'), type: 'select', value: (investisseurs.data ?? []).find((i) => i.profile_id === p.user_id)?.id ?? '', required: true,
+        options: [{ value: '', label: '—' }, ...(investisseurs.data ?? []).map((i) => ({ value: i.id, label: i.nom }))] }] })
+    if (v?.inv) await run(supabase.rpc('lier_compte_investisseur', { p_investisseur: v.inv, p_identifiant: p.identifiant }), investisseurs.reload)
   }
   const toggleActive = async (p) => {
     const nom = p.nom_complet || p.identifiant
@@ -89,7 +101,16 @@ export default function Comptes() {
             </select>
           </Field>
           <Field label={t('comptes.password')}><input type="text" minLength={8} required value={form.password} onChange={set('password')} autoComplete="new-password" /></Field>
+          {form.role === 'investisseur' && (
+            <Field label={t('comptes.investorFile')}>
+              <select required value={form.investisseur_id} onChange={set('investisseur_id')}>
+                <option value="">—</option>
+                {(investisseurs.data ?? []).map((i) => <option key={i.id} value={i.id}>{i.nom}</option>)}
+              </select>
+            </Field>
+          )}
         </div>
+        {form.role === 'investisseur' && <p className="note"><Icon name="alert" size={16} />{t('comptes.investorHint')}</p>}
         <p className="note"><Icon name="clock" size={16} />{t('comptes.hint')}</p>
       </FormCard>
 
@@ -110,6 +131,7 @@ export default function Comptes() {
                     {!me && (
                       <div className="row-actions">
                         <button className="btn ghost sm" onClick={() => changeRole(p)}>{t('comptes.changeRole')}</button>
+                        {p.role === 'investisseur' && <button className="btn ghost sm" onClick={() => lier(p)}>{t('comptes.link')}</button>}
                         <button className="btn ghost sm" onClick={() => resetPassword(p)}>{t('comptes.resetPassword')}</button>
                         <button className="btn ghost sm" onClick={() => toggleActive(p)}>{p.actif ? t('comptes.disable') : t('comptes.enable')}</button>
                       </div>

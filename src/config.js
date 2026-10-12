@@ -25,14 +25,15 @@ export const ROLES = {
   DIRECTEUR: 'directeur',
   EXPLOITATION: 'exploitation',   // Kenfack Dirand
   FINANCE: 'finance',             // Dahirou Bachar
-  EMPLOYE: 'employe'
+  EMPLOYE: 'employe',
+  INVESTISSEUR: 'investisseur'    // read-only: own capital, flocks, 10 %
 }
 
-const { DIRECTEUR: D, EXPLOITATION: X, FINANCE: F, EMPLOYE: E } = ROLES
+const { DIRECTEUR: D, EXPLOITATION: X, FINANCE: F, EMPLOYE: E, INVESTISSEUR: I } = ROLES
 
 // Which roles can open each section of the app (the database enforces the same rules)
 export const ACCESS = {
-  dashboard: [D, X, F, E],
+  dashboard: [D, X, F, E, I],
   saisie: [D, X, E],
   ferme: [D, X, F],
   planning: [D, X, F],
@@ -63,6 +64,7 @@ export const PERMISSIONS = {
   'stock.manual': [D, X],
   'capital.manage': [D, F],      // investors, contributions, withdrawals, 10 % decisions
   'capital.allocate': [D, X, F], // investors' capital placed in each flock
+  'salaires': [D, F],            // employees, advances, monthly pay (confidential)
   'pret.manage': [D, F],
   'caisse.verify': [D, F],
   'caisse.adjust': [D],

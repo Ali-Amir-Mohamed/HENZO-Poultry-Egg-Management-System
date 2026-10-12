@@ -16,7 +16,7 @@ export function saveCachedStats(stats) {
 const must = (r) => { if (r.error) throw r.error; return r.data }
 
 export async function loadStats(role) {
-  const stats = role === 'employe' ? await loadEmployee() : await loadManager()
+  const stats = role === 'employe' ? await loadEmployee() : role === 'investisseur' ? await loadInvestor() : await loadManager()
   stats.at = new Date().toISOString()
   saveCachedStats(stats)
   return stats
@@ -87,5 +87,20 @@ async function loadManager() {
     creances: { total: must(creances).reduce((s, c) => s + Number(c.reste), 0) },
     capitaux: must(capitaux),
     alertes: must(alertes)
+  }
+}
+
+// Investor (read-only): own capital, flocks where it is placed, 10 % — the database only returns his own rows
+async function loadInvestor() {
+  const [sit, libre, alloc, dist, ops] = await Promise.all([
+    supabase.from('situation_investisseurs').select('*').maybeSingle(),
+    supabase.from('capital_libre_investisseurs').select('place, libre').maybeSingle(),
+    supabase.from('capital_bandes').select('montant, bande:bandes(id, code, statut, date_arrivee, date_vente_prevue)').order('created_at', { ascending: false }),
+    supabase.from('distributions_investisseurs').select('montant, statut, created_at, decide_le, bande:bandes(code)').order('created_at', { ascending: false }),
+    supabase.from('operations_investisseurs').select('type_operation, montant, date_operation, annulee').eq('annulee', false).order('date_operation', { ascending: false }).limit(20)
+  ])
+  return {
+    kind: 'investisseur', situation: must(sit), libre: libre.data ?? null, allocations: must(alloc),
+    distributions: must(dist), operations: must(ops)
   }
 }

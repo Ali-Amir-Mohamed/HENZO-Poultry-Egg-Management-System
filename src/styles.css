@@ -712,3 +712,9 @@ html, body { overflow-x: clip; }
   input, select, textarea { font-size: 16px !important; }
   .field.big input { font-size: 1.6rem !important; }
 }
+
+/* « Mon compte » link (name in the header) */
+.account-link { display: block; font-size: .78rem; color: inherit; opacity: .85; text-decoration: none; }
+.account-link:hover { text-decoration: underline; opacity: 1; }
+.link-panel { flex-direction: row; align-items: center; gap: .6rem; text-decoration: none; color: inherit; }
+.link-panel svg:last-child { margin-left: auto; }

@@ -20,7 +20,8 @@
     "directeur": "Director",
     "exploitation": "Operations",
     "finance": "Finance",
-    "employe": "Employee"
+    "employe": "Employee",
+    "investisseur": "Investor"
   },
   "auth": {
     "title": "Sign in",
@@ -288,7 +289,8 @@
       "investisseurs": "Investors",
       "prets": "Loans",
       "verification": "Cash check",
-      "demarrage": "Start-up"
+      "demarrage": "Start-up",
+      "salaires": "Salaries"
     },
     "caisse": {
       "chair": "Broiler cash",
@@ -825,7 +827,12 @@
     "addExisting": "Add an existing account",
     "add": "Add",
     "roleHere": "Role on this farm",
-    "activeElsewhere": "currently working on another farm"
+    "activeElsewhere": "currently working on another farm",
+    "chooseInvestor": "Choose the investor file to link to this account.",
+    "linkTitle": "Link {{nom}} to an investor",
+    "link": "Link to an investor",
+    "investorFile": "Investor file",
+    "investorHint": "This account will only see this investor: capital, flocks and 10 %. Nothing else of the farm."
   },
   "journal": {
     "title": "Activity log",
@@ -869,7 +876,10 @@
       "ajustements_oeufs": "Egg adjustment",
       "batiments": "Building",
       "capital_bandes": "Capital per flock",
-      "demandes_correction": "Correction request"
+      "demandes_correction": "Correction request",
+      "employes": "Employee",
+      "paies": "Salary",
+      "avances_salaire": "Salary advance"
     }
   },
   "sauvegarde": {
@@ -984,7 +994,12 @@
     "receivedDateLabel": "Reception date",
     "restDateLabel": "New date for the rest",
     "restHint": "Leave empty if the supplier will not deliver the rest.",
-    "postponeTitle": "Postpone the delivery of {{n}} chicks"
+    "postponeTitle": "Postpone the delivery of {{n}} chicks",
+    "expenseAuto": "HENZO will create the expense for the chicks received (number received × {{prix}}), linked to the flock. Finance approves it before money leaves.",
+    "expenseNoPrice": "No price in the order: the chick expense will have to be entered in Money > Expenses.",
+    "paidHow": "Payment for the chicks",
+    "paidCredit": "On credit (paid later)",
+    "paidHint": "On credit: nothing leaves the cash box, the supplier debt shows in Receivables & payables."
   },
   "dialog": {
     "errorTitle": "Operation not possible",
@@ -1257,5 +1272,94 @@
     "locked": "A saved allocation is locked: only the director can cancel it, with a reason, before closure.",
     "placed": "Placed (running flocks)",
     "free": "Free"
+  },
+  "salaires": {
+    "title": "Employees",
+    "total_one": "{{count}} active employee · payroll {{n}} / month",
+    "total_other": "{{count}} active employees · payroll {{n}} / month",
+    "none": "No employee yet.",
+    "perMonth": "month",
+    "toDeduct": "advances to deduct: {{n}}",
+    "left": "Left",
+    "active": "Employed",
+    "paidThisMonth": "Paid this month",
+    "pay": "Pay salary",
+    "advance": "Advance",
+    "new": "New employee",
+    "created": "Employee saved.",
+    "job": "Job",
+    "jobPh": "e.g. guard, worker",
+    "salary": "Monthly salary (FCFA)",
+    "paidBy": "Paid by cash box",
+    "hired": "Hiring date",
+    "advanceTitle": "Advance for {{nom}}",
+    "advanceHint": "The money leaves at once. The advance will be deducted automatically from the next salary.",
+    "advancePay": "Pay advance",
+    "reason": "Reason",
+    "payTitle": "Salary of {{nom}}",
+    "payHint": "Salary: {{salaire}} · advances to deduct: {{avances}}",
+    "next": "Continue",
+    "month": "Month paid",
+    "bonus": "Bonus",
+    "deductions": "Deduction",
+    "deductionReason": "Reason for the deduction",
+    "negative": "Advances and deductions exceed the month’s salary.",
+    "base": "Salary",
+    "advances": "Advances",
+    "net": "Net to pay",
+    "confirmTitle": "Pay {{nom}}",
+    "editTitle": "Edit {{nom}}",
+    "history": "Payment history",
+    "paidLine": "salary for {{mois}}: {{n}}",
+    "advanceLine": "advance of {{n}} on {{d}}",
+    "advancesDeducted": "advances deducted {{n}}",
+    "deducted": "deducted",
+    "notDeducted": "to deduct",
+    "cancelHint": "A mistake? Ali cancels the matching expense in Money > Expenses: the salary or advance is cancelled here too."
+  },
+  "investor": {
+    "notLinked": "Your account is not linked to an investor file yet. Ask Ali to do it.",
+    "capital": "My capital",
+    "placed": "Placed in flocks",
+    "free": "not placed: {{n}}",
+    "received": "10 % received",
+    "pending": "pending: {{n}}",
+    "flocks": "My flocks",
+    "noFlock": "Your capital is not placed in any flock yet.",
+    "status": "Status",
+    "placedIn": "My capital placed",
+    "tenPct": "My 10 %",
+    "since": "since {{d}}",
+    "atClosure": "at closure",
+    "rule": "At the closure of each flock you receive 10 % of the capital placed in it: paid out or reinvested, as you choose.",
+    "history": "My operations",
+    "statement": "My statement (PDF)",
+    "noOps": "No operation.",
+    "dist": {
+      "en_attente": "pending",
+      "retire": "paid",
+      "reinvesti": "reinvested"
+    },
+    "ops": {
+      "apport": "Contribution",
+      "capital_initial": "Start-up capital",
+      "reinvestissement": "10 % reinvested",
+      "retrait_capital": "Capital withdrawal"
+    }
+  },
+  "compte": {
+    "title": "My account",
+    "username": "Username",
+    "passwordTitle": "Change my password",
+    "passwordHint": "For your safety, type your current password first.",
+    "current": "Current password",
+    "new": "New password (at least 8 characters)",
+    "confirm": "Confirm the new password",
+    "save": "Change password",
+    "tooShort": "The new password must have at least 8 characters.",
+    "mismatch": "The two new passwords do not match.",
+    "same": "The new password must be different from the current one.",
+    "wrongCurrent": "Wrong current password.",
+    "done": "Password changed. Use the new one next time you sign in."
   }
 }

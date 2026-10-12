@@ -9,7 +9,8 @@
 -- Efface   : bandes, lots, saisies, ventes, dépenses, paiements, écritures,
 --            stock et produits, clients / fournisseurs, prix, investisseurs,
 --            prêts, vérifications, transferts, tâches, notifications,
---            journal, bilans, demandes de correction, historique des connexions.
+--            journal, bilans, demandes de correction, historique des connexions,
+--            employés, avances et paies, capital placé par bande.
 -- Conserve aussi : les téléphones abonnés aux notifications.
 -- TRUNCATE ne déclenche pas les protections ligne par ligne (registre non
 -- modifiable) : c'est volontaire, uniquement pour ce nettoyage.
@@ -18,6 +19,9 @@
 truncate table
   public.demandes_correction,
   public.capital_bandes,
+  public.avances_salaire,
+  public.paies,
+  public.employes,
   public.taches_realisations,
   public.taches,
   public.verifications_caisse,

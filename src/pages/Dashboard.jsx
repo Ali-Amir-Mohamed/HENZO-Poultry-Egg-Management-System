@@ -20,7 +20,7 @@ export default function Dashboard() {
   const plusTard = () => { try { localStorage.setItem('henzo.faceid.plustard', String(Date.now() + 30 * 864e5)) } catch {}; setFaceIdPlusTard(true) }
   const [stats, setStats] = useState(() => {
     const cached = readCachedStats()
-    return cached?.kind === (role === 'employe' ? 'employe' : 'manager') ? cached : null
+    return cached?.kind === (role === 'employe' ? 'employe' : role === 'investisseur' ? 'investisseur' : 'manager') ? cached : null
   })
   const [stale, setStale] = useState(true)
   const [error, setError] = useState(null)
@@ -83,6 +83,7 @@ export default function Dashboard() {
 
       {!stats ? <p className="muted">{t('dashboard.noData')}</p>
         : stats.kind === 'employe' ? <EmployeeHome stats={stats} />
+          : stats.kind === 'investisseur' ? <InvestorHome stats={stats} />
           : <ManagerHome stats={stats} />}
     </div>
   )
@@ -285,5 +286,65 @@ function Kpi({ icon, tone, label, value, hint }) {
       <strong className="kpi-value">{value}</strong>
       {hint && <span className="kpi-hint">{hint}</span>}
     </div>
+  )
+}
+
+// Investor (read-only): capital, where it is placed, 10 % received / pending, statement
+function InvestorHome({ stats }) {
+  const { t, i18n } = useTranslation()
+  const lang = i18n.resolvedLanguage
+  const fmt = (n) => `${Number(n ?? 0).toLocaleString(lang)} F`
+  const s = stats.situation
+  if (!s) return <div className="alert warn"><Icon name="alert" size={18} />{t('investor.notLinked')}</div>
+  const recu = stats.distributions.filter((x) => x.statut !== 'en_attente').reduce((a, x) => a + Number(x.montant), 0)
+  const attente = stats.distributions.filter((x) => x.statut === 'en_attente').reduce((a, x) => a + Number(x.montant), 0)
+  const dixParBande = Object.fromEntries(stats.distributions.map((x) => [x.bande?.code, x]))
+  return (
+    <>
+      <section className="kpis three">
+        <Kpi icon="wallet" tone="green" label={t('investor.capital')} value={fmt(s.capital_restant)} />
+        <Kpi icon="drumstick" tone="sky" label={t('investor.placed')} value={fmt(stats.libre?.place)} hint={t('investor.free', { n: fmt(stats.libre?.libre) })} />
+        <Kpi icon="chart" tone="yolk" label={t('investor.received')} value={fmt(recu)} hint={attente > 0 ? t('investor.pending', { n: fmt(attente) }) : null} />
+      </section>
+
+      <section className="panel">
+        <div className="panel-head"><h2>{t('investor.flocks')}</h2></div>
+        {stats.allocations.length === 0 ? <p className="muted">{t('investor.noFlock')}</p> : (
+          <div className="table-wrap">
+            <table className="table">
+              <thead><tr><th>{t('saisie.bande')}</th><th>{t('investor.status')}</th><th>{t('investor.placedIn')}</th><th>{t('investor.tenPct')}</th></tr></thead>
+              <tbody>
+                {stats.allocations.map((a, i) => {
+                  const dx = dixParBande[a.bande?.code]
+                  return (
+                    <tr key={i}>
+                      <td><strong>{a.bande?.code}</strong><div className="muted small">{t('investor.since', { d: new Date(`${a.bande?.date_arrivee}T00:00`).toLocaleDateString(lang) })}</div></td>
+                      <td>{t(`statuts.${a.bande?.statut}`)}</td>
+                      <td>{fmt(a.montant)}</td>
+                      <td>{dx ? <>{fmt(dx.montant)} <span className={`tag ${dx.statut === 'en_attente' ? 'warn' : 'ok'}`}>{t(`investor.dist.${dx.statut}`)}</span></> : <span className="muted">{t('investor.atClosure')}</span>}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+        <p className="muted small">{t('investor.rule')}</p>
+      </section>
+
+      <section className="panel">
+        <div className="panel-head"><h2>{t('investor.history')}</h2><span className="spacer" /><Link to={`/releve/${s.investisseur_id}`} className="btn primary sm"><Icon name="download" size={14} />{t('investor.statement')}</Link></div>
+        {stats.operations.length === 0 ? <p className="muted">{t('investor.noOps')}</p> : (
+          <ul className="list">
+            {stats.operations.map((o, i) => (
+              <li key={i}>
+                <div className="grow"><strong>{t(`investor.ops.${o.type_operation}`)}</strong><div className="muted small">{new Date(`${o.date_operation}T00:00`).toLocaleDateString(lang)}</div></div>
+                <strong className={o.type_operation === 'retrait_capital' ? 'error' : 'success'}>{o.type_operation === 'retrait_capital' ? '−' : '+'}{fmt(o.montant)}</strong>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </>
   )
 }

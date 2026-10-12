@@ -754,12 +754,90 @@ const distBX2 = (await as('ali', `select investisseur_id, montant from public.di
 const dBX2 = Object.fromEntries(distBX2.map((r) => [r.investisseur_id, Number(r.montant)]))
 ok('BX2: A 10 % of 400 000, C 10 % of 100 000 (A total = 10 % of his capital)', dBX2[IA] === 40000 && dBX2[IC] === 10000 && !(IB in dBX2), JSON.stringify(dBX2))
 
+// ---------- 0021: chick reception creates the expense ----------
+try {
+  await db.exec(readFileSync(new URL('0021_poussins_depense_auto.sql', MIG), 'utf8'))
+  ok('migration 0021 runs', true)
+} catch (e) { ok('migration 0021 runs', false, e.message); process.exit(1) }
+const FOUR = (await one('kenfack', `insert into public.tiers (type_tiers, nom) values ('fournisseur', 'Couvoir Test') returning id`)).id
+const order = async (code, prix, fournisseur) => {
+  await as('kenfack', `insert into public.commandes_poussins (reference, code_bande, nombre_commande, date_livraison_prevue, prix_unitaire, fournisseur_id) values ($1, $2, 300, current_date, $3, $4)`, ['REF-' + code, code, prix, fournisseur])
+  return (await one('kenfack', `select l.id from public.livraisons_poussins l join public.commandes_poussins c on c.id = l.commande_id where c.code_bande = '${code}' and l.statut = 'prevue'`)).id
+}
+const soldeEsp = async () => Number((await one('ali', `select solde from public.soldes_caisses where activite = 'chair' and mode = 'especes'`)).solde)
+const lP1 = await order('PX1', 500, FOUR)
+const esp0 = await soldeEsp()
+await expectOk('kenfack receives 300 chicks paid in cash', 'kenfack', `select public.receptionner_livraison($1, 300, current_date, null, 'especes')`, [lP1])
+const depP1 = await one('ali', `select d.* from public.depenses d join public.livraisons_poussins l on l.depense_id = d.id where l.id = '${lP1}'`)
+ok('expense created: 300 × 500 = 150 000, chicks, linked to the flock and supplier', Number(depP1?.montant) === 150000 && depP1?.categorie === 'poussins' && depP1?.bande_id && depP1?.fournisseur_id === FOUR, JSON.stringify(depP1 && { m: depP1.montant, c: depP1.categorie }))
+ok('expense waits for finance validation, cash untouched', depP1?.statut === 'a_valider' && (await soldeEsp()) === esp0)
+await expectOk('dahirou validates the chick expense', 'dahirou', `update public.depenses set statut = 'validee' where id = $1`, [depP1.id])
+ok('cash goes out after validation', (await soldeEsp()) === esp0 - 150000)
+const lP2 = await order('PX2', 400, FOUR)
+await expectOk('chicks received on credit', 'kenfack', `select public.receptionner_livraison($1, 250, current_date, null, 'credit')`, [lP2])
+const depP2 = await one('ali', `select d.a_credit, d.montant, d.montant_paye from public.depenses d join public.livraisons_poussins l on l.depense_id = d.id where l.id = '${lP2}'`)
+ok('credit purchase: 250 × 400 = 100 000 owed to the supplier', depP2?.a_credit === true && Number(depP2.montant) === 100000 && Number(depP2.montant_paye) === 0, JSON.stringify(depP2))
+const nP0 = (await as('dahirou', `select * from public.notifications where type_notification = 'depense_poussins'`)).rows.length
+const lP3 = await order('PX3', null, null)
+await expectOk('reception without a price still works', 'kenfack', `select public.receptionner_livraison($1, 300, current_date, null, 'especes')`, [lP3])
+// ---------- 0022: employees and salaries ----------
+try {
+  await db.exec(readFileSync(new URL('0022_salaires.sql', MIG), 'utf8'))
+  ok('migration 0022 runs', true)
+} catch (e) { ok('migration 0022 runs', false, e.message); process.exit(1) }
+const EMP = (await one('dahirou', `insert into public.employes (nom, poste, activite, salaire_mensuel) values ('Moussa Test', 'Gardien', 'chair', 60000) returning id`)).id
+ok('kenfack cannot see salaries', (await as('kenfack', `select * from public.employes`)).rows.length === 0)
+await expectErr('kenfack cannot pay an advance', 'kenfack', `select public.verser_avance($1, 10000, 'especes')`, [EMP], 'salaires')
+const espS0 = await soldeEsp()
+await expectOk('dahirou pays an advance of 15 000', 'dahirou', `select public.verser_avance($1, 15000, 'especes', 'Urgence')`, [EMP])
+ok('advance leaves the cash at once', (await soldeEsp()) === espS0 - 15000)
+await expectErr('deduction needs a reason', 'dahirou', `select public.payer_salaire($1, '2026-10-15', 'especes', 0, 5000, null)`, [EMP], 'motif')
+const paie = await expectOk('dahirou pays October: 60 000 + 5 000 bonus − 2 000 deduction − 15 000 advance', 'dahirou', `select public.payer_salaire($1, '2026-10-15', 'especes', 5000, 2000, 'Absence') as id`, [EMP])
+const p = await one('dahirou', `select * from public.paies where id = '${paie.rows[0].id}'`)
+ok('net paid = 48 000, month stored as 01/10', Number(p.net) === 48000 && String(p.mois).startsWith('2026-10-01') || new Date(p.mois).getDate() === 1, JSON.stringify({ net: p.net, mois: p.mois }))
+ok('cash: advance + net = 63 000 out in total', (await soldeEsp()) === espS0 - 63000)
+ok('advance marked as deducted', (await one('dahirou', `select paie_id from public.avances_salaire where employe_id = '${EMP}'`)).paie_id === p.id)
+await expectErr('same month cannot be paid twice', 'dahirou', `select public.payer_salaire($1, '2026-10-28', 'especes')`, [EMP], 'déjà payé')
+await expectOk('ali cancels the salary expense', 'ali', `update public.depenses set annulee = true, motif_annulation = 'Erreur' where id = $1`, [p.depense_id])
+ok('salary cancelled too, advance to deduct again', (await one('dahirou', `select annulee from public.paies where id = '${p.id}'`)).annulee === true
+  && (await one('dahirou', `select paie_id from public.avances_salaire where employe_id = '${EMP}'`)).paie_id === null)
+await expectOk('october can be paid again after the cancellation', 'dahirou', `select public.payer_salaire($1, '2026-10-01', 'mobile_money')`, [EMP])
+
+// ---------- 0023 + 0024: read-only investor accounts ----------
+try {
+  await db.exec(readFileSync(new URL('0023_role_investisseur.sql', MIG), 'utf8'))
+  await db.exec(readFileSync(new URL('0024_acces_investisseurs.sql', MIG), 'utf8'))
+  ok('migrations 0023 + 0024 run', true)
+} catch (e) { ok('migrations 0023 + 0024 run', false, e.message); process.exit(1) }
+U.invtest = '55555555-5555-5555-5555-555555555555'
+await db.query(`insert into auth.users (id, email) values ($1, 'invtest@henzo.local')`, [U.invtest])
+await db.exec(`update public.profiles set role = 'investisseur', nom_complet = 'Invest A (compte)' where id = '${U.invtest}'`)
+await expectErr('kenfack cannot link an investor account', 'kenfack', `select public.lier_compte_investisseur($1, 'invtest')`, [IA], 'directeur')
+await expectOk('ali links the account to investor A', 'ali', `select public.lier_compte_investisseur($1, 'invtest')`, [IA])
+const invSees = async (sql) => (await as('invtest', sql)).rows
+ok('investor sees only his own file', (await invSees(`select id from public.investisseurs`)).map((r) => r.id).join() === IA)
+ok('investor sees his capital situation', (await invSees(`select * from public.situation_investisseurs`)).length === 1)
+ok('investor sees his placed / free capital', (await invSees(`select * from public.capital_libre_investisseurs`)).length === 1)
+ok('investor sees only his operations', (await invSees(`select investisseur_id from public.operations_investisseurs`)).every((r) => r.investisseur_id === IA))
+ok('investor sees his 10 % (BX1 60 000, BX2 40 000)', (await invSees(`select montant from public.distributions_investisseurs order by montant`)).map((r) => Number(r.montant)).join() === '40000,60000')
+ok('investor sees only the flocks where he has capital', (await invSees(`select code from public.bandes order by code`)).map((r) => r.code).join() === 'BX1,BX2')
+for (const t of ['ventes', 'depenses', 'ecritures', 'soldes_caisses', 'tiers', 'mortalites', 'notifications', 'employes', 'paies', 'prets', 'journal_activite']) {
+  ok(`investor sees nothing in ${t}`, (await invSees(`select * from public.${t}`)).length === 0)
+}
+ok('investor does not see other investors\' allocations', (await invSees(`select investisseur_id from public.capital_bandes`)).every((r) => r.investisseur_id === IA))
+await expectErr('investor cannot record an operation', 'invtest', `insert into public.operations_investisseurs (investisseur_id, type_operation, montant, activite, mode_paiement) values ($1, 'apport', 1000, 'chair', 'especes')`, [IA])
+await expectErr('investor cannot enter a sale', 'invtest', `insert into public.ventes (bande_id, produit, unite, quantite, prix_unitaire, nombre_sujets, mode_paiement) values ($1, 'poulets', 'piece', 1, 1, 1, 'especes')`, [BX2])
+await expectNoRows('investor cannot change his file', 'invtest', `update public.investisseurs set nom = 'x' returning id`)
+ok('staff still see the farm normally', (await as('ali', `select * from public.ventes`)).rows.length > 0 && (await as('kenfack', `select * from public.bandes`)).rows.length > 2)
+ok('no price: no expense, finance reminded to enter it',!(await one('ali', `select depense_id from public.livraisons_poussins where id = '${lP3}'`)).depense_id
+  && (await as('dahirou', `select * from public.notifications where type_notification = 'depense_poussins'`)).rows.length === nP0 + 1)
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))
   const counts = Object.fromEntries(res.at(-1).rows.map((r) => [r.element, Number(r.nombre)]))
   ok('reset keeps 6 cash boxes and accounts, empties data',
-    counts['caisses (6 par ferme)'] % 6 === 0 && counts['caisses (6 par ferme)'] > 0 && counts['écritures'] === 0 && counts['bandes'] === 0 && counts['ventes'] === 0 && counts['comptes conservés'] === 4,
+    counts['caisses (6 par ferme)'] % 6 === 0 && counts['caisses (6 par ferme)'] > 0 && counts['écritures'] === 0 && counts['bandes'] === 0 && counts['ventes'] === 0 && counts['comptes conservés'] === 5,
     JSON.stringify(counts))
   ok('cash balances back to 0', (await as('ali', `select sum(solde)::int s from public.soldes_caisses`)).rows[0].s === 0)
   ok('vaccination programme kept', (await as('kenfack', `select * from public.modeles_taches`)).rows.length === 5)

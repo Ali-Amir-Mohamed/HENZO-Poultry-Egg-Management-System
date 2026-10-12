@@ -20,7 +20,8 @@
     "directeur": "Directeur",
     "exploitation": "Exploitation",
     "finance": "Finance",
-    "employe": "Employé"
+    "employe": "Employé",
+    "investisseur": "Investisseur"
   },
   "auth": {
     "title": "Connexion",
@@ -288,7 +289,8 @@
       "investisseurs": "Investisseurs",
       "prets": "Prêts",
       "verification": "Vérif. caisse",
-      "demarrage": "Démarrage"
+      "demarrage": "Démarrage",
+      "salaires": "Salaires"
     },
     "caisse": {
       "chair": "Caisse chair",
@@ -825,7 +827,12 @@
     "addExisting": "Ajouter un compte existant",
     "add": "Ajouter",
     "roleHere": "Rôle dans cette ferme",
-    "activeElsewhere": "travaille actuellement dans une autre ferme"
+    "activeElsewhere": "travaille actuellement dans une autre ferme",
+    "chooseInvestor": "Choisissez la fiche investisseur à relier à ce compte.",
+    "linkTitle": "Relier {{nom}} à un investisseur",
+    "link": "Relier à un investisseur",
+    "investorFile": "Fiche investisseur",
+    "investorHint": "Ce compte verra uniquement cet investisseur : son capital, ses bandes et ses 10 %. Rien d’autre de la ferme."
   },
   "journal": {
     "title": "Journal d’activité",
@@ -869,7 +876,10 @@
       "ajustements_oeufs": "Ajustement d’œufs",
       "batiments": "Bâtiment",
       "capital_bandes": "Capital par bande",
-      "demandes_correction": "Demande de correction"
+      "demandes_correction": "Demande de correction",
+      "employes": "Employé",
+      "paies": "Salaire",
+      "avances_salaire": "Avance sur salaire"
     }
   },
   "sauvegarde": {
@@ -984,7 +994,12 @@
     "receivedDateLabel": "Date de réception",
     "restDateLabel": "Nouvelle date pour le reste",
     "restHint": "Laissez vide si le fournisseur ne livrera pas le reste.",
-    "postponeTitle": "Reporter la livraison de {{n}} poussins"
+    "postponeTitle": "Reporter la livraison de {{n}} poussins",
+    "expenseAuto": "HENZO créera la dépense des poussins reçus (nombre reçu × {{prix}}), liée à la bande. Dahirou la valide avant que l’argent sorte.",
+    "expenseNoPrice": "Pas de prix dans la commande : la dépense des poussins sera à saisir dans Argent > Dépenses.",
+    "paidHow": "Paiement des poussins",
+    "paidCredit": "À crédit (payé plus tard)",
+    "paidHint": "À crédit : rien ne sort de la caisse, la dette fournisseur apparaît dans Créances & dettes."
   },
   "dialog": {
     "errorTitle": "Opération impossible",
@@ -1257,5 +1272,94 @@
     "locked": "Une répartition enregistrée est bloquée : seul le directeur peut l’annuler, avec un motif, avant la clôture.",
     "placed": "Placé (bandes en cours)",
     "free": "Libre"
+  },
+  "salaires": {
+    "title": "Employés",
+    "total_one": "{{count}} employé actif · masse salariale {{n}} / mois",
+    "total_other": "{{count}} employés actifs · masse salariale {{n}} / mois",
+    "none": "Aucun employé enregistré.",
+    "perMonth": "mois",
+    "toDeduct": "avances à déduire : {{n}}",
+    "left": "Parti",
+    "active": "En poste",
+    "paidThisMonth": "Payé ce mois",
+    "pay": "Payer le salaire",
+    "advance": "Avance",
+    "new": "Nouvel employé",
+    "created": "Employé enregistré.",
+    "job": "Poste",
+    "jobPh": "ex. gardien, ouvrier",
+    "salary": "Salaire mensuel (FCFA)",
+    "paidBy": "Payé par la caisse",
+    "hired": "Date d’embauche",
+    "advanceTitle": "Avance pour {{nom}}",
+    "advanceHint": "L’argent sort tout de suite. L’avance sera déduite automatiquement du prochain salaire.",
+    "advancePay": "Verser l’avance",
+    "reason": "Motif",
+    "payTitle": "Salaire de {{nom}}",
+    "payHint": "Salaire : {{salaire}} · avances à déduire : {{avances}}",
+    "next": "Continuer",
+    "month": "Mois payé",
+    "bonus": "Prime",
+    "deductions": "Retenue",
+    "deductionReason": "Motif de la retenue",
+    "negative": "Les avances et retenues dépassent le salaire du mois.",
+    "base": "Salaire",
+    "advances": "Avances",
+    "net": "Net à payer",
+    "confirmTitle": "Payer {{nom}}",
+    "editTitle": "Modifier {{nom}}",
+    "history": "Historique des paiements",
+    "paidLine": "salaire de {{mois}} : {{n}}",
+    "advanceLine": "avance de {{n}} le {{d}}",
+    "advancesDeducted": "avances déduites {{n}}",
+    "deducted": "déduite",
+    "notDeducted": "à déduire",
+    "cancelHint": "Une erreur ? Ali annule la dépense correspondante dans Argent > Dépenses : le salaire ou l’avance est annulé ici aussi."
+  },
+  "investor": {
+    "notLinked": "Votre compte n’est pas encore relié à une fiche investisseur. Demandez à Ali de le faire.",
+    "capital": "Mon capital",
+    "placed": "Placé dans les bandes",
+    "free": "non placé : {{n}}",
+    "received": "10 % reçus",
+    "pending": "en attente : {{n}}",
+    "flocks": "Mes bandes",
+    "noFlock": "Votre capital n’est placé dans aucune bande pour l’instant.",
+    "status": "Statut",
+    "placedIn": "Mon capital placé",
+    "tenPct": "Mes 10 %",
+    "since": "depuis le {{d}}",
+    "atClosure": "à la clôture",
+    "rule": "À la clôture de chaque bande, vous recevez 10 % du capital placé dans cette bande : versés ou réinvestis selon votre choix.",
+    "history": "Mes opérations",
+    "statement": "Mon relevé (PDF)",
+    "noOps": "Aucune opération.",
+    "dist": {
+      "en_attente": "en attente",
+      "retire": "versés",
+      "reinvesti": "réinvestis"
+    },
+    "ops": {
+      "apport": "Apport",
+      "capital_initial": "Capital de départ",
+      "reinvestissement": "10 % réinvestis",
+      "retrait_capital": "Retrait de capital"
+    }
+  },
+  "compte": {
+    "title": "Mon compte",
+    "username": "Identifiant",
+    "passwordTitle": "Changer mon mot de passe",
+    "passwordHint": "Pour votre sécurité, tapez d’abord votre mot de passe actuel.",
+    "current": "Mot de passe actuel",
+    "new": "Nouveau mot de passe (8 caractères minimum)",
+    "confirm": "Confirmer le nouveau mot de passe",
+    "save": "Changer le mot de passe",
+    "tooShort": "Le nouveau mot de passe doit faire au moins 8 caractères.",
+    "mismatch": "Les deux nouveaux mots de passe ne sont pas identiques.",
+    "same": "Le nouveau mot de passe doit être différent de l’actuel.",
+    "wrongCurrent": "Mot de passe actuel incorrect.",
+    "done": "Mot de passe changé. Utilisez le nouveau à la prochaine connexion."
   }
 }

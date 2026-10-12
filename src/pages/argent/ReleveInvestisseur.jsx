@@ -47,7 +47,7 @@ export default function ReleveInvestisseur() {
   return (
     <div className="stack releve">
       <div className="no-print row">
-        <Link to="/argent" className="back"><Icon name="chevron" size={16} className="flip" />{t('capital.back')}</Link>
+        <Link to={role === 'investisseur' ? '/' : '/argent'} className="back"><Icon name="chevron" size={16} className="flip" />{t('capital.back')}</Link>
         <span className="spacer" />
         <button className="btn primary" onClick={() => window.print()}><Icon name="download" size={16} />{t('capital.print')}</button>
       </div>

@@ -18,6 +18,7 @@ export default function Plus() {
         {sections.map((s) => (
           <li key={s.key}><Link to={s.to}><Icon name={s.icon} size={20} />{t(`nav.${s.key}`)}<Icon name="chevron" size={18} /></Link></li>
         ))}
+        <li><Link to="/compte"><Icon name="users" size={20} />{t('compte.title')}<Icon name="chevron" size={18} /></Link></li>
         {faceIdSupported() && (
           <li><Link to="/face-id"><Icon name="check" size={20} />{t('faceid.menu', { nom: nomBiometrie() })}<Icon name="chevron" size={18} /></Link></li>
         )}

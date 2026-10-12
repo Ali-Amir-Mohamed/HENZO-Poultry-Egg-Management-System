@@ -24,6 +24,7 @@ const Sync = lazy(() => import('./pages/Sync'))
 const Plus = lazy(() => import('./pages/Plus'))
 const Recu = lazy(() => import('./pages/Recu'))
 const FaceId = lazy(() => import('./pages/FaceId'))
+const MonCompte = lazy(() => import('./pages/MonCompte'))
 
 function Guard({ section, children }) {
   const { role } = useAuth()
@@ -68,6 +69,9 @@ export default function App() {
         <Route path="plus" element={<Plus />} />
         <Route path="recu/:id" element={<Recu />} />
         <Route path="face-id" element={<FaceId />} />
+        <Route path="compte" element={<MonCompte />} />
+        {/* investor's own statement (the database only returns his own data) */}
+        <Route path="releve/:id" element={<ReleveInvestisseur />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

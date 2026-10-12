@@ -45,7 +45,7 @@ export default function Layout() {
             <Logo size={38} />
             <div>
               <strong>{t('app.name')}</strong>
-              <small>{profile?.nom_complet || t(`roles.${role}`)}</small>
+              <NavLink to="/compte" className="account-link" title={t('compte.title')}>{profile?.nom_complet || t(`roles.${role}`)}</NavLink>
               <FarmSwitch />
             </div>
           </div>
@@ -58,7 +58,7 @@ export default function Layout() {
                 <Icon name="download" size={18} /><span className="hide-sm">{t('status.install')}</span>
               </button>
             )}
-            {role !== 'employe' && <Notifications />}
+            {!['employe', 'investisseur'].includes(role) && <Notifications />}
             <ThemeSwitch />
             <LanguageSwitch />
             <button className="icon-btn" onClick={signOut} title={t('nav.logout')} aria-label={t('nav.logout')}>

@@ -63,18 +63,24 @@ export default function Commandes({ onChange }) {
   const rpc = (fn, args) => run(supabase.rpc(fn, args), reload)
 
   // « Livré » : number actually received; if some are missing, the new date announced for the rest
-  const livrer = async (l, code) => {
+  // The chick expense is created automatically (number received × order price), to be validated by finance
+  const livrer = async (l, c) => {
+    const prix = Number(c.prix_unitaire) || 0
     const v = await ask.form({
-      title: t('commandes.receiveTitle', { n: l.nombre, code }), icon: 'drumstick', submit: t('commandes.delivered'),
+      title: t('commandes.receiveTitle', { n: l.nombre, code: c.code_bande }), icon: 'drumstick', submit: t('commandes.delivered'),
+      message: prix ? t('commandes.expenseAuto', { prix: money(prix, lang) }) : t('commandes.expenseNoPrice'),
       fields: [
         { name: 'recu', label: t('commandes.receivedLabel'), type: 'number', value: l.nombre, min: 1, required: true },
         { name: 'date', label: t('commandes.receivedDateLabel'), type: 'date', value: today, required: true },
         { name: 'reste', label: t('commandes.restDateLabel'), type: 'date', value: '', showIf: (x) => Number(x.recu) > 0 && Number(x.recu) < l.nombre,
-          hint: t('commandes.restHint') }
+          hint: t('commandes.restHint') },
+        ...(prix ? [{ name: 'paiement', label: t('commandes.paidHow'), type: 'select', value: 'credit',
+          options: [{ value: 'credit', label: t('commandes.paidCredit') }, ...['especes', 'mobile_money', 'banque'].map((m) => ({ value: m, label: t(`modes.${m}`) }))],
+          hint: t('commandes.paidHint') }] : [])
       ]
     })
     if (!v) return
-    await rpc('receptionner_livraison', { p_livraison: l.id, p_nombre: v.recu, p_date: v.date, p_date_reste: v.recu < l.nombre && v.reste ? v.reste : null })
+    await rpc('receptionner_livraison', { p_livraison: l.id, p_nombre: v.recu, p_date: v.date, p_date_reste: v.recu < l.nombre && v.reste ? v.reste : null, p_paiement: v.paiement ?? 'credit' })
   }
   const reporter = async (l) => {
     const v = await ask.form({ title: t('commandes.postponeTitle', { n: l.nombre }), icon: 'calendar', submit: t('planning.postpone'),
@@ -133,7 +139,7 @@ export default function Commandes({ onChange }) {
                           </span>
                           {l.statut === 'prevue' && manage && (
                             <span className="row-actions">
-                              <button className="btn primary sm" onClick={() => livrer(l, c.code_bande)}><Icon name="check" size={14} />{t('commandes.delivered')}</button>
+                              <button className="btn primary sm" onClick={() => livrer(l, c)}><Icon name="check" size={14} />{t('commandes.delivered')}</button>
                               <button className="btn ghost sm" onClick={() => reporter(l)}>{t('planning.postpone')}</button>
                               <button className="btn ghost sm" onClick={() => annuler(l)}>{t('argent.cancel')}</button>
                             </span>
@@ -155,7 +161,7 @@ export default function Commandes({ onChange }) {
         <FormCard title={t('commandes.new')} icon="drumstick" onSubmit={commander}>
           <div className="grid-2">
             <Field label={t('ferme.supplier')}>
-              <select value={form.fournisseur_id} onChange={set('fournisseur_id')}>
+              <select value={form.fournisseur_id} onChange={set('fournisseur_id')} required={Number(form.prix_unitaire) > 0}>
                 <option value="">—</option>
                 {q.data.fournisseurs.map((f) => <option key={f.id} value={f.id}>{f.nom}</option>)}
               </select>

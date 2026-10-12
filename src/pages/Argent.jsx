@@ -16,6 +16,7 @@ import Demandes, { useDemandeCorrection } from './argent/Demandes'
 import Prets from './argent/Prets'
 import Verification from './argent/Verification'
 import Demarrage from './reglages/Demarrage'
+import Salaires from './argent/Salaires'
 
 // Money: cash boxes, sales, expenses, receivables and payables.
 // Financial records are never edited: only validated, rejected or cancelled (database rules).
@@ -38,6 +39,7 @@ export default function Argent() {
         { id: 'investisseurs', label: 'argent.tabs.investisseurs', icon: 'users' },
         { id: 'prets', label: 'argent.tabs.prets', icon: 'receipt' },
         { id: 'verification', label: 'argent.tabs.verification', icon: 'check' },
+        ...(can(role, 'salaires') ? [{ id: 'salaires', label: 'argent.tabs.salaires', icon: 'users' }] : []),
         ...(can(role, 'demarrage') ? [{ id: 'demarrage', label: 'argent.tabs.demarrage', icon: 'flag' }] : [])
       ]} />
       <Demandes key={rev} />
@@ -48,6 +50,7 @@ export default function Argent() {
       {tab === 'investisseurs' && <Investisseurs />}
       {tab === 'prets' && <Prets />}
       {tab === 'verification' && <Verification />}
+      {tab === 'salaires' && <Salaires />}
       {tab === 'demarrage' && <Demarrage />}
     </div>
   )
