@@ -931,6 +931,21 @@ const r3 = await as('vendeur', VB, [BQ, 'oeufs', null, 'plateau', 1, null, 2400]
 ok('egg tray sold at 2 400', Number(r3.rows[0].montant) === 2400)
 await expectErr('egg tray at 3 000 refused', 'vendeur', VB, [BQ, 'oeufs', null, 'plateau', 1, null, 3000], 'entre')
 
+// ---------- 0029: the director neither sells nor validates ----------
+try {
+  await db.exec(readFileSync(new URL('0029_boutique_sans_directeur.sql', MIG), 'utf8'))
+  ok('migration 0029 runs', true)
+} catch (e) { ok('migration 0029 runs', false, e.message); process.exit(1) }
+await expectErr('ali does not sell in a shop', 'ali', VB, [BQ, 'poulet', 'vivant', 'piece', 1, 1, 4000], 'vendre')
+await expectOk('kenfack still sells in a shop', 'kenfack', VB, [BQ, 'poulet', 'vivant', 'piece', 1, 1, 4000])
+const VER2 = (await oneP('vendeur', `select public.demander_versement($1, 'especes', 1000, 0) as id`, [BQ])).id
+await expectErr('ali does not validate a deposit', 'ali', `select public.valider_versement($1, true)`, [VER2], 'Dahirou')
+await expectOk('dahirou validates it', 'dahirou', `select public.valider_versement($1, true)`, [VER2])
+ok('shop access is a clear no for a non-seller', (await one('employe', `select public.acces_boutique('${BQ}') a`)).a === false)
+await expectErr('employee cannot declare a shop loss', 'employe', `select public.declarer_perte_boutique($1, 'poulet', 1, 'x')`, [BQ])
+await expectErr('employee cannot close the shop day', 'employe', `select public.cloturer_journee($1, 0, null)`, [BQ])
+await expectErr('employee cannot request a deposit', 'employe', `select public.demander_versement($1, 'especes', 100, 0)`, [BQ])
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))

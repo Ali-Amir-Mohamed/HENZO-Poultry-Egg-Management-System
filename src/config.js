@@ -67,12 +67,12 @@ export const PERMISSIONS = {
   'capital.allocate': [D, X, F], // investors' capital placed in each flock
   'salaires': [D, F],            // employees, advances, monthly pay (confidential)
   'boutique.admin': [D],         // create / edit shops
-  'boutique.vendre': [D, X, V],  // sell in a shop
+  'boutique.vendre': [X, V],  // sell in a shop
   'boutique.envoi': [X, E],   // send goods farm → shop
   'boutique.recevoir': [V], // confirm a shipment
   'boutique.prix': [D, X, F],    // shop prices (the seller never changes them)
   'boutique.caisse': [D, F, V],  // shop cash: closing, deposits
-  'boutique.valider': [D, F],    // validate a deposit
+  'boutique.valider': [F],    // validate a deposit
   'boutique.ventes': [D, X, F, V], // see the shop sales
   'pret.manage': [D, F],
   'caisse.verify': [D, F],
