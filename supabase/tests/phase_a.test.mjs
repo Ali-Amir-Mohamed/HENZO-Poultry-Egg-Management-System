@@ -975,6 +975,18 @@ ok('next year\'s deadline created automatically', suiv.rows.length === 2 && suiv
 await expectOk('ali moves the tax deadline', 'ali', `update public.admin_echeances set date_echeance = current_date + 2 where titre = 'Impôt libératoire'`)
 ok('moving a deadline sends its reminder again', Number((await one('ali', `select public.rappels_administration() n`)).n) === 1)
 
+// ---------- 0031: finance sees the bank accounts ----------
+try {
+  await db.exec(readFileSync(new URL('0031_banques_finance.sql', MIG), 'utf8'))
+  ok('migration 0031 runs', true)
+} catch (e) { ok('migration 0031 runs', false, e.message); process.exit(1) }
+ok('dahirou sees the bank accounts', (await as('dahirou', `select * from public.admin_comptes_bancaires`)).rows.length === 1)
+await expectOk('dahirou adds a bank account', 'dahirou', `insert into public.admin_comptes_bancaires (banque, intitule) values ('UBA', 'HENZO SARL')`)
+await expectOk('dahirou edits a bank account', 'dahirou', `update public.admin_comptes_bancaires set agence = 'Bastos' where banque = 'UBA'`)
+ok('kenfack still sees no bank account', (await as('kenfack', `select * from public.admin_comptes_bancaires`)).rows.length === 0)
+ok('dahirou still sees no deadline nor document', (await as('dahirou', `select * from public.admin_echeances`)).rows.length === 0
+  && (await as('dahirou', `select * from public.admin_documents`)).rows.length === 0)
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))

@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { useAuth } from '../auth/AuthProvider'
+import { can } from '../config'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { must, useQuery } from '../hooks'
@@ -6,8 +8,8 @@ import Icon from '../components/Icon'
 import { day, Empty, Field, FormCard, Loading, money, Panel, Tabs } from '../components/ui'
 import { useAsk, useRun } from '../components/Dialog'
 
-// Administration (director only): deadlines with phone reminders, company documents (private storage),
-// land and bank accounts. Never a password or a PIN code here.
+// Administration: the director has deadlines with phone reminders, company documents (private storage),
+// land and bank accounts; finance sees and manages the bank accounts only. Never a password or a PIN code here.
 const BUCKET = 'administration'
 const CAT_DOCS = ['entreprise', 'impots', 'banque', 'foncier', 'contrat', 'autre']
 const CAT_ECH = ['impots', 'entreprise', 'banque', 'foncier', 'autre']
@@ -23,11 +25,14 @@ const today = () => new Date().toLocaleDateString('en-CA')
 const joursAvant = (d) => Math.round((new Date(`${d}T00:00`) - new Date(`${today()}T00:00`)) / 86400000)
 
 export default function Administration() {
-  const [tab, setTab] = useState(() => { try { return localStorage.getItem('henzo.admin.tab') || 'echeances' } catch { return 'echeances' } })
+  const { role } = useAuth()
+  const tabs = can(role, 'admin.complet') ? TABS : TABS.filter((x) => x.id === 'banques')
+  const [choix, setTab] = useState(() => { try { return localStorage.getItem('henzo.admin.tab') || 'echeances' } catch { return 'echeances' } })
+  const tab = tabs.some((x) => x.id === choix) ? choix : tabs[0].id
   useEffect(() => { try { localStorage.setItem('henzo.admin.tab', tab) } catch { /* ignore */ } }, [tab])
   return (
     <div className="stack">
-      <Tabs value={tab} onChange={setTab} tabs={TABS} />
+      {tabs.length > 1 && <Tabs value={tab} onChange={setTab} tabs={tabs} />}
       {tab === 'echeances' && <Echeances />}
       {tab === 'documents' && <Documents />}
       {tab === 'terrains' && <Terrains />}
