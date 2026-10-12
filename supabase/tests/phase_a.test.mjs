@@ -1000,6 +1000,49 @@ await expectNoRows('kenfack cannot delete land', 'kenfack', `delete from public.
 await expectOk('ali still edits land', 'ali', `update public.admin_terrains set statut = 'achete'`)
 ok('the employee sees no land', (await as('employe', `select * from public.admin_terrains`)).rows.length === 0)
 
+// ---------- 0033: everyone in their own domain ----------
+try {
+  await db.exec(readFileSync(new URL('0033_domaines.sql', MIG), 'utf8'))
+  ok('migration 0033 runs', true)
+} catch (e) { ok('migration 0033 runs', false, e.message); process.exit(1) }
+const DOM = (await one('kenfack', `insert into public.bandes (code, date_arrivee, nombre_initial) values ('DOM1', current_date - 10, 300) returning id`)).id
+ok('kenfack still creates a flock', !!DOM)
+await expectErr('ali does not create a flock', 'ali', `insert into public.bandes (code, date_arrivee, nombre_initial) values ('DOM2', current_date, 100)`)
+await expectErr('ali does not record a mortality', 'ali', `insert into public.mortalites (bande_id, nombre) values ($1, 1)`, [DOM])
+await expectOk('kenfack still records a mortality', 'kenfack', `insert into public.mortalites (bande_id, nombre) values ($1, 1)`, [DOM])
+await expectOk('the employee still records a mortality', 'employe', `insert into public.mortalites (bande_id, nombre) values ($1, 1)`, [DOM])
+await expectNoRows('ali does not correct a mortality', 'ali', `update public.mortalites set nombre = 9 where bande_id = '${DOM}' returning id`)
+await expectErr('ali does not record a farm sale', 'ali', `insert into public.ventes (bande_id, produit, unite, quantite, prix_unitaire, nombre_sujets, mode_paiement) values ($1, 'poulets', 'piece', 1, 3000, 1, 'especes')`, [DOM])
+await expectErr('ali does not create a stock product', 'ali', `insert into public.articles (nom, categorie, unite) values ('x', 'autre', 'piece')`)
+await expectErr('ali does not add a building', 'ali', `insert into public.batiments (nom) values ('Bâtiment Ali')`)
+await expectErr('ali does not plan a task', 'ali', `insert into public.taches (titre, type_tache, date_prevue) values ('x', 'autre', current_date)`)
+await expectErr('ali does not edit a flock', 'ali', `update public.bandes set nombre_initial = 1 where id = $1`, [DOM], 'exploitation')
+await expectErr('ali does not request a closure', 'ali', `update public.bandes set statut = 'cloture_demandee' where id = $1`, [DOM])
+await expectOk('kenfack requests the closure', 'kenfack', `update public.bandes set statut = 'cloture_demandee' where id = $1`, [DOM])
+await expectOk('ali can still refuse a closure (finance side)', 'ali', `update public.bandes set statut = 'en_cours' where id = $1`, [DOM])
+await expectErr('ali does not grant client credit', 'ali', `update public.tiers set credit_autorise = true, plafond_credit = 1000 where nom = 'Client B'`, [], 'Kenfack')
+await expectErr('ali does not buy feed into stock', 'ali', `insert into public.depenses (portee, activite, categorie, libelle, montant, mode_paiement, article_id, quantite, fournisseur_id) values ('ferme', 'chair', 'aliment', 'x', 1000, 'especes', $1, 1, $2)`, [ART, FOU], 'Kenfack')
+await expectOk('ali still records a general expense (finance side)', 'ali', `insert into public.depenses (portee, activite, categorie, libelle, montant, mode_paiement) values ('generale', 'chair', 'fonctionnement', 'Frais de banque', 2000, 'banque')`)
+ok('ali still sees everything on the farm', (await as('ali', `select * from public.mortalites`)).rows.length > 0 && (await as('ali', `select * from public.lots_pondeuses`)).rows.length > 0
+  && (await as('ali', `select * from public.articles`)).rows.length > 0)
+const TD = (await one('kenfack', `insert into public.taches (titre, type_tache, date_prevue, assigne_role) values ('Signer le contrat', 'autre', current_date, 'directeur') returning id`)).id
+const TE = (await one('kenfack', `insert into public.taches (titre, type_tache, date_prevue, assigne_role) values ('Nettoyer', 'nettoyage', current_date, 'employe') returning id`)).id
+await expectErr('ali does not tick an employee task', 'ali', `insert into public.taches_realisations (tache_id) values ($1)`, [TE])
+await expectOk('ali ticks a task assigned to the direction', 'ali', `insert into public.taches_realisations (tache_id) values ($1)`, [TD])
+// team managed by kenfack, salaries hidden
+const NEW = (await oneP('kenfack', `select public.ajouter_employe($1, $2, $3) as id`, ['Moussa', '690000000', 'Gardien'])).id
+ok('kenfack adds an employee', !!NEW)
+const eq = await as('kenfack', `select * from public.equipe where id = $1`, [NEW])
+ok('kenfack sees the team without salaries', eq.rows.length === 1 && !('salaire_mensuel' in eq.rows[0]) && eq.rows[0].poste === 'Gardien')
+ok('kenfack still cannot read the salary table', (await as('kenfack', `select * from public.employes`)).rows.length === 0)
+ok('dahirou is told to set the salary', (await as('dahirou', `select * from public.notifications where type_notification = 'nouvel_employe'`)).rows.length === 1)
+await expectOk('kenfack changes the job', 'kenfack', `select public.modifier_employe($1, 'Moussa', '690000000', 'Chef d''équipe', true)`, [NEW])
+ok('dahirou is told about the new job', (await as('dahirou', `select * from public.notifications where type_notification = 'poste_employe'`)).rows.length === 1)
+await expectNoRows('kenfack cannot change a salary', 'kenfack', `update public.employes set salaire_mensuel = 999999 where id = '${NEW}' returning id`)
+await expectErr('dahirou does not use the team form', 'dahirou', `select public.ajouter_employe('x')`, [], 'Kenfack')
+await expectOk('dahirou sets the salary', 'dahirou', `update public.employes set salaire_mensuel = 50000 where id = $1`, [NEW])
+ok('the employee account sees no team', (await as('employe', `select * from public.equipe`)).rows.length === 0)
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))

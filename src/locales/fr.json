@@ -1591,5 +1591,15 @@
       "open": "Ouvert",
       "closed": "Fermé"
     }
+  },
+  "equipe": {
+    "tab": "Équipe",
+    "title": "Équipe de la ferme",
+    "subtitle_one": "{{count}} employé actif",
+    "subtitle_other": "{{count}} employés actifs",
+    "created": "Employé ajouté. Dahirou est prévenu pour fixer son salaire.",
+    "editHint": "Le salaire est géré par Dahirou : il est prévenu si le poste change ou si l’employé part.",
+    "since": "depuis le {{d}}",
+    "salaryHint": "Les salaires ne s’affichent pas ici : Dahirou les fixe et les paie."
   }
 }

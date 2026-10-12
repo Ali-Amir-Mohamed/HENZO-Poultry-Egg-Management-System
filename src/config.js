@@ -34,7 +34,7 @@ const { DIRECTEUR: D, EXPLOITATION: X, FINANCE: F, EMPLOYE: E, VENDEUR: V } = RO
 // Which roles can open each section of the app (the database enforces the same rules)
 export const ACCESS = {
   dashboard: [D, X, F, E],
-  saisie: [D, X, E],
+  saisie: [X, E],                 // field entries: operations (the director only reads)
   ferme: [D, X, F],
   planning: [D, X, F],
   analyses: [D, X, F],
@@ -48,8 +48,8 @@ export const ACCESS = {
 
 // Actions inside the sections
 export const PERMISSIONS = {
-  'bande.create': [D, X],
-  'bande.requestClose': [D, X],
+  'bande.create': [X],           // flocks, lots, buildings, chicks: operations (Kenfack)
+  'bande.requestClose': [X],
   'bande.validateClose': [D, F],
   'depense.ferme': [D, X, F],
   'depense.generale': [D, F],
@@ -58,16 +58,17 @@ export const PERMISSIONS = {
   'annuler': [D],
   'paiement': [D, X, F],
   'soldeInitial': [D, F],
-  'credit.grant': [D, X],
+  'credit.grant': [X],
   'tiers.edit': [D, X, F],
   'prix.set': [D, X, F],
-  'article.edit': [D, X],        // stock product sheets (finance: read-only stock)
-  'stock.achat': [D, X],         // purchases that enter stock (feed, medicines)
-  'stock.manual': [D, X],
+  'article.edit': [X],           // stock product sheets (director, finance: read-only stock)
+  'stock.achat': [X],            // purchases that enter stock (feed, medicines)
+  'stock.manual': [X],
   'capital.manage': [D, F],      // investors, contributions, withdrawals, 10 % decisions
   'capital.allocate': [D, X, F], // investors' capital placed in each flock
   'salaires': [D, F],            // see employees and pay (confidential)
   'salaires.payer': [F],         // pay advances and salaries (Dahirou only)
+  'equipe': [X],                 // add an employee, change his job, without salaries (Kenfack)
   'admin.complet': [D],          // documents, deadlines, editing land
   'admin.terrains': [D, F, X],   // see the land
   'admin.banques': [D, F],       // bank accounts
@@ -82,8 +83,8 @@ export const PERMISSIONS = {
   'pret.manage': [D, F],
   'caisse.verify': [D, F],
   'caisse.adjust': [D],
-  'tache.plan': [D, X],          // plan / postpone / cancel tasks (finance: read-only planning)
-  'programme.edit': [D, X],
+  'tache.plan': [X],             // plan / postpone / cancel tasks (others tick only their own tasks)
+  'programme.edit': [X],
   'demarrage': [D, F],          // initial setup (opening balances, existing capital / loans)
   'ferme.settings': [D],
   'comptes': [D],

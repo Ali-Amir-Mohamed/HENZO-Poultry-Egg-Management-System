@@ -1591,5 +1591,15 @@
       "open": "Open",
       "closed": "Closed"
     }
+  },
+  "equipe": {
+    "tab": "Team",
+    "title": "Farm team",
+    "subtitle_one": "{{count}} active employee",
+    "subtitle_other": "{{count}} active employees",
+    "created": "Employee added. Dahirou is notified to set the salary.",
+    "editHint": "Salaries are handled by Dahirou: he is notified if the job changes or the employee leaves.",
+    "since": "since {{d}}",
+    "salaryHint": "Salaries are not shown here: Dahirou sets and pays them."
   }
 }
