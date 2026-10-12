@@ -10,7 +10,7 @@ export function readRefBoutique(id) {
 export async function loadRefBoutique(id) {
   if (!navigator.onLine) return readRefBoutique(id)
   const [prix, stock, boutique] = await Promise.all([
-    supabase.from('prix_boutique_actuels').select('produit, forme, unite, prix'),
+    supabase.from('prix_boutique_actuels').select('produit, forme, unite, prix, prix_min, prix_max'),
     supabase.from('stock_boutiques').select('produit, stock').eq('boutique_id', id),
     supabase.from('boutiques').select('id, nom, ferme_id, ferme:fermes(nom, oeufs_par_plateau)').eq('id', id).maybeSingle()
   ])
@@ -35,8 +35,9 @@ export function deduireStock(id, produit, n) {
   try { localStorage.setItem(key(id), JSON.stringify(ref)) } catch { /* ignore */ }
 }
 
-export const prixDe = (ref, produit, forme, unite) =>
-  ref?.prix?.find((p) => p.produit === produit && p.forme === (produit === 'oeufs' ? '-' : forme) && p.unite === unite)?.prix ?? null
+// Price row of a product: a range (prix_min – prix_max) or an older fixed price; none by the kilo (typed freely)
+export const plageDe = (ref, produit, forme, unite) =>
+  ref?.prix?.find((p) => p.produit === produit && p.forme === (produit === 'oeufs' ? '-' : forme) && p.unite === unite) ?? null
 
 export const PRODUITS_BOUTIQUE = ['poulet', 'oeufs', 'poule_reformee']
 export const FORMES = ['vivant', 'abattu', 'decoupe']

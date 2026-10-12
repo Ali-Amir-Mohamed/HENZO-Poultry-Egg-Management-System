@@ -8,11 +8,11 @@ import Icon from '../../components/Icon'
 import { day, Field, FormCard, Loading, money, Panel } from '../../components/ui'
 import { useAsk, useRun } from '../../components/Dialog'
 
-// Shop prices (same in every shop, the seller never changes them) and the list of shops (director)
+// Shop price ranges (same in every shop: the person selling types a price inside the range;
+// by the kilo the price is typed freely, so no row) and the list of shops (director)
 const GRILLE = [
-  ['poulet', 'vivant', 'piece'], ['poulet', 'vivant', 'kg'], ['poulet', 'abattu', 'piece'], ['poulet', 'abattu', 'kg'],
-  ['poulet', 'decoupe', 'piece'], ['poulet', 'decoupe', 'kg'], ['oeufs', '-', 'piece'], ['oeufs', '-', 'plateau'],
-  ['poule_reformee', 'vivant', 'piece'], ['poule_reformee', 'vivant', 'kg']
+  ['poulet', 'vivant', 'piece'], ['poulet', 'abattu', 'piece'], ['poulet', 'decoupe', 'piece'],
+  ['oeufs', '-', 'piece'], ['oeufs', '-', 'plateau'], ['poule_reformee', 'vivant', 'piece']
 ]
 
 export default function GestionBoutiques({ onChange }) {
@@ -36,9 +36,12 @@ export default function GestionBoutiques({ onChange }) {
   const changerPrix = async (g) => {
     const cur = prixActuel(g)
     const v = await ask.form({ title: libelle(g), icon: 'tag', submit: t('dialog.save'), message: t('boutique.priceHint'),
-      fields: [{ name: 'prix', label: t('reglages.price'), type: 'number', min: 1, value: cur?.prix ?? '', required: true },
+      fields: [{ name: 'min', label: t('boutique.priceMin'), type: 'number', min: 1, value: cur?.prix_min ?? cur?.prix ?? '', required: true },
+               { name: 'max', label: t('boutique.priceMax'), type: 'number', min: 1, value: cur?.prix_max ?? cur?.prix ?? '', required: true },
                { name: 'date', label: t('reglages.from'), type: 'date', value: new Date().toLocaleDateString('en-CA'), required: true }] })
-    if (v) await run(supabase.from('prix_boutique').insert({ produit: g[0], forme: g[1], unite: g[2], prix: v.prix, date_debut: v.date }), q.reload)
+    if (!v) return
+    if (Number(v.min) > Number(v.max)) return ask.error(t('boutique.minAboveMax'))
+    await run(supabase.from('prix_boutique').insert({ produit: g[0], forme: g[1], unite: g[2], prix_min: v.min, prix_max: v.max, date_debut: v.date }), q.reload)
   }
   const creer = async () => {
     must(await supabase.from('boutiques').insert({ nom: form.nom, adresse: form.adresse || null, telephone: form.telephone || null }))
@@ -67,7 +70,7 @@ export default function GestionBoutiques({ onChange }) {
               return (
                 <li key={g.join('-')}>
                   <div className="grow"><strong>{libelle(g)}</strong>{cur && <div className="muted small">{t('reglages.since', { d: day(cur.date_debut, lang) })}</div>}</div>
-                  {cur ? <strong>{money(cur.prix, lang)}</strong> : <span className="tag warn">{t('boutique.noPriceShort')}</span>}
+                  {cur ? <strong>{cur.prix_min != null ? `${money(cur.prix_min, lang)} – ${money(cur.prix_max, lang)}` : money(cur.prix, lang)}</strong> : <span className="tag warn">{t('boutique.noPriceShort')}</span>}
                   <button className="btn ghost sm" onClick={() => changerPrix(g)}><Icon name="tag" size={14} /></button>
                 </li>
               )

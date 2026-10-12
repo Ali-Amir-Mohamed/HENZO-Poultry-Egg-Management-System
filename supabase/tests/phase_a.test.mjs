@@ -908,6 +908,29 @@ await expectErr('ali does not confirm a reception', 'ali', `select public.recevo
 await expectErr('kenfack does not confirm a reception', 'kenfack', `select public.recevoir_envoi($1)`, [ENV2], 'vendeur')
 await expectOk('the seller confirms the reception', 'vendeur', `select public.recevoir_envoi($1)`, [ENV2])
 
+// ---------- 0028: price typed on the spot, within a range ----------
+try {
+  await db.exec(readFileSync(new URL('0028_prix_boutique_plages.sql', MIG), 'utf8'))
+  ok('migration 0028 runs', true)
+} catch (e) { ok('migration 0028 runs', false, e.message); process.exit(1) }
+const plage = await one('vendeur', `select prix_min, prix_max from public.prix_boutique_actuels where produit = 'poulet' and forme = 'vivant' and unite = 'piece'`)
+ok('starting range for a whole chicken: 3 500 – 5 000', Number(plage.prix_min) === 3500 && Number(plage.prix_max) === 5000, JSON.stringify(plage))
+const VB = `insert into public.ventes_boutique (boutique_id, produit, forme, unite, quantite, nombre_sujets, prix_unitaire, mode_paiement) values ($1, $2, $3, $4, $5, $6, $7, 'especes') returning montant`
+const r1 = await as('vendeur', VB, [BQ, 'poulet', 'vivant', 'piece', 1, 1, 4200])
+ok('seller sells a chicken at 4 200 (inside the range)', Number(r1.rows[0].montant) === 4200)
+await expectErr('price under 3 500 refused', 'vendeur', VB, [BQ, 'poulet', 'vivant', 'piece', 1, 1, 3000], 'entre')
+await expectErr('price over 5 000 refused', 'vendeur', VB, [BQ, 'poulet', 'abattu', 'piece', 1, 1, 5500], 'entre')
+await expectErr('price missing refused', 'vendeur', VB, [BQ, 'poulet', 'decoupe', 'piece', 1, 1, null], 'Entrez')
+const r2 = await as('kenfack', VB, [BQ, 'poulet', 'abattu', 'kg', 4, 2, 2800])
+ok('kenfack sells by the kilo at the price he types: 4 kg × 2 800 = 11 200', Number(r2.rows[0].montant) === 11200)
+await expectErr('kilo price missing refused', 'vendeur', VB, [BQ, 'poulet', 'vivant', 'kg', 3, 1, null], 'kilo')
+await expectErr('seller cannot set a range', 'vendeur', `insert into public.prix_boutique (produit, forme, unite, prix_min, prix_max) values ('oeufs', '-', 'plateau', 1, 9999)`)
+await expectErr('no range by the kilo', 'kenfack', `insert into public.prix_boutique (produit, forme, unite, prix_min, prix_max) values ('poulet', 'vivant', 'kg', 1000, 3000)`)
+await expectOk('kenfack sets the egg tray range 2 000 – 2 600', 'kenfack', `insert into public.prix_boutique (produit, forme, unite, prix_min, prix_max) values ('oeufs', '-', 'plateau', 2000, 2600)`)
+const r3 = await as('vendeur', VB, [BQ, 'oeufs', null, 'plateau', 1, null, 2400])
+ok('egg tray sold at 2 400', Number(r3.rows[0].montant) === 2400)
+await expectErr('egg tray at 3 000 refused', 'vendeur', VB, [BQ, 'oeufs', null, 'plateau', 1, null, 3000], 'entre')
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))

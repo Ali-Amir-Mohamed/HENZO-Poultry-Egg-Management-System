@@ -4,11 +4,12 @@ import { useTranslation } from 'react-i18next'
 import { enqueue } from '../../lib/offlineQueue'
 import Icon from '../../components/Icon'
 import { money } from '../../components/ui'
-import { deduireStock, FORMES, loadRefBoutique, prixDe, PRODUITS_BOUTIQUE, readRefBoutique } from './data'
+import { deduireStock, FORMES, loadRefBoutique, plageDe, PRODUITS_BOUTIQUE, readRefBoutique } from './data'
 
-// Sale in a shop: fixed price (shown, never typed), cash or Mobile Money, works offline.
+// Sale in a shop: the person selling types the price (inside the range set by the direction;
+// free by the kilo), cash or Mobile Money, works offline.
 // The database checks the price and the stock again when the sale is sent.
-const vide = { produit: 'poulet', forme: 'vivant', unite: 'piece', nombre: '', quantite: '', mode: 'especes', client_nom: '', client_telephone: '' }
+const vide = { produit: 'poulet', forme: 'vivant', unite: 'piece', nombre: '', quantite: '', prix: '', mode: 'especes', client_nom: '', client_telephone: '' }
 
 export default function Vendre({ boutique }) {
   const { t, i18n } = useTranslation()
@@ -24,7 +25,13 @@ export default function Vendre({ boutique }) {
   const unites = oeufs ? ['piece', 'plateau'] : ['piece', 'kg']
   const unite = unites.includes(form.unite) ? form.unite : unites[0]
   const forme = form.produit === 'poule_reformee' ? 'vivant' : form.forme
-  const prix = prixDe(ref, form.produit, forme, unite)
+  const kilo = unite === 'kg'
+  const ligne = kilo ? null : plageDe(ref, form.produit, forme, unite)
+  const plage = ligne?.prix_min != null
+  const saisi = kilo || plage
+  const prix = saisi ? Number(form.prix) || 0 : Number(ligne?.prix) || 0
+  const possible = kilo || !!ligne
+  const horsPlage = plage && prix > 0 && (prix < Number(ligne.prix_min) || prix > Number(ligne.prix_max))
   const nombre = Number(form.nombre) || 0
   const quantite = oeufs || unite === 'kg' ? Number(form.quantite) || 0 : nombre
   const total = prix ? Math.round(quantite * prix) : 0
@@ -34,7 +41,9 @@ export default function Vendre({ boutique }) {
 
   const vendre = async (e) => {
     e.preventDefault()
-    if (!prix) return setErreur(t('boutique.noPrice'))
+    if (!possible) return setErreur(t('boutique.noPrice'))
+    if (!prix) return setErreur(t(kilo ? 'boutique.kiloPriceMissing' : 'boutique.priceMissing'))
+    if (horsPlage) return setErreur(t('boutique.outOfRange', { min: money(ligne.prix_min, lang), max: money(ligne.prix_max, lang) }))
     if (besoin <= 0 || quantite <= 0) return setErreur(t('boutique.noQuantity'))
     if (besoin > stock) return setErreur(t('boutique.notEnough', { n: fmt(stock) }))
     const row = await enqueue('ventes_boutique', {
@@ -87,8 +96,16 @@ export default function Vendre({ boutique }) {
         )}
       </div>
 
+      {saisi && (
+        <label className="field big"><span>{kilo ? t('boutique.kiloPrice') : t('boutique.unitPrice', { unite: t(`unites.${unite}`), min: money(ligne.prix_min, lang), max: money(ligne.prix_max, lang) })}</span>
+          <input type="number" inputMode="numeric" min={plage ? ligne.prix_min : 1} max={plage ? ligne.prix_max : undefined} step="1" required
+            value={form.prix} onChange={set('prix')} placeholder={plage ? `${fmt(ligne.prix_min)} – ${fmt(ligne.prix_max)}` : '0'} className={horsPlage ? 'invalid' : ''} />
+        </label>
+      )}
+      {horsPlage && <div className="alert warn"><Icon name="alert" size={16} />{t('boutique.outOfRange', { min: money(ligne.prix_min, lang), max: money(ligne.prix_max, lang) })}</div>}
+
       <div className="total-box">
-        <span>{prix ? t('boutique.priceLine', { prix: money(prix, lang), unite: t(`unites.${unite}`) }) : t('boutique.noPrice')}</span>
+        <span>{!possible ? t('boutique.noPrice') : prix ? t('boutique.priceLine', { prix: money(prix, lang), unite: t(`unites.${unite}`) }) : t('boutique.typePrice')}</span>
         <strong>{money(total, lang)}</strong>
       </div>
 
@@ -109,7 +126,7 @@ export default function Vendre({ boutique }) {
           <Link to={`/recu-boutique/${faite.id}`} className="btn ghost sm" style={{ marginLeft: 'auto' }}><Icon name="receipt" size={14} />{t('recu.open')}</Link>
         </div>
       )}
-      <button type="submit" className="btn primary block" disabled={!prix}><Icon name="check" size={18} />{t('boutique.sell')}</button>
+      <button type="submit" className="btn primary block" disabled={!possible}><Icon name="check" size={18} />{t('boutique.sell')}</button>
       <p className="note"><Icon name="cloud" size={16} />{t('boutique.offlineHint')}</p>
     </form>
   )
