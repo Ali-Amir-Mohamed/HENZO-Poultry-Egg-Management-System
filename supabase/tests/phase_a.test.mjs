@@ -806,12 +806,101 @@ await expectOk('october can be paid again after the cancellation', 'dahirou', `s
 ok('no price: no expense, finance reminded to enter it',!(await one('ali', `select depense_id from public.livraisons_poussins where id = '${lP3}'`)).depense_id
   && (await as('dahirou', `select * from public.notifications where type_notification = 'depense_poussins'`)).rows.length === nP0 + 1)
 
+// ---------- 0025 + 0026: shops ----------
+const oneP = async (u, sql, params) => (await as(u, sql, params)).rows[0]
+try {
+  await db.exec(readFileSync(new URL('0025_role_vendeur.sql', MIG), 'utf8'))
+  await db.exec(readFileSync(new URL('0026_boutiques.sql', MIG), 'utf8'))
+  ok('migrations 0025 + 0026 run', true)
+} catch (e) { ok('migrations 0025 + 0026 run', false, e.message); process.exit(1) }
+U.vendeur = '66666666-6666-6666-6666-666666666666'
+await db.query(`insert into auth.users (id, email) values ($1, 'vendeurtest@henzo.local')`, [U.vendeur])
+await db.exec(`update public.profiles set role = 'vendeur', nom_complet = 'Vendeur Test' where id = '${U.vendeur}'`)
+const BQ = (await one('ali', `insert into public.boutiques (nom, adresse) values ('Boutique Marché', 'Garoua') returning id`)).id
+const BQ2 = (await one('ali', `insert into public.boutiques (nom) values ('Boutique Gare') returning id`)).id
+await expectErr('kenfack cannot create a shop', 'kenfack', `insert into public.boutiques (nom) values ('X')`)
+await expectErr('kenfack cannot assign a seller', 'kenfack', `select public.affecter_boutique('vendeurtest', $1)`, [BQ], 'directeur')
+await expectOk('ali assigns the seller to « Boutique Marché »', 'ali', `select public.affecter_boutique('vendeurtest', $1)`, [BQ])
+const vSees = async (sql) => (await as('vendeur', sql)).rows
+ok('seller sees only his shop', (await vSees(`select id from public.boutiques`)).map((r) => r.id).join() === BQ)
+for (const tb of ['bandes', 'ventes', 'depenses', 'ecritures', 'soldes_caisses', 'tiers', 'mortalites', 'employes', 'investisseurs', 'journal_activite', 'notifications']) {
+  ok(`seller sees nothing in ${tb}`, (await vSees(`select * from public.${tb}`)).length === 0)
+}
+// prices (the seller never sets them)
+await expectErr('seller cannot set a price', 'vendeur', `insert into public.prix_boutique (produit, forme, unite, prix) values ('poulet', 'vivant', 'piece', 1)`)
+for (const [pr, fo, un, px] of [['poulet', 'vivant', 'piece', 3500], ['poulet', 'abattu', 'kg', 2500], ['poulet', 'decoupe', 'piece', 4500], ['oeufs', '-', 'plateau', 2500], ['oeufs', '-', 'piece', 100]]) {
+  await as('kenfack', `insert into public.prix_boutique (produit, forme, unite, prix) values ($1, $2, $3, $4)`, [pr, fo, un, px])
+}
+ok('seller sees the shop prices', (await vSees(`select * from public.prix_boutique_actuels`)).length === 5)
+// shipment farm → shop
+const BS1 = (await one('kenfack', `insert into public.bandes (code, date_arrivee, nombre_initial) values ('BS1', current_date - 40, 200) returning id`)).id
+const eggsBefore = Number((await one('kenfack', `select stock_oeufs from public.stock_oeufs`)).stock_oeufs)
+await expectErr('cannot send more birds than the flock has', 'kenfack', `select public.creer_envoi($1, $2::jsonb)`, [BQ, JSON.stringify([{ produit: 'poulet', bande_id: BS1, quantite: 500 }])], 'disponibles')
+await expectErr('seller cannot create a shipment', 'vendeur', `select public.creer_envoi($1, $2::jsonb)`, [BQ, JSON.stringify([{ produit: 'poulet', bande_id: BS1, quantite: 5 }])])
+const ENV = (await oneP('kenfack', `select public.creer_envoi($1, $2::jsonb) as id`, [BQ, JSON.stringify([{ produit: 'poulet', bande_id: BS1, quantite: 50 }, { produit: 'oeufs', lot_id: P1, quantite: 600 }])])).id
+ok('shipment created: 50 chickens + 600 eggs', !!ENV)
+ok('eggs leave the farm egg stock at once', Number((await one('kenfack', `select stock_oeufs from public.stock_oeufs`)).stock_oeufs) === eggsBefore - 600)
+await expectErr('nothing to sell before reception', 'vendeur', `insert into public.ventes_boutique (boutique_id, produit, forme, unite, quantite, nombre_sujets, mode_paiement) values ($1, 'poulet', 'vivant', 'piece', 1, 1, 'especes')`, [BQ], 'Stock insuffisant')
+const ligneP = (await one('vendeur', `select id from public.envois_lignes where envoi_id = '${ENV}' and produit = 'poulet'`)).id
+const mort0 = Number((await one('ali', `select coalesce(sum(nombre), 0) n from public.mortalites where bande_id = '${BS1}'`)).n)
+await expectOk('seller receives: 48 chickens (2 missing), all eggs', 'vendeur', `select public.recevoir_envoi($1, $2::jsonb)`, [ENV, JSON.stringify([{ ligne_id: ligneP, recu: 48 }])])
+ok('2 missing chickens counted as losses of the flock', Number((await one('ali', `select coalesce(sum(nombre), 0) n from public.mortalites where bande_id = '${BS1}'`)).n) === mort0 + 2)
+ok('direction and exploitation alerted of the gap', (await as('kenfack', `select * from public.notifications where type_notification = 'ecart_envoi'`)).rows.length >= 1)
+const stockOf = async (pr) => Number((await one('vendeur', `select coalesce(sum(stock), 0) s from public.stock_boutiques where produit = '${pr}'`)).s)
+ok('shop stock: 48 chickens, 600 eggs', (await stockOf('poulet')) === 48 && (await stockOf('oeufs')) === 600)
+await expectErr('shipment cannot be received twice', 'vendeur', `select public.recevoir_envoi($1)`, [ENV], 'déjà')
+// sales at the fixed price
+const caisseFerme0 = await caisseSum()
+const sell = (who, sql, params) => as(who, `insert into public.ventes_boutique ${sql} returning id, montant, prix_unitaire`, params)
+const s1 = (await sell('vendeur', `(boutique_id, produit, forme, unite, quantite, nombre_sujets, prix_unitaire, mode_paiement, client_nom) values ($1, 'poulet', 'vivant', 'piece', 3, 3, 1, 'especes', 'Client A')`, [BQ])).rows[0]
+ok('price typed by the seller is ignored: 3 × 3 500 = 10 500', Number(s1.prix_unitaire) === 3500 && Number(s1.montant) === 10500, JSON.stringify(s1))
+const s2 = (await sell('vendeur', `(boutique_id, produit, forme, unite, quantite, nombre_sujets, mode_paiement) values ($1, 'poulet', 'abattu', 'kg', 4.5, 2, 'especes')`, [BQ])).rows[0]
+ok('2 slaughtered chickens, 4.5 kg × 2 500 = 11 250', Number(s2.montant) === 11250)
+const s3 = (await sell('vendeur', `(boutique_id, produit, unite, quantite, mode_paiement) values ($1, 'oeufs', 'plateau', 2, 'mobile_money')`, [BQ])).rows[0]
+ok('2 trays (60 eggs) × 2 500 = 5 000', Number(s3.montant) === 5000)
+ok('shop stock now 43 chickens, 540 eggs', (await stockOf('poulet')) === 43 && (await stockOf('oeufs')) === 540)
+const vBS1 = await one('ali', `select coalesce(sum(nombre_sujets), 0) n, coalesce(sum(montant), 0) m from public.ventes where bande_id = '${BS1}' and boutique_id is not null and not annulee`)
+ok('shop sales counted in the origin flock (5 birds, 21 750 F)', Number(vBS1.n) === 5 && Number(vBS1.m) === 21750, JSON.stringify(vBS1))
+ok('farm cash boxes untouched by shop sales', (await caisseSum()) === caisseFerme0)
+const sol = Object.fromEntries((await vSees(`select mode || '/' || activite k, solde from public.soldes_boutiques`)).map((r) => [r.k, Number(r.solde)]))
+ok('shop cash: 21 750 cash (chicken), 5 000 Mobile Money (eggs)', sol['especes/chair'] === 21750 && sol['mobile_money/pondeuse'] === 5000, JSON.stringify(sol))
+await expectErr('no price fixed → refused', 'vendeur', `insert into public.ventes_boutique (boutique_id, produit, unite, quantite, nombre_sujets, mode_paiement) values ($1, 'poule_reformee', 'piece', 1, 1, 'especes')`, [BQ], 'Pas de prix')
+await expectErr('more than the stock → refused', 'vendeur', `insert into public.ventes_boutique (boutique_id, produit, forme, unite, quantite, nombre_sujets, mode_paiement) values ($1, 'poulet', 'vivant', 'piece', 100, 100, 'especes')`, [BQ], 'Stock insuffisant')
+await expectErr('credit sale impossible', 'vendeur', `insert into public.ventes_boutique (boutique_id, produit, forme, unite, quantite, nombre_sujets, mode_paiement) values ($1, 'poulet', 'vivant', 'piece', 1, 1, 'credit')`, [BQ])
+await expectErr('seller cannot sell for another shop', 'vendeur', `insert into public.ventes_boutique (boutique_id, produit, forme, unite, quantite, nombre_sujets, mode_paiement) values ($1, 'poulet', 'vivant', 'piece', 1, 1, 'especes')`, [BQ2])
+await expectNoRows('seller cannot cancel a sale', 'vendeur', `update public.ventes_boutique set annulee = true, motif_annulation = 'x' where id = '${s1.id}' returning id`)
+await expectErr('flock cannot be closed while its birds are in the shop', 'kenfack', `update public.bandes set statut = 'cloture_demandee' where id = $1`, [BS1], 'en boutique')
+// losses, inventory
+await expectErr('loss needs a reason', 'vendeur', `select public.declarer_perte_boutique($1, 'poulet', 1, '')`, [BQ], 'motif')
+await expectOk('seller declares 1 dead chicken', 'vendeur', `select public.declarer_perte_boutique($1, 'poulet', 1, 'Mort dans la cage')`, [BQ])
+await expectOk('inventory: 40 chickens counted (2 missing)', 'vendeur', `select public.inventaire_boutique($1, 'poulet', 40)`, [BQ])
+ok('stock 40, the 3 lost birds are losses of the flock', (await stockOf('poulet')) === 40
+  && Number((await one('ali', `select coalesce(sum(nombre), 0) n from public.mortalites where bande_id = '${BS1}'`)).n) === mort0 + 5)
+// evening closing
+const ec = (await as('vendeur', `select public.cloturer_journee($1, 21000, 'Billet abîmé') as e`, [BQ])).rows[0].e
+ok('closing: 21 000 counted for 21 750 expected → gap −750 reported', Number(ec) === -750
+  && (await as('dahirou', `select * from public.notifications where type_notification = 'ecart_caisse_boutique'`)).rows.length >= 1)
+// deposit to the farm, validated by finance
+await expectErr('deposit above the shop cash refused', 'vendeur', `select public.demander_versement($1, 'especes', 30000, 0)`, [BQ], 'supérieur')
+const VER = (await oneP('vendeur', `select public.demander_versement($1, 'especes', 21750, 0) as id`, [BQ])).id
+await expectErr('kenfack cannot validate a deposit', 'kenfack', `select public.valider_versement($1, true)`, [VER], 'finance')
+const espF0 = await soldeEsp()
+await expectOk('dahirou validates the deposit', 'dahirou', `select public.valider_versement($1, true)`, [VER])
+ok('farm cash chicken/cash +21 750, shop cash chicken back to 0', (await soldeEsp()) === espF0 + 21750
+  && Number((await one('vendeur', `select solde from public.soldes_boutiques where mode = 'especes' and activite = 'chair'`)).solde) === 0)
+// cancellation by the director
+await expectOk('ali cancels the egg sale', 'ali', `update public.ventes_boutique set annulee = true, motif_annulation = 'Erreur de produit' where id = $1`, [s3.id])
+ok('egg sale cancelled: origin sale cancelled, 60 eggs back, shop Mobile Money back to 0', (await stockOf('oeufs')) === 600
+  && (await one('ali', `select bool_and(annulee) a from public.ventes where vente_boutique_id = '${s3.id}'`)).a === true
+  && Number((await one('vendeur', `select solde from public.soldes_boutiques where mode = 'mobile_money' and activite = 'pondeuse'`)).solde) === 0)
+ok('staff still see the farm normally', (await as('kenfack', `select * from public.bandes`)).rows.length > 2 && (await as('ali', `select * from public.ventes`)).rows.length > 0)
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))
   const counts = Object.fromEntries(res.at(-1).rows.map((r) => [r.element, Number(r.nombre)]))
   ok('reset keeps 6 cash boxes and accounts, empties data',
-    counts['caisses (6 par ferme)'] % 6 === 0 && counts['caisses (6 par ferme)'] > 0 && counts['écritures'] === 0 && counts['bandes'] === 0 && counts['ventes'] === 0 && counts['comptes conservés'] === 4,
+    counts['caisses (6 par ferme)'] % 6 === 0 && counts['caisses (6 par ferme)'] > 0 && counts['écritures'] === 0 && counts['bandes'] === 0 && counts['ventes'] === 0 && counts['comptes conservés'] === 5,
     JSON.stringify(counts))
   ok('cash balances back to 0', (await as('ali', `select sum(solde)::int s from public.soldes_caisses`)).rows[0].s === 0)
   ok('vaccination programme kept', (await as('kenfack', `select * from public.modeles_taches`)).rows.length === 5)

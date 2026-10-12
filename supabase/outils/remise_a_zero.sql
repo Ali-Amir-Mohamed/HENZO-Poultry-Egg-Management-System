@@ -10,7 +10,9 @@
 --            stock et produits, clients / fournisseurs, prix, investisseurs,
 --            prêts, vérifications, transferts, tâches, notifications,
 --            journal, bilans, demandes de correction, historique des connexions,
---            employés, avances et paies, capital placé par bande.
+--            employés, avances et paies, capital placé par bande,
+--            ventes, stock, caisse, envois et prix des boutiques.
+-- Conserve aussi : les boutiques et leurs vendeurs.
 -- Conserve aussi : les téléphones abonnés aux notifications.
 -- TRUNCATE ne déclenche pas les protections ligne par ligne (registre non
 -- modifiable) : c'est volontaire, uniquement pour ce nettoyage.
@@ -19,6 +21,14 @@
 truncate table
   public.demandes_correction,
   public.capital_bandes,
+  public.mouvements_caisse_boutique,
+  public.mouvements_stock_boutique,
+  public.clotures_boutique,
+  public.versements_boutique,
+  public.ventes_boutique,
+  public.envois_lignes,
+  public.envois_boutique,
+  public.prix_boutique,
   public.avances_salaire,
   public.paies,
   public.employes,
