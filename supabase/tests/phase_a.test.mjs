@@ -895,6 +895,19 @@ ok('egg sale cancelled: origin sale cancelled, 60 eggs back, shop Mobile Money b
   && Number((await one('vendeur', `select solde from public.soldes_boutiques where mode = 'mobile_money' and activite = 'pondeuse'`)).solde) === 0)
 ok('staff still see the farm normally', (await as('kenfack', `select * from public.bandes`)).rows.length > 2 && (await as('ali', `select * from public.ventes`)).rows.length > 0)
 
+// ---------- 0027: who ships, who confirms ----------
+try {
+  await db.exec(readFileSync(new URL('0027_envois_roles.sql', MIG), 'utf8'))
+  ok('migration 0027 runs', true)
+} catch (e) { ok('migration 0027 runs', false, e.message); process.exit(1) }
+const lignes1 = JSON.stringify([{ produit: 'poulet', bande_id: BS1, quantite: 2 }])
+await expectErr('ali does not ship goods', 'ali', `select public.creer_envoi($1, $2::jsonb)`, [BQ, lignes1], 'exploitation')
+await expectOk('an employee can ship goods', 'employe', `select public.creer_envoi($1, $2::jsonb)`, [BQ, lignes1])
+const ENV2 = (await oneP('kenfack', `select public.creer_envoi($1, $2::jsonb) as id`, [BQ, lignes1])).id
+await expectErr('ali does not confirm a reception', 'ali', `select public.recevoir_envoi($1)`, [ENV2], 'vendeur')
+await expectErr('kenfack does not confirm a reception', 'kenfack', `select public.recevoir_envoi($1)`, [ENV2], 'vendeur')
+await expectOk('the seller confirms the reception', 'vendeur', `select public.recevoir_envoi($1)`, [ENV2])
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))

@@ -68,8 +68,8 @@ export const PERMISSIONS = {
   'salaires': [D, F],            // employees, advances, monthly pay (confidential)
   'boutique.admin': [D],         // create / edit shops
   'boutique.vendre': [D, X, V],  // sell in a shop
-  'boutique.envoi': [D, X, E],   // send goods farm → shop
-  'boutique.recevoir': [D, X, V], // confirm a shipment
+  'boutique.envoi': [X, E],   // send goods farm → shop
+  'boutique.recevoir': [V], // confirm a shipment
   'boutique.prix': [D, X, F],    // shop prices (the seller never changes them)
   'boutique.caisse': [D, F, V],  // shop cash: closing, deposits
   'boutique.valider': [D, F],    // validate a deposit
