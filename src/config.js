@@ -25,15 +25,14 @@ export const ROLES = {
   DIRECTEUR: 'directeur',
   EXPLOITATION: 'exploitation',   // Kenfack Dirand
   FINANCE: 'finance',             // Dahirou Bachar
-  EMPLOYE: 'employe',
-  INVESTISSEUR: 'investisseur'    // read-only: own capital, flocks, 10 %
+  EMPLOYE: 'employe'
 }
 
-const { DIRECTEUR: D, EXPLOITATION: X, FINANCE: F, EMPLOYE: E, INVESTISSEUR: I } = ROLES
+const { DIRECTEUR: D, EXPLOITATION: X, FINANCE: F, EMPLOYE: E } = ROLES
 
 // Which roles can open each section of the app (the database enforces the same rules)
 export const ACCESS = {
-  dashboard: [D, X, F, E, I],
+  dashboard: [D, X, F, E],
   saisie: [D, X, E],
   ferme: [D, X, F],
   planning: [D, X, F],

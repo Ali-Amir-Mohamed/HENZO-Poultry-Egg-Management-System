@@ -5,7 +5,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
 const DOMAIN = 'henzo.local'
-const ROLES = ['directeur', 'exploitation', 'finance', 'employe', 'investisseur']
+const ROLES = ['directeur', 'exploitation', 'finance', 'employe']
 const cors = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',

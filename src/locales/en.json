@@ -20,8 +20,7 @@
     "directeur": "Director",
     "exploitation": "Operations",
     "finance": "Finance",
-    "employe": "Employee",
-    "investisseur": "Investor"
+    "employe": "Employee"
   },
   "auth": {
     "title": "Sign in",
@@ -827,12 +826,7 @@
     "addExisting": "Add an existing account",
     "add": "Add",
     "roleHere": "Role on this farm",
-    "activeElsewhere": "currently working on another farm",
-    "chooseInvestor": "Choose the investor file to link to this account.",
-    "linkTitle": "Link {{nom}} to an investor",
-    "link": "Link to an investor",
-    "investorFile": "Investor file",
-    "investorHint": "This account will only see this investor: capital, flocks and 10 %. Nothing else of the farm."
+    "activeElsewhere": "currently working on another farm"
   },
   "journal": {
     "title": "Activity log",
@@ -1316,36 +1310,6 @@
     "deducted": "deducted",
     "notDeducted": "to deduct",
     "cancelHint": "A mistake? Ali cancels the matching expense in Money > Expenses: the salary or advance is cancelled here too."
-  },
-  "investor": {
-    "notLinked": "Your account is not linked to an investor file yet. Ask Ali to do it.",
-    "capital": "My capital",
-    "placed": "Placed in flocks",
-    "free": "not placed: {{n}}",
-    "received": "10 % received",
-    "pending": "pending: {{n}}",
-    "flocks": "My flocks",
-    "noFlock": "Your capital is not placed in any flock yet.",
-    "status": "Status",
-    "placedIn": "My capital placed",
-    "tenPct": "My 10 %",
-    "since": "since {{d}}",
-    "atClosure": "at closure",
-    "rule": "At the closure of each flock you receive 10 % of the capital placed in it: paid out or reinvested, as you choose.",
-    "history": "My operations",
-    "statement": "My statement (PDF)",
-    "noOps": "No operation.",
-    "dist": {
-      "en_attente": "pending",
-      "retire": "paid",
-      "reinvesti": "reinvested"
-    },
-    "ops": {
-      "apport": "Contribution",
-      "capital_initial": "Start-up capital",
-      "reinvestissement": "10 % reinvested",
-      "retrait_capital": "Capital withdrawal"
-    }
   },
   "compte": {
     "title": "My account",

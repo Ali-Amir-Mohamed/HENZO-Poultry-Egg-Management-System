@@ -20,8 +20,7 @@
     "directeur": "Directeur",
     "exploitation": "Exploitation",
     "finance": "Finance",
-    "employe": "Employé",
-    "investisseur": "Investisseur"
+    "employe": "Employé"
   },
   "auth": {
     "title": "Connexion",
@@ -827,12 +826,7 @@
     "addExisting": "Ajouter un compte existant",
     "add": "Ajouter",
     "roleHere": "Rôle dans cette ferme",
-    "activeElsewhere": "travaille actuellement dans une autre ferme",
-    "chooseInvestor": "Choisissez la fiche investisseur à relier à ce compte.",
-    "linkTitle": "Relier {{nom}} à un investisseur",
-    "link": "Relier à un investisseur",
-    "investorFile": "Fiche investisseur",
-    "investorHint": "Ce compte verra uniquement cet investisseur : son capital, ses bandes et ses 10 %. Rien d’autre de la ferme."
+    "activeElsewhere": "travaille actuellement dans une autre ferme"
   },
   "journal": {
     "title": "Journal d’activité",
@@ -1316,36 +1310,6 @@
     "deducted": "déduite",
     "notDeducted": "à déduire",
     "cancelHint": "Une erreur ? Ali annule la dépense correspondante dans Argent > Dépenses : le salaire ou l’avance est annulé ici aussi."
-  },
-  "investor": {
-    "notLinked": "Votre compte n’est pas encore relié à une fiche investisseur. Demandez à Ali de le faire.",
-    "capital": "Mon capital",
-    "placed": "Placé dans les bandes",
-    "free": "non placé : {{n}}",
-    "received": "10 % reçus",
-    "pending": "en attente : {{n}}",
-    "flocks": "Mes bandes",
-    "noFlock": "Votre capital n’est placé dans aucune bande pour l’instant.",
-    "status": "Statut",
-    "placedIn": "Mon capital placé",
-    "tenPct": "Mes 10 %",
-    "since": "depuis le {{d}}",
-    "atClosure": "à la clôture",
-    "rule": "À la clôture de chaque bande, vous recevez 10 % du capital placé dans cette bande : versés ou réinvestis selon votre choix.",
-    "history": "Mes opérations",
-    "statement": "Mon relevé (PDF)",
-    "noOps": "Aucune opération.",
-    "dist": {
-      "en_attente": "en attente",
-      "retire": "versés",
-      "reinvesti": "réinvestis"
-    },
-    "ops": {
-      "apport": "Apport",
-      "capital_initial": "Capital de départ",
-      "reinvestissement": "10 % réinvestis",
-      "retrait_capital": "Retrait de capital"
-    }
   },
   "compte": {
     "title": "Mon compte",

@@ -70,8 +70,6 @@ export default function App() {
         <Route path="recu/:id" element={<Recu />} />
         <Route path="face-id" element={<FaceId />} />
         <Route path="compte" element={<MonCompte />} />
-        {/* investor's own statement (the database only returns his own data) */}
-        <Route path="releve/:id" element={<ReleveInvestisseur />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

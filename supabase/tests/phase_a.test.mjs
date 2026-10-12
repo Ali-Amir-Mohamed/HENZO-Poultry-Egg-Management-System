@@ -803,32 +803,6 @@ ok('salary cancelled too, advance to deduct again', (await one('dahirou', `selec
   && (await one('dahirou', `select paie_id from public.avances_salaire where employe_id = '${EMP}'`)).paie_id === null)
 await expectOk('october can be paid again after the cancellation', 'dahirou', `select public.payer_salaire($1, '2026-10-01', 'mobile_money')`, [EMP])
 
-// ---------- 0023 + 0024: read-only investor accounts ----------
-try {
-  await db.exec(readFileSync(new URL('0023_role_investisseur.sql', MIG), 'utf8'))
-  await db.exec(readFileSync(new URL('0024_acces_investisseurs.sql', MIG), 'utf8'))
-  ok('migrations 0023 + 0024 run', true)
-} catch (e) { ok('migrations 0023 + 0024 run', false, e.message); process.exit(1) }
-U.invtest = '55555555-5555-5555-5555-555555555555'
-await db.query(`insert into auth.users (id, email) values ($1, 'invtest@henzo.local')`, [U.invtest])
-await db.exec(`update public.profiles set role = 'investisseur', nom_complet = 'Invest A (compte)' where id = '${U.invtest}'`)
-await expectErr('kenfack cannot link an investor account', 'kenfack', `select public.lier_compte_investisseur($1, 'invtest')`, [IA], 'directeur')
-await expectOk('ali links the account to investor A', 'ali', `select public.lier_compte_investisseur($1, 'invtest')`, [IA])
-const invSees = async (sql) => (await as('invtest', sql)).rows
-ok('investor sees only his own file', (await invSees(`select id from public.investisseurs`)).map((r) => r.id).join() === IA)
-ok('investor sees his capital situation', (await invSees(`select * from public.situation_investisseurs`)).length === 1)
-ok('investor sees his placed / free capital', (await invSees(`select * from public.capital_libre_investisseurs`)).length === 1)
-ok('investor sees only his operations', (await invSees(`select investisseur_id from public.operations_investisseurs`)).every((r) => r.investisseur_id === IA))
-ok('investor sees his 10 % (BX1 60 000, BX2 40 000)', (await invSees(`select montant from public.distributions_investisseurs order by montant`)).map((r) => Number(r.montant)).join() === '40000,60000')
-ok('investor sees only the flocks where he has capital', (await invSees(`select code from public.bandes order by code`)).map((r) => r.code).join() === 'BX1,BX2')
-for (const t of ['ventes', 'depenses', 'ecritures', 'soldes_caisses', 'tiers', 'mortalites', 'notifications', 'employes', 'paies', 'prets', 'journal_activite']) {
-  ok(`investor sees nothing in ${t}`, (await invSees(`select * from public.${t}`)).length === 0)
-}
-ok('investor does not see other investors\' allocations', (await invSees(`select investisseur_id from public.capital_bandes`)).every((r) => r.investisseur_id === IA))
-await expectErr('investor cannot record an operation', 'invtest', `insert into public.operations_investisseurs (investisseur_id, type_operation, montant, activite, mode_paiement) values ($1, 'apport', 1000, 'chair', 'especes')`, [IA])
-await expectErr('investor cannot enter a sale', 'invtest', `insert into public.ventes (bande_id, produit, unite, quantite, prix_unitaire, nombre_sujets, mode_paiement) values ($1, 'poulets', 'piece', 1, 1, 1, 'especes')`, [BX2])
-await expectNoRows('investor cannot change his file', 'invtest', `update public.investisseurs set nom = 'x' returning id`)
-ok('staff still see the farm normally', (await as('ali', `select * from public.ventes`)).rows.length > 0 && (await as('kenfack', `select * from public.bandes`)).rows.length > 2)
 ok('no price: no expense, finance reminded to enter it',!(await one('ali', `select depense_id from public.livraisons_poussins where id = '${lP3}'`)).depense_id
   && (await as('dahirou', `select * from public.notifications where type_notification = 'depense_poussins'`)).rows.length === nP0 + 1)
 
@@ -837,7 +811,7 @@ try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))
   const counts = Object.fromEntries(res.at(-1).rows.map((r) => [r.element, Number(r.nombre)]))
   ok('reset keeps 6 cash boxes and accounts, empties data',
-    counts['caisses (6 par ferme)'] % 6 === 0 && counts['caisses (6 par ferme)'] > 0 && counts['écritures'] === 0 && counts['bandes'] === 0 && counts['ventes'] === 0 && counts['comptes conservés'] === 5,
+    counts['caisses (6 par ferme)'] % 6 === 0 && counts['caisses (6 par ferme)'] > 0 && counts['écritures'] === 0 && counts['bandes'] === 0 && counts['ventes'] === 0 && counts['comptes conservés'] === 4,
     JSON.stringify(counts))
   ok('cash balances back to 0', (await as('ali', `select sum(solde)::int s from public.soldes_caisses`)).rows[0].s === 0)
   ok('vaccination programme kept', (await as('kenfack', `select * from public.modeles_taches`)).rows.length === 5)
