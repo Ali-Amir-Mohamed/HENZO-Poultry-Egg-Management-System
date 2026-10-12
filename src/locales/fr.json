@@ -15,7 +15,8 @@
     "sync": "Synchro",
     "plus": "Plus",
     "logout": "Déconnexion",
-    "boutique": "Boutique"
+    "boutique": "Boutique",
+    "administration": "Administration"
   },
   "roles": {
     "directeur": "Directeur",
@@ -1320,7 +1321,9 @@
     "advancesDeducted": "avances déduites {{n}}",
     "deducted": "déduite",
     "notDeducted": "à déduire",
-    "cancelHint": "Une erreur ? Ali annule la dépense correspondante dans Argent > Dépenses : le salaire ou l’avance est annulé ici aussi."
+    "cancelHint": "Une erreur ? Ali annule la dépense correspondante dans Argent > Dépenses : le salaire ou l’avance est annulé ici aussi.",
+    "notPaidYet": "Pas encore payé",
+    "onlyFinance": "Seul Dahirou (finance) paie les salaires et les avances."
   },
   "compte": {
     "title": "Mon compte",
@@ -1477,5 +1480,115 @@
     "kiloPriceMissing": "Entrez le prix du kilo.",
     "outOfRange": "Prix refusé : il doit être entre {{min}} et {{max}}.",
     "typePrice": "Entrez le prix"
+  },
+  "admin": {
+    "tabs": {
+      "echeances": "Échéances",
+      "documents": "Documents",
+      "terrains": "Terrains",
+      "banques": "Banques"
+    },
+    "title": "Titre",
+    "category": "Catégorie",
+    "notes": "Notes",
+    "all": "Toutes",
+    "delete": "Supprimer",
+    "deleteConfirm": "Supprimer « {{x}} » ? C’est définitif.",
+    "cat": {
+      "entreprise": "Entreprise",
+      "impots": "Impôts",
+      "banque": "Banque",
+      "foncier": "Foncier",
+      "contrat": "Contrat",
+      "autre": "Autre"
+    },
+    "recurrence": {
+      "aucune": "Une seule fois",
+      "mensuelle": "Chaque mois",
+      "trimestrielle": "Chaque trimestre",
+      "annuelle": "Chaque année"
+    },
+    "ech": {
+      "title": "Échéances à venir",
+      "hint": "Impôts, renouvellements, déclarations : un rappel arrive sur votre téléphone avant la date et le jour même.",
+      "none": "Aucune échéance prévue.",
+      "new": "Nouvelle échéance",
+      "created": "Échéance enregistrée.",
+      "titlePh": "Ex. Impôt libératoire, patente, CNPS…",
+      "date": "Date limite",
+      "remind": "Rappel (jours avant)",
+      "amount": "Montant (FCFA)",
+      "repeat": "Répétition",
+      "done": "Fait",
+      "doneConfirm": "Marquer cette échéance comme faite ?",
+      "doneNext": "Marquer comme faite ? La prochaine ({{r}}) sera créée toute seule.",
+      "late_one": "En retard d’{{count}} jour",
+      "late_other": "En retard de {{count}} jours",
+      "today": "Aujourd’hui",
+      "inDays_one": "Dans {{count}} jour",
+      "inDays_other": "Dans {{count}} jours",
+      "doneTitle": "Dernières échéances faites",
+      "doneOn": "Faite le {{d}}",
+      "planned": "prévue le {{d}}"
+    },
+    "doc": {
+      "title": "Documents",
+      "hint": "Rangés dans un dossier privé : vous seul pouvez les ouvrir.",
+      "none": "Aucun document.",
+      "new": "Nouveau document",
+      "created": "Document enregistré.",
+      "titlePh": "Ex. Registre de commerce, statuts, titre foncier…",
+      "file": "Fichier (photo ou PDF)",
+      "date": "Date du document",
+      "expires": "Expire le",
+      "land": "Terrain lié",
+      "open": "Ouvrir",
+      "noFile": "Sans fichier",
+      "until": "valable jusqu’au {{d}}",
+      "expired": "Expiré",
+      "expiresIn_one": "Expire dans {{count}} jour",
+      "expiresIn_other": "Expire dans {{count}} jours",
+      "tooBig": "Fichier trop lourd : 20 Mo au maximum.",
+      "uploadFailed": "Le fichier n’a pas pu être envoyé : {{e}}",
+      "fileHint": "Un rappel arrive 30 jours avant la date d’expiration. 20 Mo au maximum par fichier."
+    },
+    "land": {
+      "title": "Terrains et biens",
+      "hint": "Chaque terrain avec son état et ses documents (à lier dans l’onglet Documents).",
+      "none": "Aucun terrain.",
+      "new": "Nouveau terrain",
+      "created": "Terrain enregistré.",
+      "namePh": "Ex. Terrain de Nkolbisson",
+      "place": "Lieu",
+      "surface": "Surface (m²)",
+      "price": "Prix (FCFA)",
+      "date": "Date d’acquisition",
+      "seller": "Vendeur",
+      "deleteConfirm": "Supprimer le terrain « {{x}} » ? Ses documents restent, sans lien.",
+      "docs_one": "{{count}} document",
+      "docs_other": "{{count}} documents",
+      "statut": {
+        "prospection": "Repéré",
+        "en_cours": "Achat en cours",
+        "achete": "Acheté",
+        "titre": "Titré"
+      }
+    },
+    "bank": {
+      "title": "Comptes bancaires",
+      "hint": "Les comptes de l’entreprise et leurs contacts.",
+      "none": "Aucun compte enregistré.",
+      "new": "Nouveau compte",
+      "created": "Compte enregistré.",
+      "never": "N’enregistrez jamais de mot de passe, de code PIN ni de code secret ici.",
+      "bank": "Banque",
+      "holder": "Intitulé du compte",
+      "number": "Numéro de compte",
+      "branch": "Agence",
+      "contact": "Gestionnaire",
+      "contactPh": "Nom et téléphone",
+      "open": "Ouvert",
+      "closed": "Fermé"
+    }
   }
 }

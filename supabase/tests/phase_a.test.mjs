@@ -946,6 +946,35 @@ await expectErr('employee cannot declare a shop loss', 'employe', `select public
 await expectErr('employee cannot close the shop day', 'employe', `select public.cloturer_journee($1, 0, null)`, [BQ])
 await expectErr('employee cannot request a deposit', 'employe', `select public.demander_versement($1, 'especes', 100, 0)`, [BQ])
 
+// ---------- 0030: salaries paid by finance only, administration space ----------
+try {
+  await db.exec(readFileSync(new URL('0030_salaires_finance_administration.sql', MIG), 'utf8'))
+  ok('migration 0030 runs', true)
+} catch (e) { ok('migration 0030 runs', false, e.message); process.exit(1) }
+await expectErr('ali does not pay an advance', 'ali', `select public.verser_avance($1, 5000, 'especes')`, [EMP], 'Dahirou')
+await expectErr('ali does not pay a salary', 'ali', `select public.payer_salaire($1, '2026-12-01', 'especes')`, [EMP], 'Dahirou')
+await expectOk('dahirou still pays an advance', 'dahirou', `select public.verser_avance($1, 5000, 'especes')`, [EMP])
+ok('ali still sees the salaries', (await as('ali', `select * from public.paies`)).rows.length > 0)
+await expectErr('kenfack cannot add a deadline', 'kenfack', `insert into public.admin_echeances (titre, date_echeance) values ('x', current_date)`)
+await expectErr('dahirou cannot add a document', 'dahirou', `insert into public.admin_documents (titre) values ('x')`)
+await expectOk('ali adds a deadline in 3 days (reminder 7 days before)', 'ali', `insert into public.admin_echeances (titre, categorie, date_echeance, rappel_jours, montant) values ('Impôt libératoire', 'impots', current_date + 3, 7, 50000)`)
+await expectOk('ali adds a yearly deadline due today', 'ali', `insert into public.admin_echeances (titre, date_echeance, recurrence) values ('Patente', current_date, 'annuelle')`)
+await expectOk('ali adds a document expiring in 10 days', 'ali', `insert into public.admin_documents (titre, categorie, date_expiration) values ('Attestation de conformité fiscale', 'impots', current_date + 10)`)
+await expectOk('ali adds a land', 'ali', `insert into public.admin_terrains (nom, localisation, surface_m2, prix, statut) values ('Terrain Nkolbisson', 'Yaoundé', 2500, 15000000, 'en_cours')`)
+await expectOk('ali adds a bank account', 'ali', `insert into public.admin_comptes_bancaires (banque, intitule, agence) values ('Afriland', 'HENZO SARL', 'Yaoundé centre')`)
+ok('dahirou sees nothing of the administration', (await as('dahirou', `select * from public.admin_echeances`)).rows.length === 0
+  && (await as('dahirou', `select * from public.admin_terrains`)).rows.length === 0 && (await as('kenfack', `select * from public.admin_comptes_bancaires`)).rows.length === 0)
+ok('dahirou cannot trigger the reminders', Number((await one('dahirou', `select public.rappels_administration() n`)).n) === 0)
+const nRap = Number((await one('ali', `select public.rappels_administration() n`)).n)
+ok('3 reminders sent (2 deadlines, 1 document)', nRap === 3, String(nRap))
+ok('the director is notified', (await as('ali', `select * from public.notifications where type_notification in ('echeance_admin', 'document_expire')`)).rows.length === 3)
+ok('no second reminder the same day', Number((await one('ali', `select public.rappels_administration() n`)).n) === 0)
+await expectOk('ali ticks the yearly deadline as done', 'ali', `update public.admin_echeances set faite = true where titre = 'Patente'`)
+const suiv = await as('ali', `select date_echeance = (current_date + interval '1 year')::date bon, faite from public.admin_echeances where titre = 'Patente' order by date_echeance`)
+ok('next year\'s deadline created automatically', suiv.rows.length === 2 && suiv.rows[0].faite === true && suiv.rows[1].bon === true && suiv.rows[1].faite === false, JSON.stringify(suiv.rows))
+await expectOk('ali moves the tax deadline', 'ali', `update public.admin_echeances set date_echeance = current_date + 2 where titre = 'Impôt libératoire'`)
+ok('moving a deadline sends its reminder again', Number((await one('ali', `select public.rappels_administration() n`)).n) === 1)
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))

@@ -27,6 +27,7 @@ const FaceId = lazy(() => import('./pages/FaceId'))
 const Boutique = lazy(() => import('./pages/Boutique'))
 const RecuBoutique = lazy(() => import('./pages/boutique/RecuBoutique'))
 const MonCompte = lazy(() => import('./pages/MonCompte'))
+const Administration = lazy(() => import('./pages/Administration'))
 
 function Guard({ section, children }) {
   const { role } = useAuth()
@@ -68,6 +69,7 @@ export default function App() {
         <Route path="planning" element={<Guard section="planning"><Planning /></Guard>} />
         <Route path="analyses" element={<Guard section="analyses"><Analyses /></Guard>} />
         <Route path="stock" element={<Guard section="stock"><Stock /></Guard>} />
+        <Route path="administration" element={<Guard section="administration"><Administration /></Guard>} />
         <Route path="reglages" element={<Guard section="reglages"><Reglages /></Guard>} />
         <Route path="reglages/tiers/:id" element={<Guard section="reglages"><FicheTiers /></Guard>} />
         <Route path="sync" element={<Guard section="sync"><Sync /></Guard>} />

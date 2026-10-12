@@ -1,7 +1,8 @@
-import { Suspense } from 'react'
+import { Suspense, useEffect } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/AuthProvider'
+import { supabase } from '../lib/supabase'
 import { canAccess } from '../config'
 import { useInstallPrompt, useOnline, usePendingCount } from '../hooks'
 import LanguageSwitch from './LanguageSwitch'
@@ -21,6 +22,7 @@ export const SECTIONS = [
   { to: '/analyses', key: 'analyses', icon: 'chart' },
   { to: '/stock', key: 'stock', icon: 'box' },
   { to: '/boutique', key: 'boutique', icon: 'cart' },
+  { to: '/administration', key: 'administration', icon: 'note' },
   { to: '/reglages', key: 'reglages', icon: 'settings' },
   { to: '/sync', key: 'sync', icon: 'sync' }
 ]
@@ -36,6 +38,8 @@ export default function Layout() {
   const pending = usePendingCount()
   const install = useInstallPrompt()
   const sections = SECTIONS.filter((s) => canAccess(role, s.key))
+  // Administration reminders (also sent every morning by the database when pg_cron is on)
+  useEffect(() => { if (role === 'directeur' && navigator.onLine) supabase.rpc('rappels_administration').then(() => {}, () => {}) }, [role])
   const needsMore = sections.length > MOBILE_SLOTS + 1
 
   return (

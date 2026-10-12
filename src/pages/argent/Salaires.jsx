@@ -2,18 +2,21 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../../lib/supabase'
 import { must, useQuery } from '../../hooks'
-import { MODES_PAIEMENT } from '../../config'
+import { can, MODES_PAIEMENT } from '../../config'
+import { useAuth } from '../../auth/AuthProvider'
 import Icon from '../../components/Icon'
 import { day, Empty, Field, FormCard, Loading, money, Panel } from '../../components/ui'
 import { useAsk, useRun } from '../../components/Dialog'
 
-// Employees and salaries (director, finance): advances paid at once, monthly pay = salary + bonus − deductions − advances.
+// Employees and salaries (director, finance; only finance pays): advances paid at once, monthly pay = salary + bonus − deductions − advances.
 // Every payment is a « salaires » expense in the chosen cash box; cancelling it (director) cancels it here too.
 const moisCourant = () => new Date().toLocaleDateString('en-CA').slice(0, 7)
 
 export default function Salaires() {
   const { t, i18n } = useTranslation()
   const lang = i18n.resolvedLanguage
+  const { role } = useAuth()
+  const payeur = can(role, 'salaires.payer')
   const ask = useAsk()
   const run = useRun()
   const q = useQuery(async () => {
@@ -110,8 +113,9 @@ export default function Salaires() {
                       <div className="row-actions">
                         {payeCeMois(e)
                           ? <span className="tag ok"><Icon name="check" size={12} /> {t('salaires.paidThisMonth')}</span>
-                          : <button className="btn primary sm" onClick={() => payer(e)}><Icon name="wallet" size={14} />{t('salaires.pay')}</button>}
-                        <button className="btn ghost sm" onClick={() => avance(e)}>{t('salaires.advance')}</button>
+                          : payeur ? <button className="btn primary sm" onClick={() => payer(e)}><Icon name="wallet" size={14} />{t('salaires.pay')}</button>
+                            : <span className="tag warn">{t('salaires.notPaidYet')}</span>}
+                        {payeur && <button className="btn ghost sm" onClick={() => avance(e)}>{t('salaires.advance')}</button>}
                         <button className="btn ghost sm" onClick={() => modifier(e)}>{t('common.edit')}</button>
                       </div>
                     )}
@@ -121,6 +125,7 @@ export default function Salaires() {
             })}
           </ul>
         )}
+        {!payeur && <p className="note"><Icon name="wallet" size={16} />{t('salaires.onlyFinance')}</p>}
       </Panel>
 
       <FormCard title={t('salaires.new')} icon="users" onSubmit={creer}>

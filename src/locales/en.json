@@ -15,7 +15,8 @@
     "sync": "Sync",
     "plus": "More",
     "logout": "Log out",
-    "boutique": "Shop"
+    "boutique": "Shop",
+    "administration": "Administration"
   },
   "roles": {
     "directeur": "Director",
@@ -1320,7 +1321,9 @@
     "advancesDeducted": "advances deducted {{n}}",
     "deducted": "deducted",
     "notDeducted": "to deduct",
-    "cancelHint": "A mistake? Ali cancels the matching expense in Money > Expenses: the salary or advance is cancelled here too."
+    "cancelHint": "A mistake? Ali cancels the matching expense in Money > Expenses: the salary or advance is cancelled here too.",
+    "notPaidYet": "Not paid yet",
+    "onlyFinance": "Only Dahirou (finance) pays salaries and advances."
   },
   "compte": {
     "title": "My account",
@@ -1477,5 +1480,115 @@
     "kiloPriceMissing": "Enter the price per kilo.",
     "outOfRange": "Price refused: it must be between {{min}} and {{max}}.",
     "typePrice": "Enter the price"
+  },
+  "admin": {
+    "tabs": {
+      "echeances": "Deadlines",
+      "documents": "Documents",
+      "terrains": "Land",
+      "banques": "Banks"
+    },
+    "title": "Title",
+    "category": "Category",
+    "notes": "Notes",
+    "all": "All",
+    "delete": "Delete",
+    "deleteConfirm": "Delete “{{x}}”? This cannot be undone.",
+    "cat": {
+      "entreprise": "Company",
+      "impots": "Taxes",
+      "banque": "Bank",
+      "foncier": "Land",
+      "contrat": "Contract",
+      "autre": "Other"
+    },
+    "recurrence": {
+      "aucune": "Once",
+      "mensuelle": "Every month",
+      "trimestrielle": "Every quarter",
+      "annuelle": "Every year"
+    },
+    "ech": {
+      "title": "Upcoming deadlines",
+      "hint": "Taxes, renewals, filings: a reminder reaches your phone before the date and on the day.",
+      "none": "No deadline planned.",
+      "new": "New deadline",
+      "created": "Deadline saved.",
+      "titlePh": "E.g. income tax, business licence, social security…",
+      "date": "Due date",
+      "remind": "Reminder (days before)",
+      "amount": "Amount (FCFA)",
+      "repeat": "Repeat",
+      "done": "Done",
+      "doneConfirm": "Mark this deadline as done?",
+      "doneNext": "Mark as done? The next one ({{r}}) will be created automatically.",
+      "late_one": "{{count}} day late",
+      "late_other": "{{count}} days late",
+      "today": "Today",
+      "inDays_one": "In {{count}} day",
+      "inDays_other": "In {{count}} days",
+      "doneTitle": "Recently done",
+      "doneOn": "Done on {{d}}",
+      "planned": "due {{d}}"
+    },
+    "doc": {
+      "title": "Documents",
+      "hint": "Kept in a private folder: only you can open them.",
+      "none": "No document.",
+      "new": "New document",
+      "created": "Document saved.",
+      "titlePh": "E.g. trade register, articles, land title…",
+      "file": "File (photo or PDF)",
+      "date": "Document date",
+      "expires": "Expires on",
+      "land": "Linked land",
+      "open": "Open",
+      "noFile": "No file",
+      "until": "valid until {{d}}",
+      "expired": "Expired",
+      "expiresIn_one": "Expires in {{count}} day",
+      "expiresIn_other": "Expires in {{count}} days",
+      "tooBig": "File too large: 20 MB maximum.",
+      "uploadFailed": "The file could not be uploaded: {{e}}",
+      "fileHint": "A reminder arrives 30 days before the expiry date. 20 MB maximum per file."
+    },
+    "land": {
+      "title": "Land and property",
+      "hint": "Each plot with its status and documents (link them in the Documents tab).",
+      "none": "No land.",
+      "new": "New plot",
+      "created": "Plot saved.",
+      "namePh": "E.g. Nkolbisson plot",
+      "place": "Location",
+      "surface": "Area (m²)",
+      "price": "Price (FCFA)",
+      "date": "Acquisition date",
+      "seller": "Seller",
+      "deleteConfirm": "Delete the plot “{{x}}”? Its documents stay, unlinked.",
+      "docs_one": "{{count}} document",
+      "docs_other": "{{count}} documents",
+      "statut": {
+        "prospection": "Spotted",
+        "en_cours": "Purchase in progress",
+        "achete": "Bought",
+        "titre": "Titled"
+      }
+    },
+    "bank": {
+      "title": "Bank accounts",
+      "hint": "The company accounts and their contacts.",
+      "none": "No account saved.",
+      "new": "New account",
+      "created": "Account saved.",
+      "never": "Never save a password, PIN or secret code here.",
+      "bank": "Bank",
+      "holder": "Account name",
+      "number": "Account number",
+      "branch": "Branch",
+      "contact": "Account manager",
+      "contactPh": "Name and phone",
+      "open": "Open",
+      "closed": "Closed"
+    }
   }
 }

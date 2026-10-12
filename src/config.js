@@ -42,6 +42,7 @@ export const ACCESS = {
   stock: [D, X, F],
   reglages: [D, X, F],
   boutique: [D, X, F, E, V],
+  administration: [D],            // documents, deadlines, land, bank accounts (Ali)
   sync: [D, X, F, E, V]
 }
 
@@ -65,7 +66,8 @@ export const PERMISSIONS = {
   'stock.manual': [D, X],
   'capital.manage': [D, F],      // investors, contributions, withdrawals, 10 % decisions
   'capital.allocate': [D, X, F], // investors' capital placed in each flock
-  'salaires': [D, F],            // employees, advances, monthly pay (confidential)
+  'salaires': [D, F],            // see employees and pay (confidential)
+  'salaires.payer': [F],         // pay advances and salaries (Dahirou only)
   'boutique.admin': [D],         // create / edit shops
   'boutique.vendre': [X, V],  // sell in a shop
   'boutique.envoi': [X, E],   // send goods farm → shop
