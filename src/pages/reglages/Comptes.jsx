@@ -29,19 +29,24 @@ export default function Comptes() {
   const ask = useAsk()
   const run = useRun()
   const list = useQuery(async () => must(await supabase.rpc('membres_ferme')))
-  const [form, setForm] = useState({ identifiant: '', nom_complet: '', role: 'employe', password: '' })
+  const boutiques = useQuery(async () => (await supabase.from('boutiques').select('id, nom').eq('actif', true).order('nom')).data ?? [])
+  const [form, setForm] = useState({ identifiant: '', nom_complet: '', role: 'employe', password: '', boutique_id: '' })
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
   const roleOptions = ROLES_LIST.map((r) => ({ value: r, label: t(`roles.${r}`) }))
 
   const create = async () => {
     try {
-      await callAdmin({ action: 'create', ...form })
+      if (form.role === 'vendeur' && !form.boutique_id) throw new Error(t('comptes.chooseShop'))
+      const { boutique_id, ...compte } = form
+      await callAdmin({ action: 'create', ...compte })
+      // Seller: attached to his shop (he only sees that shop)
+      if (form.role === 'vendeur') must(await supabase.rpc('affecter_boutique', { p_identifiant: form.identifiant, p_boutique: boutique_id }))
     } catch (e) {
       if (/Failed to send|not found|404|FunctionsFetchError|FunctionsHttpError/i.test(e.message)) throw new Error(t('comptes.noFunction'))
       throw e
     }
     const msg = t('comptes.created', { id: form.identifiant })
-    setForm({ identifiant: '', nom_complet: '', role: 'employe', password: '' })
+    setForm({ identifiant: '', nom_complet: '', role: 'employe', password: '', boutique_id: '' })
     list.reload()
     return msg
   }
@@ -59,6 +64,13 @@ export default function Comptes() {
       await callAdmin({ action: 'reset_password', user_id: p.user_id, password: v.password })
       await ask.info(t('comptes.passwordDone'), t('comptes.passwordDoneText', { id: p.identifiant }))
     } catch (e) { ask.error(e.message) }
+  }
+  // Move a seller to another shop
+  const changerBoutique = async (p) => {
+    const v = await ask.form({ title: t('comptes.shopTitle', { nom: p.nom_complet || p.identifiant }), icon: 'cart', submit: t('dialog.save'),
+      fields: [{ name: 'b', label: t('boutique.shop'), type: 'select', value: '', required: true,
+        options: [{ value: '', label: '—' }, ...(boutiques.data ?? []).map((b) => ({ value: b.id, label: b.nom }))] }] })
+    if (v?.b) await run(supabase.rpc('affecter_boutique', { p_identifiant: p.identifiant, p_boutique: v.b }), list.reload)
   }
   const toggleActive = async (p) => {
     const nom = p.nom_complet || p.identifiant
@@ -89,7 +101,16 @@ export default function Comptes() {
             </select>
           </Field>
           <Field label={t('comptes.password')}><input type="text" minLength={8} required value={form.password} onChange={set('password')} autoComplete="new-password" /></Field>
+          {form.role === 'vendeur' && (
+            <Field label={t('boutique.shop')}>
+              <select required value={form.boutique_id} onChange={set('boutique_id')}>
+                <option value="">—</option>
+                {(boutiques.data ?? []).map((b) => <option key={b.id} value={b.id}>{b.nom}</option>)}
+              </select>
+            </Field>
+          )}
         </div>
+        {form.role === 'vendeur' && <p className="note"><Icon name="cart" size={16} />{t('comptes.sellerHint')}</p>}
         <p className="note"><Icon name="clock" size={16} />{t('comptes.hint')}</p>
       </FormCard>
 
@@ -110,6 +131,7 @@ export default function Comptes() {
                     {!me && (
                       <div className="row-actions">
                         <button className="btn ghost sm" onClick={() => changeRole(p)}>{t('comptes.changeRole')}</button>
+                        {p.role === 'vendeur' && <button className="btn ghost sm" onClick={() => changerBoutique(p)}>{t('comptes.changeShop')}</button>}
                         <button className="btn ghost sm" onClick={() => resetPassword(p)}>{t('comptes.resetPassword')}</button>
                         <button className="btn ghost sm" onClick={() => toggleActive(p)}>{p.actif ? t('comptes.disable') : t('comptes.enable')}</button>
                       </div>

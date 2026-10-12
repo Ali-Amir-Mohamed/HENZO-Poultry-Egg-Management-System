@@ -25,10 +25,11 @@ export const ROLES = {
   DIRECTEUR: 'directeur',
   EXPLOITATION: 'exploitation',   // Kenfack Dirand
   FINANCE: 'finance',             // Dahirou Bachar
-  EMPLOYE: 'employe'
+  EMPLOYE: 'employe',
+  VENDEUR: 'vendeur'              // shop seller: his shop only
 }
 
-const { DIRECTEUR: D, EXPLOITATION: X, FINANCE: F, EMPLOYE: E } = ROLES
+const { DIRECTEUR: D, EXPLOITATION: X, FINANCE: F, EMPLOYE: E, VENDEUR: V } = ROLES
 
 // Which roles can open each section of the app (the database enforces the same rules)
 export const ACCESS = {
@@ -40,7 +41,8 @@ export const ACCESS = {
   argent: [D, X, F],
   stock: [D, X, F],
   reglages: [D, X, F],
-  sync: [D, X, F, E]
+  boutique: [D, X, F, E, V],
+  sync: [D, X, F, E, V]
 }
 
 // Actions inside the sections
@@ -64,6 +66,14 @@ export const PERMISSIONS = {
   'capital.manage': [D, F],      // investors, contributions, withdrawals, 10 % decisions
   'capital.allocate': [D, X, F], // investors' capital placed in each flock
   'salaires': [D, F],            // employees, advances, monthly pay (confidential)
+  'boutique.admin': [D],         // create / edit shops
+  'boutique.vendre': [D, X, V],  // sell in a shop
+  'boutique.envoi': [D, X, E],   // send goods farm → shop
+  'boutique.recevoir': [D, X, V], // confirm a shipment
+  'boutique.prix': [D, X, F],    // shop prices (the seller never changes them)
+  'boutique.caisse': [D, F, V],  // shop cash: closing, deposits
+  'boutique.valider': [D, F],    // validate a deposit
+  'boutique.ventes': [D, X, F, V], // see the shop sales
   'pret.manage': [D, F],
   'caisse.verify': [D, F],
   'caisse.adjust': [D],

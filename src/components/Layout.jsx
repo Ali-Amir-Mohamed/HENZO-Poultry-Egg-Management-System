@@ -20,6 +20,7 @@ export const SECTIONS = [
   { to: '/planning', key: 'planning', icon: 'calendar' },
   { to: '/analyses', key: 'analyses', icon: 'chart' },
   { to: '/stock', key: 'stock', icon: 'box' },
+  { to: '/boutique', key: 'boutique', icon: 'cart' },
   { to: '/reglages', key: 'reglages', icon: 'settings' },
   { to: '/sync', key: 'sync', icon: 'sync' }
 ]
@@ -58,7 +59,7 @@ export default function Layout() {
                 <Icon name="download" size={18} /><span className="hide-sm">{t('status.install')}</span>
               </button>
             )}
-            {role !== 'employe' && <Notifications />}
+            {!['employe', 'vendeur'].includes(role) && <Notifications />}
             <ThemeSwitch />
             <LanguageSwitch />
             <button className="icon-btn" onClick={signOut} title={t('nav.logout')} aria-label={t('nav.logout')}>

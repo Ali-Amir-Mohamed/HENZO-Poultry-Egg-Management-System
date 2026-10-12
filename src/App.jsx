@@ -24,6 +24,8 @@ const Sync = lazy(() => import('./pages/Sync'))
 const Plus = lazy(() => import('./pages/Plus'))
 const Recu = lazy(() => import('./pages/Recu'))
 const FaceId = lazy(() => import('./pages/FaceId'))
+const Boutique = lazy(() => import('./pages/Boutique'))
+const RecuBoutique = lazy(() => import('./pages/boutique/RecuBoutique'))
 const MonCompte = lazy(() => import('./pages/MonCompte'))
 
 function Guard({ section, children }) {
@@ -33,7 +35,7 @@ function Guard({ section, children }) {
 }
 
 export default function App() {
-  const { session, profile, loading, signOut } = useAuth()
+  const { session, profile, loading, signOut, role } = useAuth()
   const { t } = useTranslation()
 
   if (loading) {
@@ -53,7 +55,10 @@ export default function App() {
   return (
     <Routes>
       <Route element={<Layout />}>
-        <Route index element={<Dashboard />} />
+        {/* a seller lands directly on his shop */}
+        <Route index element={role === 'vendeur' ? <Navigate to="/boutique" replace /> : <Dashboard />} />
+        <Route path="boutique" element={<Guard section="boutique"><Boutique /></Guard>} />
+        <Route path="recu-boutique/:id" element={<RecuBoutique />} />
         <Route path="saisie" element={<Guard section="saisie"><Saisie /></Guard>} />
         <Route path="ferme" element={<Guard section="ferme"><Ferme /></Guard>} />
         <Route path="ferme/bande/:id" element={<Guard section="ferme"><FicheBande /></Guard>} />
