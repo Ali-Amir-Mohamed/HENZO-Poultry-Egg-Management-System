@@ -60,7 +60,7 @@ export const PERMISSIONS = {
   'soldeInitial': [D, F],
   'credit.grant': [X],
   'tiers.edit': [D, X, F],
-  'prix.set': [D, X, F],
+  'prix.set': [X],               // farm sale prices (Kenfack)
   'article.edit': [X],           // stock product sheets (director, finance: read-only stock)
   'stock.achat': [X],            // purchases that enter stock (feed, medicines)
   'stock.manual': [X],
@@ -77,7 +77,8 @@ export const PERMISSIONS = {
   'boutique.envoi': [X, E],   // send goods farm → shop
   'boutique.recevoir': [V], // confirm a shipment
   'boutique.prix': [D, X, F],    // shop prices (the seller never changes them)
-  'boutique.caisse': [D, F, V],  // shop cash: closing, deposits
+  'boutique.caisse': [V],        // shop cash: closing, deposits (the seller)
+  'boutique.caisse.voir': [D, F, V], // see the shop cash
   'boutique.valider': [F],    // validate a deposit
   'boutique.ventes': [D, X, F, V], // see the shop sales
   'pret.manage': [D, F],

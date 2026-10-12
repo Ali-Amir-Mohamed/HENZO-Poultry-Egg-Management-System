@@ -1043,6 +1043,29 @@ await expectErr('dahirou does not use the team form', 'dahirou', `select public.
 await expectOk('dahirou sets the salary', 'dahirou', `update public.employes set salaire_mensuel = 50000 where id = $1`, [NEW])
 ok('the employee account sees no team', (await as('employe', `select * from public.equipe`)).rows.length === 0)
 
+// ---------- 0034: shop closing by the seller, employees, farm prices ----------
+try {
+  await db.exec(readFileSync(new URL('0034_domaines_fin.sql', MIG), 'utf8'))
+  ok('migration 0034 runs', true)
+} catch (e) { ok('migration 0034 runs', false, e.message); process.exit(1) }
+await expectErr('dahirou does not close the shop day', 'dahirou', `select public.cloturer_journee($1, 0, null)`, [BQ], 'vendeur')
+await expectErr('ali does not close the shop day', 'ali', `select public.cloturer_journee($1, 0, null)`, [BQ], 'vendeur')
+await expectErr('dahirou does not declare a deposit', 'dahirou', `select public.demander_versement($1, 'especes', 100, 0)`, [BQ], 'vendeur')
+await expectOk('the seller closes the day', 'vendeur', `select public.cloturer_journee($1, 0, null)`, [BQ])
+const VER3 = (await oneP('vendeur', `select public.demander_versement($1, 'especes', 500, 0) as id`, [BQ])).id
+await expectOk('dahirou validates the seller deposit', 'dahirou', `select public.valider_versement($1, true)`, [VER3])
+await expectErr('dahirou does not add an employee directly', 'dahirou', `insert into public.employes (nom, salaire_mensuel) values ('x', 1000)`)
+await expectErr('ali does not add an employee', 'ali', `insert into public.employes (nom, salaire_mensuel) values ('x', 1000)`)
+await expectErr('dahirou does not change the job', 'dahirou', `update public.employes set poste = 'Chauffeur' where id = $1`, [NEW], 'Kenfack')
+await expectOk('dahirou changes the salary', 'dahirou', `update public.employes set salaire_mensuel = 55000, activite = 'pondeuse' where id = $1`, [NEW])
+await expectNoRows('ali does not change a salary', 'ali', `update public.employes set salaire_mensuel = 1 where id = '${NEW}' returning id`)
+ok('ali still sees the employees', (await as('ali', `select * from public.employes`)).rows.length > 0)
+await expectOk('kenfack still changes the job', 'kenfack', `select public.modifier_employe($1, 'Moussa', null, 'Chauffeur', true)`, [NEW])
+await expectOk('kenfack still sets a farm price', 'kenfack', `insert into public.prix_vente (produit, unite, prix) values ('poulets', 'piece', 3200)`)
+await expectErr('dahirou does not set a farm price', 'dahirou', `insert into public.prix_vente (produit, unite, prix) values ('poulets', 'piece', 1)`)
+await expectErr('ali does not set a farm price', 'ali', `insert into public.prix_vente (produit, unite, prix) values ('poulets', 'piece', 1)`)
+await expectOk('dahirou still sets a shop price range', 'dahirou', `insert into public.prix_boutique (produit, forme, unite, prix_min, prix_max) values ('poule_reformee', 'vivant', 'piece', 2000, 3000)`)
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))

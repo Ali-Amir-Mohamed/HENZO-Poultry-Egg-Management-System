@@ -35,7 +35,7 @@ export default function Boutique() {
     ...(can(role, 'boutique.ventes') ? [{ id: 'ventes', label: 'boutique.tabs.ventes', icon: 'receipt' }] : []),
     { id: 'stock', label: 'boutique.tabs.stock', icon: 'box' },
     { id: 'envois', label: vendeur ? 'boutique.tabs.receptions' : 'boutique.tabs.envois', icon: 'drumstick' },
-    ...(can(role, 'boutique.caisse') || can(role, 'boutique.valider') ? [{ id: 'caisse', label: 'boutique.tabs.caisse', icon: 'wallet' }] : []),
+    ...(can(role, 'boutique.caisse.voir') ? [{ id: 'caisse', label: 'boutique.tabs.caisse', icon: 'wallet' }] : []),
     ...(can(role, 'boutique.prix') || can(role, 'boutique.admin') ? [{ id: 'gestion', label: 'boutique.tabs.gestion', icon: 'settings' }] : [])
   ]
   const [tab, setTab] = useState(tabs[0].id)

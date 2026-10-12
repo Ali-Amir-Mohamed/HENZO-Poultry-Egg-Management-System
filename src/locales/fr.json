@@ -1323,7 +1323,11 @@
     "notDeducted": "à déduire",
     "cancelHint": "Une erreur ? Ali annule la dépense correspondante dans Argent > Dépenses : le salaire ou l’avance est annulé ici aussi.",
     "notPaidYet": "Pas encore payé",
-    "onlyFinance": "Seul Dahirou (finance) paie les salaires et les avances."
+    "onlyFinance": "Seul Dahirou (finance) paie les salaires et les avances.",
+    "editHint": "Le nom, le poste et le départ sont gérés par Kenfack (Ferme > Équipe).",
+    "editSalary": "Changer le salaire",
+    "addedByKenfack": "Les nouveaux employés sont ajoutés par Kenfack dans Ferme > Équipe. Vous êtes prévenu pour fixer leur salaire.",
+    "zeroSalary": "Salaire à fixer"
   },
   "compte": {
     "title": "Mon compte",

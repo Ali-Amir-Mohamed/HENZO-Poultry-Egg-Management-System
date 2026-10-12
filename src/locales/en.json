@@ -1323,7 +1323,11 @@
     "notDeducted": "to deduct",
     "cancelHint": "A mistake? Ali cancels the matching expense in Money > Expenses: the salary or advance is cancelled here too.",
     "notPaidYet": "Not paid yet",
-    "onlyFinance": "Only Dahirou (finance) pays salaries and advances."
+    "onlyFinance": "Only Dahirou (finance) pays salaries and advances.",
+    "editHint": "Name, job and departure are handled by Kenfack (Farm > Team).",
+    "editSalary": "Change salary",
+    "addedByKenfack": "New employees are added by Kenfack in Farm > Team. You are notified to set their salary.",
+    "zeroSalary": "Salary to set"
   },
   "compte": {
     "title": "My account",

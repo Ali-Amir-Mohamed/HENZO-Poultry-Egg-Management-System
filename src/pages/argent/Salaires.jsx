@@ -1,14 +1,14 @@
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../../lib/supabase'
 import { must, useQuery } from '../../hooks'
 import { can, MODES_PAIEMENT } from '../../config'
 import { useAuth } from '../../auth/AuthProvider'
 import Icon from '../../components/Icon'
-import { day, Empty, Field, FormCard, Loading, money, Panel } from '../../components/ui'
+import { day, Empty, Loading, money, Panel } from '../../components/ui'
 import { useAsk, useRun } from '../../components/Dialog'
 
-// Employees and salaries (director, finance; only finance pays): advances paid at once, monthly pay = salary + bonus − deductions − advances.
+// Employees and salaries (director, finance; only finance pays and sets salaries; employees are added by
+// operations in Ferme > Équipe): advances paid at once, monthly pay = salary + bonus − deductions − advances.
 // Every payment is a « salaires » expense in the chosen cash box; cancelling it (director) cancels it here too.
 const moisCourant = () => new Date().toLocaleDateString('en-CA').slice(0, 7)
 
@@ -27,16 +27,8 @@ export default function Salaires() {
     ])
     return { employes: must(emp), avances: must(av), paies: must(paies) }
   })
-  const [form, setForm] = useState({ nom: '', telephone: '', poste: '', activite: 'chair', salaire_mensuel: '', date_embauche: '' })
-  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
   const modes = MODES_PAIEMENT.map((m) => ({ value: m, label: t(`modes.${m}`) }))
 
-  const creer = async () => {
-    must(await supabase.from('employes').insert({ ...form, salaire_mensuel: Number(form.salaire_mensuel), telephone: form.telephone || null, poste: form.poste || null, date_embauche: form.date_embauche || null }))
-    setForm({ ...form, nom: '', telephone: '', poste: '', salaire_mensuel: '', date_embauche: '' })
-    q.reload()
-    return t('salaires.created')
-  }
   const aDeduire = (e) => q.data.avances.filter((a) => a.employe_id === e.id && !a.paie_id).reduce((s, a) => s + Number(a.montant), 0)
   const payeCeMois = (e) => q.data.paies.some((p) => p.employe_id === e.id && String(p.mois).slice(0, 7) === moisCourant())
 
@@ -78,15 +70,11 @@ export default function Salaires() {
   }
 
   const modifier = async (e) => {
-    const v = await ask.form({ title: t('salaires.editTitle', { nom: e.nom }), icon: 'users', submit: t('dialog.save'), fields: [
-      { name: 'nom', label: t('reglages.name'), value: e.nom, required: true },
-      { name: 'poste', label: t('salaires.job'), value: e.poste ?? '' },
-      { name: 'telephone', label: t('reglages.phone'), type: 'tel', value: e.telephone ?? '' },
-      { name: 'activite', label: t('salaires.paidBy'), type: 'select', value: e.activite, options: ['chair', 'pondeuse'].map((a) => ({ value: a, label: t(`argent.caisse.${a}`) })) },
+    const v = await ask.form({ title: t('salaires.editTitle', { nom: e.nom }), icon: 'users', submit: t('dialog.save'), message: t('salaires.editHint'), fields: [
       { name: 'salaire_mensuel', label: t('salaires.salary'), type: 'number', min: 0, value: e.salaire_mensuel, required: true },
-      { name: 'actif', label: t('stock.status'), type: 'select', value: e.actif ? 'oui' : 'non', options: [{ value: 'oui', label: t('salaires.active') }, { value: 'non', label: t('salaires.left') }] }
+      { name: 'activite', label: t('salaires.paidBy'), type: 'select', value: e.activite, options: ['chair', 'pondeuse'].map((a) => ({ value: a, label: t(`argent.caisse.${a}`) })) }
     ] })
-    if (v) await run(supabase.from('employes').update({ nom: v.nom, poste: v.poste || null, telephone: v.telephone || null, activite: v.activite, salaire_mensuel: Number(v.salaire_mensuel), actif: v.actif === 'oui' }).eq('id', e.id), q.reload)
+    if (v) await run(supabase.from('employes').update({ activite: v.activite, salaire_mensuel: Number(v.salaire_mensuel) }).eq('id', e.id), q.reload)
   }
 
   if (!q.data) return <Loading error={q.error} />
@@ -116,7 +104,7 @@ export default function Salaires() {
                           : payeur ? <button className="btn primary sm" onClick={() => payer(e)}><Icon name="wallet" size={14} />{t('salaires.pay')}</button>
                             : <span className="tag warn">{t('salaires.notPaidYet')}</span>}
                         {payeur && <button className="btn ghost sm" onClick={() => avance(e)}>{t('salaires.advance')}</button>}
-                        <button className="btn ghost sm" onClick={() => modifier(e)}>{t('common.edit')}</button>
+                        {payeur && <button className="btn ghost sm" onClick={() => modifier(e)}>{t('salaires.editSalary')}</button>}
                       </div>
                     )}
                   </div>
@@ -128,18 +116,7 @@ export default function Salaires() {
         {!payeur && <p className="note"><Icon name="wallet" size={16} />{t('salaires.onlyFinance')}</p>}
       </Panel>
 
-      <FormCard title={t('salaires.new')} icon="users" onSubmit={creer}>
-        <div className="grid-2">
-          <Field label={t('reglages.name')}><input required value={form.nom} onChange={set('nom')} /></Field>
-          <Field label={t('salaires.job')}><input value={form.poste} onChange={set('poste')} placeholder={t('salaires.jobPh')} /></Field>
-          <Field label={t('salaires.salary')}><input type="number" min="0" required value={form.salaire_mensuel} onChange={set('salaire_mensuel')} /></Field>
-          <Field label={t('salaires.paidBy')}>
-            <select value={form.activite} onChange={set('activite')}>{['chair', 'pondeuse'].map((a) => <option key={a} value={a}>{t(`argent.caisse.${a}`)}</option>)}</select>
-          </Field>
-          <Field label={t('reglages.phone')}><input type="tel" value={form.telephone} onChange={set('telephone')} /></Field>
-          <Field label={t('salaires.hired')}><input type="date" value={form.date_embauche} onChange={set('date_embauche')} /></Field>
-        </div>
-      </FormCard>
+      <p className="note"><Icon name="users" size={16} />{t('salaires.addedByKenfack')}</p>
 
       {(q.data.paies.length > 0 || q.data.avances.length > 0) && (
         <Panel icon="clock" tone="sky" title={t('salaires.history')}>
