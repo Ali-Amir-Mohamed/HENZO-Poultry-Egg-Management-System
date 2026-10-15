@@ -1935,7 +1935,12 @@
     "title": "Your tools, one place",
     "subtitle": "Hello {{name}}, choose the system you want to work with.",
     "open": "Open {{nom}}",
-    "footer": "HENZO — internal access"
+    "footer": "HENZO — internal access",
+    "subtitlePublic": "Choose the application you want to work with.",
+    "back": "Change application",
+    "negoceTagline": "Buying and reselling: chicks, feed, medicines",
+    "negoceSubtitle": "Enter your credentials to access HENZO AGRO.",
+    "noAccess": "Your account has no access to {{nom}}: you are in your usual system. Ask the director to add you."
   },
   "negoce": {
     "sellTitle": "New sale",

@@ -1935,7 +1935,12 @@
     "title": "Vos outils, un seul endroit",
     "subtitle": "Bonjour {{name}}, choisissez le système avec lequel vous souhaitez travailler.",
     "open": "Ouvrir {{nom}}",
-    "footer": "HENZO — accès interne"
+    "footer": "HENZO — accès interne",
+    "subtitlePublic": "Choisissez l’application avec laquelle vous souhaitez travailler.",
+    "back": "Changer d’application",
+    "negoceTagline": "Achat et revente : poussins, aliment, médicaments",
+    "negoceSubtitle": "Entrez vos identifiants pour accéder à HENZO AGRO.",
+    "noAccess": "Votre compte n’a pas accès à {{nom}} : vous êtes dans votre système habituel. Demandez au directeur de vous y ajouter."
   },
   "negoce": {
     "sellTitle": "Nouvelle vente",

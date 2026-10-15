@@ -1,6 +1,11 @@
 import { lazy, useEffect, useState } from 'react'
 import ChoixSysteme from './pages/ChoixSysteme'
-import { choixFait, estNegoce } from './lib/systeme'
+import { choixFait, ecrireRefus, ecrireVise, estNegoce, lireVise, marquerChoix } from './lib/systeme'
+import { changerFerme } from './components/FarmSwitch'
+import Portail from './components/Portail'
+import LanguageSwitch from './components/LanguageSwitch'
+import ThemeSwitch from './components/ThemeSwitch'
+import { APP_VERSION, forcerMiseAJour } from './lib/version'
 import { supabase } from './lib/supabase'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -45,18 +50,45 @@ function Guard({ section, children }) {
 export default function App() {
   const { session, profile, loading, signOut, role } = useAuth()
   const { t } = useTranslation()
-  // Two systems behind one link: accounts in both choose at the start of the session
+  // Two systems behind one link. Before signing in, the portal asks which one to open (HENZO or HENZO AGRO);
+  // after signing in, that system's company is opened. Accounts already signed in and working in both
+  // get the portal again at the start of each session.
+  const [vise, setVise] = useState(lireVise)
   const [societes, setSocietes] = useState(null)
   const [choisi, setChoisi] = useState(choixFait)
   useEffect(() => {
     if (!session || !profile || choisi || !navigator.onLine) return
-    supabase.rpc('mes_societes').then(({ data }) => setSocietes(data ?? []), () => setSocietes([]))
+    supabase.rpc('mes_societes').then(({ data }) => {
+      const liste = data ?? []
+      const v = lireVise()
+      if (!v) return setSocietes(liste)
+      // a system was picked on the portal: open its company (or say there is no access to it)
+      const cible = liste.find((s) => s.type_activite === v)
+      ecrireVise(null)
+      marquerChoix()
+      setChoisi(true)
+      if (!cible) ecrireRefus(v)
+      else if (!cible.active) changerFerme(cible.ferme_id).catch(() => {})
+    }, () => setSocietes([]))
   }, [session, profile, choisi])
+  const choisirAvantConnexion = (c) => { ecrireVise(c.type); setVise(c.type) }
+  const retourPortail = () => { ecrireVise(null); setVise(null) }
 
   if (loading) {
     return <div className="splash"><Logo size={64} /><p>{t('common.loading')}</p></div>
   }
-  if (!session) return <Login />
+  if (!session) {
+    if (vise) return <Login systeme={vise} onRetour={retourPortail} />
+    return (
+      <Portail
+        sousTitre={t('systeme.subtitlePublic')}
+        cartes={[{ cle: 'elevage', type: 'elevage', nom: 'HENZO' }, { cle: 'negoce', type: 'negoce', nom: 'HENZO AGRO' }]}
+        onChoisir={choisirAvantConnexion}
+        entete={<><ThemeSwitch className="icon-btn" /><LanguageSwitch className="icon-btn" /></>}
+        pied={<><span>{t('systeme.footer')}</span><span>{t('version.label')} {APP_VERSION} · <button type="button" className="portail-lien-pied" onClick={forcerMiseAJour}>{t('version.force')}</button></span></>}
+      />
+    )
+  }
   if (!profile) {
     return (
       <div className="splash">

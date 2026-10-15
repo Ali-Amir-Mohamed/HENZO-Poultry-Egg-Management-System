@@ -1,9 +1,9 @@
-import { Suspense, useEffect } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/AuthProvider'
 import { supabase } from '../lib/supabase'
-import { sectionVisible, estNegoce } from '../lib/systeme'
+import { sectionVisible, estNegoce, lireRefus, ecrireRefus } from '../lib/systeme'
 import { useInstallPrompt, useOnline, usePendingCount } from '../hooks'
 import LanguageSwitch from './LanguageSwitch'
 import ThemeSwitch from './ThemeSwitch'
@@ -40,6 +40,7 @@ export default function Layout() {
   const install = useInstallPrompt()
   const sections = SECTIONS.filter((s) => sectionVisible(s.key, role, profile))
   const negoce = estNegoce(profile)
+  const [refus, setRefus] = useState(lireRefus)
   // Administration reminders (also sent every morning by the database when pg_cron is on)
   useEffect(() => { if (role === 'directeur' && navigator.onLine) supabase.rpc('rappels_administration').then(() => {}, () => {}) }, [role])
   const needsMore = sections.length > MOBILE_SLOTS + 1
@@ -97,6 +98,11 @@ export default function Layout() {
       </header>
       <main className="content">
         {/* key: a page error is forgotten when changing page */}
+        {refus && (
+          <div className="alert warn"><Icon name="alert" size={18} />{t('systeme.noAccess', { nom: refus === 'negoce' ? 'HENZO AGRO' : 'HENZO' })}
+            <button type="button" className="btn ghost sm" style={{ marginLeft: 'auto' }} onClick={() => { ecrireRefus(null); setRefus(null) }}>OK</button>
+          </div>
+        )}
         <ErrorBoundary key={location.pathname}>
           <Suspense fallback={<p className="muted">{t('common.loading')}</p>}><Outlet /></Suspense>
         </ErrorBoundary>

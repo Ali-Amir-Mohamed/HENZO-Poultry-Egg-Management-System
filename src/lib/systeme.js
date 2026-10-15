@@ -10,8 +10,18 @@ export const SECTIONS_ELEVAGE = ['saisie', 'ferme', 'planning', 'analyses', 'bou
 export const sectionVisible = (section, role, profile) =>
   canAccess(role, section) && !(estNegoce(profile) && SECTIONS_ELEVAGE.includes(section))
 
-// The choice screen is shown once per session to accounts working in both systems
-const CLE_CHOIX = 'henzo.systeme.choisi'
-export const choixFait = () => { try { return sessionStorage.getItem(CLE_CHOIX) === '1' } catch { return true } }
-export const marquerChoix = () => { try { sessionStorage.setItem(CLE_CHOIX, '1') } catch { /* ignore */ } }
-export const oublierChoix = () => { try { sessionStorage.removeItem(CLE_CHOIX) } catch { /* ignore */ } }
+const lire = (k) => { try { return sessionStorage.getItem(k) } catch { return null } }
+const ecrire = (k, v) => { try { if (v == null) sessionStorage.removeItem(k); else sessionStorage.setItem(k, v) } catch { /* ignore */ } }
+
+// The choice screen after signing in is shown once per session to accounts working in both systems
+export const choixFait = () => lire('henzo.systeme.choisi') === '1'
+export const marquerChoix = () => ecrire('henzo.systeme.choisi', '1')
+export const oublierChoix = () => ecrire('henzo.systeme.choisi', null)
+
+// System picked on the portal before signing in ('elevage' | 'negoce'), applied right after the sign-in
+export const lireVise = () => lire('henzo.systeme.vise')
+export const ecrireVise = (v) => ecrire('henzo.systeme.vise', v)
+
+// The account had no access to the system picked before signing in: told once, in the app
+export const lireRefus = () => lire('henzo.systeme.refus')
+export const ecrireRefus = (v) => ecrire('henzo.systeme.refus', v)

@@ -8,7 +8,8 @@ import { EXPIRED_FLAG } from '../components/SessionGuard'
 import { faceIdActiveIci, faceIdSupported, messageFaceId, nomBiometrie } from '../lib/faceid'
 import { APP_VERSION, forcerMiseAJour } from '../lib/version'
 
-export default function Login() {
+export default function Login({ systeme = 'elevage', onRetour }) {
+  const negoce = systeme === 'negoce'
   const { t } = useTranslation()
   const { signIn, signInWithFaceId } = useAuth()
   const [username, setUsername] = useState('')
@@ -48,16 +49,16 @@ export default function Login() {
   )
 
   return (
-    <div className="login-page">
+    <div className={`login-page ${negoce ? 'negoce' : ''}`}>
       <div className="login-lang"><ThemeSwitch className="icon-btn light" /><LanguageSwitch className="icon-btn light" /></div>
       <div className="login-hero">
         <Logo size={72} />
-        <h1>{t('app.name')}</h1>
-        <p>{t('app.tagline')}</p>
+        <h1>{negoce ? 'HENZO AGRO' : t('app.name')}</h1>
+        <p>{negoce ? t('systeme.negoceTagline') : t('app.tagline')}</p>
       </div>
       <form className="login-card" onSubmit={submit}>
         <h2>{t('auth.title')}</h2>
-        <p className="muted">{t('auth.subtitle')}</p>
+        <p className="muted">{negoce ? t('systeme.negoceSubtitle') : t('auth.subtitle')}</p>
         {expired && <div className="alert warn"><Icon name="clock" size={18} />{t('auth.expired')}</div>}
         {/* Face ID first on a phone where it was activated, otherwise offered under the password form */}
         {faceIdActiveIci() && boutonFaceId && <>{boutonFaceId}<p className="login-or">{t('faceid.orPassword')}</p></>}
@@ -77,6 +78,7 @@ export default function Login() {
         </button>
         {!faceIdActiveIci() && boutonFaceId && <><p className="login-or">{t('faceid.or')}</p>{boutonFaceId}</>}
       </form>
+      {onRetour && <button type="button" className="link-btn login-retour" onClick={onRetour}>← {t('systeme.back')}</button>}
       <p className="login-foot">
         © {new Date().getFullYear()} HENZO · {t('version.label')} {APP_VERSION}
         <br /><button type="button" className="link-btn" onClick={forcerMiseAJour}>{t('version.force')}</button>

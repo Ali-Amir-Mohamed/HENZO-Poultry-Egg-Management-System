@@ -780,3 +780,11 @@ textarea.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, mono
 .portail .alert { margin-top: 1rem; }
 .shell.negoce .topbar { background: #1d3b63; }
 .hero.negoce { background: linear-gradient(135deg, #1d3b63, #2d5a8f); }
+
+.portail { position: relative; }
+.portail-entete { position: absolute; top: 1rem; right: 1rem; display: flex; gap: .4rem; }
+.portail-pied { flex-wrap: wrap; }
+.portail-lien-pied { all: unset; cursor: pointer; color: var(--p-doux); text-decoration: underline; }
+.login-retour { color: rgba(255, 255, 255, .75); }
+.login-page.negoce { background: radial-gradient(circle at 15% 10%, rgba(231, 164, 99, .32), transparent 42%), linear-gradient(160deg, #3b2614 0%, #1d1a17 70%); }
+.login-page.negoce .btn.primary { background: #b5651d; border-color: #b5651d; }
