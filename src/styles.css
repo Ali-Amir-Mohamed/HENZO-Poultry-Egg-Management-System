@@ -749,19 +749,34 @@ textarea.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, mono
 .row.wrap { flex-wrap: wrap; }
 .table tr.strong td { border-top: 2px solid var(--border, #ddd); }
 
-/* ---------- Two systems: choice screen, HENZO AGRO colours ---------- */
-.choix-systeme { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.4rem; padding: 2rem 1rem; background: var(--bg); }
-.choix-head { text-align: center; display: flex; flex-direction: column; align-items: center; gap: .4rem; }
-.choix-head h1 { margin: .4rem 0 0; }
-.choix-head p { margin: 0; color: var(--muted); }
-.choix-cartes { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; width: 100%; max-width: 640px; }
-.choix-carte { display: flex; flex-direction: column; align-items: flex-start; gap: .35rem; text-align: left; padding: 1.3rem; border-radius: 16px; border: 2px solid transparent; cursor: pointer; color: #fff; font: inherit; box-shadow: 0 10px 30px -14px rgba(0,0,0,.45); transition: transform .15s ease, border-color .15s ease; }
-.choix-carte:hover, .choix-carte:focus-visible { transform: translateY(-2px); border-color: rgba(255,255,255,.7); }
-.choix-carte.elevage { background: var(--green-800, #1f4d2b); }
-.choix-carte.negoce { background: #1d3b63; }
-.choix-carte strong { font-size: 1.3rem; letter-spacing: .06em; }
-.choix-carte small { color: rgba(255,255,255,.75); }
-.choix-carte .choix-role { margin-top: .4rem; font-weight: 600; }
-.choix-icone { width: 54px; height: 54px; border-radius: 14px; display: grid; place-items: center; background: rgba(255,255,255,.14); margin-bottom: .3rem; }
+/* ---------- Two systems: group portal (choice screen), HENZO AGRO colours ---------- */
+.portail { --p-bg: #f5f3ee; --p-carte: #ffffff; --p-texte: #1f1d1a; --p-doux: #6f6a61; --p-bord: #e4e0d7; --p-ombre: rgba(31, 29, 26, .08);
+  --p-elevage: #2f6b3a; --p-elevage-fond: #e5efe4; --p-negoce: #b5651d; --p-negoce-fond: #f6e9db;
+  min-height: 100vh; background: var(--p-bg); color: var(--p-texte); display: flex; align-items: center; justify-content: center; padding: 3rem 1rem; }
+:root[data-theme="dark"] .portail { --p-bg: #17181b; --p-carte: #202226; --p-texte: #ece9e2; --p-doux: #a39e94; --p-bord: #2e3036; --p-ombre: rgba(0, 0, 0, .35);
+  --p-elevage: #7cc58a; --p-elevage-fond: #1f3324; --p-negoce: #e7a463; --p-negoce-fond: #3a2a1b; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .portail { --p-bg: #17181b; --p-carte: #202226; --p-texte: #ece9e2; --p-doux: #a39e94; --p-bord: #2e3036; --p-ombre: rgba(0, 0, 0, .35);
+  --p-elevage: #7cc58a; --p-elevage-fond: #1f3324; --p-negoce: #e7a463; --p-negoce-fond: #3a2a1b; } }
+.portail-inner { width: 100%; max-width: 760px; }
+.portail-marque { font-size: .72rem; letter-spacing: .28em; text-transform: uppercase; color: var(--p-doux); margin: 0 0 .9rem; }
+.portail h1 { font-family: Georgia, 'Times New Roman', serif; font-weight: 700; font-size: clamp(1.9rem, 5vw, 2.7rem); line-height: 1.1; margin: 0; letter-spacing: -.01em; }
+.portail-sous-titre { color: var(--p-doux); margin: .6rem 0 2rem; font-size: 1rem; }
+.portail-cartes { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.1rem; }
+.portail-carte { all: unset; box-sizing: border-box; cursor: pointer; display: flex; flex-direction: column; gap: .45rem; padding: 1.15rem 1.15rem 1rem;
+  background: var(--p-carte); border: 1px solid var(--p-bord); border-top: 3px solid var(--p-accent); border-radius: 6px;
+  box-shadow: 0 8px 24px -16px var(--p-ombre); transition: transform .15s ease, box-shadow .15s ease; text-align: left; }
+.portail-carte.elevage { --p-accent: var(--p-elevage); --p-accent-fond: var(--p-elevage-fond); }
+.portail-carte.negoce { --p-accent: var(--p-negoce); --p-accent-fond: var(--p-negoce-fond); }
+.portail-carte:hover, .portail-carte:focus-visible { transform: translateY(-2px); box-shadow: 0 14px 30px -16px var(--p-ombre); }
+.portail-carte:focus-visible { outline: 2px solid var(--p-accent); outline-offset: 2px; }
+.portail-carte[disabled] { opacity: .6; cursor: progress; }
+.portail-icone { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; background: var(--p-accent-fond); color: var(--p-accent); margin-bottom: .2rem; }
+.portail-carte strong { font-family: Georgia, 'Times New Roman', serif; font-size: 1.12rem; }
+.portail-desc { color: var(--p-doux); font-size: .88rem; line-height: 1.4; }
+.portail-lien { color: var(--p-accent); font-weight: 600; font-size: .88rem; margin-top: .35rem; }
+.portail-role { color: var(--p-doux); font-size: .75rem; }
+.portail-pied { margin-top: 2.4rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; color: var(--p-doux); font-size: .8rem; }
+.portail-deconnexion { all: unset; cursor: pointer; color: var(--p-doux); text-decoration: underline; }
+.portail .alert { margin-top: 1rem; }
 .shell.negoce .topbar { background: #1d3b63; }
 .hero.negoce { background: linear-gradient(135deg, #1d3b63, #2d5a8f); }

@@ -4,9 +4,9 @@ import { useAuth } from '../auth/AuthProvider'
 import { usePendingCount } from '../hooks'
 import { changerFerme } from '../components/FarmSwitch'
 import { marquerChoix } from '../lib/systeme'
-import Icon, { Logo } from '../components/Icon'
+import Icon from '../components/Icon'
 
-// Welcome screen for accounts working in both systems: HENZO (farm) or HENZO AGRO (trading).
+// Group portal for accounts working in both systems: one card per system (HENZO farming, HENZO AGRO trading).
 export default function ChoixSysteme({ societes, onChoisi }) {
   const { t } = useTranslation()
   const { profile, signOut } = useAuth()
@@ -25,29 +25,33 @@ export default function ChoixSysteme({ societes, onChoisi }) {
   }
 
   return (
-    <div className="choix-systeme">
-      <div className="choix-head">
-        <Logo size={56} />
-        <h1>{t('systeme.welcome', { name: prenom })}</h1>
-        <p>{t('systeme.pick')}</p>
+    <main className="portail">
+      <div className="portail-inner">
+        <p className="portail-marque">{t('systeme.brand')}</p>
+        <h1>{t('systeme.title')}</h1>
+        <p className="portail-sous-titre">{t('systeme.subtitle', { name: prenom })}</p>
+
+        <div className="portail-cartes">
+          {societes.map((s) => {
+            const negoce = s.type_activite === 'negoce'
+            return (
+              <button key={s.ferme_id} type="button" className={`portail-carte ${negoce ? 'negoce' : 'elevage'}`} onClick={() => choisir(s)} disabled={!!busy}>
+                <span className="portail-icone"><Icon name={negoce ? 'box' : 'hen'} size={18} /></span>
+                <strong>{t(negoce ? 'systeme.negoce' : 'systeme.elevage')}</strong>
+                <span className="portail-desc">{t(negoce ? 'systeme.negoceHint' : 'systeme.elevageHint')}</span>
+                <span className="portail-lien">{busy === s.ferme_id ? t('common.loading') : t('systeme.open', { nom: s.nom })} →</span>
+                <small className="portail-role">{t(`roles.${s.role}`)}{s.active ? ` · ${t('systeme.last')}` : ''}</small>
+              </button>
+            )
+          })}
+        </div>
+
+        {erreur && <div className="alert danger"><Icon name="alert" size={18} />{erreur}</div>}
+        <footer className="portail-pied">
+          <span>{t('systeme.footer')}</span>
+          <button type="button" className="portail-deconnexion" onClick={signOut}>{t('nav.logout')}</button>
+        </footer>
       </div>
-      <div className="choix-cartes">
-        {societes.map((s) => {
-          const negoce = s.type_activite === 'negoce'
-          return (
-            <button key={s.ferme_id} type="button" className={`choix-carte ${negoce ? 'negoce' : 'elevage'}`} onClick={() => choisir(s)} disabled={!!busy}>
-              <span className="choix-icone"><Icon name={negoce ? 'box' : 'hen'} size={34} /></span>
-              <strong>{s.nom}</strong>
-              <span>{t(negoce ? 'systeme.negoce' : 'systeme.elevage')}</span>
-              <small>{t(negoce ? 'systeme.negoceHint' : 'systeme.elevageHint')}</small>
-              <small className="choix-role">{t(`roles.${s.role}`)}{s.active ? ` · ${t('systeme.last')}` : ''}</small>
-              {busy === s.ferme_id && <small>{t('common.loading')}</small>}
-            </button>
-          )
-        })}
-      </div>
-      {erreur && <div className="alert danger"><Icon name="alert" size={18} />{erreur}</div>}
-      <button type="button" className="btn ghost" onClick={signOut}><Icon name="logout" size={16} />{t('nav.logout')}</button>
-    </div>
+    </main>
   )
 }

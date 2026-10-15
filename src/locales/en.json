@@ -1928,9 +1928,14 @@
     "pick": "Which system do you want to work in?",
     "elevage": "Poultry farming",
     "negoce": "Buying and reselling",
-    "elevageHint": "Flocks, entries, shops, money, salaries",
-    "negoceHint": "Stock, sales to farmers, deliveries to the group, invoices",
-    "last": "last used"
+    "elevageHint": "Flocks, entries, stock, shops, money, salaries and the farm accounts.",
+    "negoceHint": "Chicks, feed and medicines: stock, sales to farmers, deliveries to the group, invoices.",
+    "last": "last used",
+    "brand": "HENZO · Group",
+    "title": "Your tools, one place",
+    "subtitle": "Hello {{name}}, choose the system you want to work with.",
+    "open": "Open {{nom}}",
+    "footer": "HENZO — internal access"
   },
   "negoce": {
     "sellTitle": "New sale",

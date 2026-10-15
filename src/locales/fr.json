@@ -1926,11 +1926,16 @@
   "systeme": {
     "welcome": "Bonjour {{name}}",
     "pick": "Dans quel système voulez-vous travailler ?",
-    "elevage": "Élevage",
+    "elevage": "Élevage avicole",
     "negoce": "Achat et revente",
-    "elevageHint": "Bandes, saisies, boutiques, argent, salaires",
-    "negoceHint": "Stock, ventes aux éleveurs, livraisons au groupe, factures",
-    "last": "dernier utilisé"
+    "elevageHint": "Bandes, saisies, stock, boutiques, argent, salaires et comptabilité de la ferme.",
+    "negoceHint": "Poussins, aliment et médicaments : stock, ventes aux éleveurs, livraisons au groupe, factures.",
+    "last": "dernier utilisé",
+    "brand": "HENZO · Groupe",
+    "title": "Vos outils, un seul endroit",
+    "subtitle": "Bonjour {{name}}, choisissez le système avec lequel vous souhaitez travailler.",
+    "open": "Ouvrir {{nom}}",
+    "footer": "HENZO — accès interne"
   },
   "negoce": {
     "sellTitle": "Nouvelle vente",
