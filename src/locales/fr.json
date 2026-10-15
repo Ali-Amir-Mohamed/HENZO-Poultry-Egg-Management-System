@@ -1041,7 +1041,8 @@
     "membersHint": "Pour qu’un compte travaille dans une autre société : ouvrez-la, puis Réglages > Comptes > « Ajouter un compte existant ».",
     "type": "Activité",
     "typeElevage": "Ferme d’élevage (comme HENZO)",
-    "typeNegoce": "Société d’achat et revente (comme HENZO AGRO)"
+    "typeNegoce": "Société d’achat et revente (comme HENZO AGRO)",
+    "typeSite": "Nouveau site de cette société (même fiche, mêmes factures, même comptabilité)"
   },
   "filtres": {
     "from": "Du",
@@ -1717,7 +1718,9 @@
         "tva": "TVA",
         "patente": "Patente",
         "autre": "Autre impôt"
-      }
+      },
+      "allSites_one": "toute la société",
+      "allSites_other": "toute la société ({{count}} sites)"
     },
     "soc": {
       "identity": "Identité de la société",
@@ -1742,7 +1745,9 @@
       "cga": "Adhérent d’un centre de gestion agréé (CGA)",
       "tva": "Assujetti à la TVA",
       "readOnly": "Seuls la direction et la finance modifient cette fiche.",
-      "cnps": "N° d’employeur CNPS"
+      "cnps": "N° d’employeur CNPS",
+      "sites_one": "Fiche commune à toute la société.",
+      "sites_other": "Fiche commune aux {{count}} sites de la société (vous êtes sur « {{site}} »)."
     }
   },
   "paie": {
@@ -1923,7 +1928,11 @@
       "vente_reformees": "Ventes de poules réformées",
       "vente_fientes": "Ventes de fientes",
       "vente_autres": "Autres ventes"
-    }
+    },
+    "scope": "Périmètre",
+    "thisSite": "Ce site",
+    "wholeCompany": "Toute la société",
+    "site": "Site"
   },
   "systeme": {
     "welcome": "Bonjour {{name}}",
@@ -1942,7 +1951,10 @@
     "back": "Changer d’application",
     "negoceTagline": "Achat et revente : poussins, aliment, médicaments",
     "negoceSubtitle": "Entrez vos identifiants pour accéder à HENZO AGRO.",
-    "noAccess": "Votre compte n’a pas accès à {{nom}} : vous êtes dans votre système habituel. Demandez au directeur de vous y ajouter."
+    "noAccess": "Votre compte n’a pas accès à {{nom}} : vous êtes dans votre système habituel. Demandez au directeur de vous y ajouter.",
+    "whichSite": "Quel site voulez-vous ouvrir ?",
+    "siteHint": "Site d’élevage : ses bandes, son stock, ses caisses et son équipe.",
+    "openSite": "Ouvrir ce site"
   },
   "negoce": {
     "sellTitle": "Nouvelle vente",

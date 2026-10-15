@@ -16,7 +16,7 @@ export default function Societe() {
   const { t } = useTranslation()
   const { role, profile } = useAuth()
   const edit = can(role, 'societe.edit')
-  const q = useQuery(async () => must(await supabase.from('fermes').select(CHAMPS.join(', ')).eq('id', profile.ferme_id).maybeSingle()), [profile?.ferme_id])
+  const q = useQuery(async () => must(await supabase.rpc('fiche_societe')), [profile?.ferme_id])
   const [form, setForm] = useState(null)
   const [etat, setEtat] = useState(null)
   useEffect(() => { if (q.data) setForm(Object.fromEntries(CHAMPS.map((k) => [k, q.data[k] ?? '']))) }, [q.data])
@@ -35,6 +35,7 @@ export default function Societe() {
   const ro = !edit
   return (
     <form className="stack" onSubmit={enregistrer}>
+      {Number(q.data.nombre_sites) > 1 && <p className="note"><Icon name="note" size={16} />{t('compta.soc.sites', { count: Number(q.data.nombre_sites), site: q.data.site })}</p>}
       <Panel icon="note" tone="sky" title={t('compta.soc.identity')} subtitle={t('compta.soc.identityHint')}>
         <div className="grid-2">
           <Field label={t('compta.soc.raison')}><input disabled={ro} value={form.raison_sociale} onChange={set('raison_sociale')} placeholder="HENZO SARL" /></Field>

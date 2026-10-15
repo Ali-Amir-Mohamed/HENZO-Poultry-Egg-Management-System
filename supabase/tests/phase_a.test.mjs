@@ -1252,6 +1252,51 @@ ok('the seller is told', Number((await db.query(`select count(*) n from public.n
 await expectOk('ali back to HENZO SARL', 'ali', `select public.changer_ferme($1)`, [fermeAli])
 ok('HENZO SARL journal is still balanced', (await as('dahirou', `select piece from public.journal_comptable group by piece having sum(debit) <> sum(credit)`)).rows.length === 0)
 
+// ---------- 0039: several sites for one company ----------
+try {
+  await db.exec(readFileSync(new URL('0039_sites.sql', MIG), 'utf8'))
+  ok('migration 0039 runs', true)
+} catch (e) { ok('migration 0039 runs', false, e.message); process.exit(1) }
+await expectErr('kenfack cannot add a site', 'kenfack', `select public.creer_ferme('X', 'elevage', $1)`, [fermeAli], 'directeur')
+await expectErr('a site cannot be added to the trading company', 'ali', `select public.creer_ferme('X', 'elevage', $1)`, [NEG], 'élevage')
+const SITE = (await oneP('ali', `select public.creer_ferme('HENZO Garoua', 'elevage', $1) as id`, [fermeAli])).id
+const site = (await db.query(`select societe_id, type_activite from public.fermes where id = $1`, [SITE])).rows[0]
+ok('HENZO Garoua is a site of HENZO SARL', site.societe_id === fermeAli && site.type_activite === 'elevage', JSON.stringify(site))
+ok('the site takes the company chart of accounts (60221)', (await db.query(`select numero from public.plan_comptable where ferme_id = $1 and cle = 'achat_aliment'`, [SITE])).rows[0].numero === '60221')
+await expectOk('ali opens the site', 'ali', `select public.changer_ferme($1)`, [SITE])
+await expectOk('ali adds kenfack to the site', 'ali', `select public.ajouter_membre('kenfack', 'exploitation')`)
+await expectOk('ali adds dahirou to the site', 'ali', `select public.ajouter_membre('dahirou', 'finance')`)
+await expectOk('kenfack opens the site', 'kenfack', `select public.changer_ferme($1)`, [SITE])
+await expectOk('dahirou opens the site', 'dahirou', `select public.changer_ferme($1)`, [SITE])
+const fiche = (await one('dahirou', `select public.fiche_societe() f`)).f
+ok('the site shows the company sheet (HENZO SARL, NIU) and its own name', fiche.raison_sociale === 'HENZO SARL' && fiche.niu === 'M012345678901A' && fiche.site === 'HENZO Garoua' && Number(fiche.nombre_sites) === 2, JSON.stringify(fiche))
+await expectErr('the trading company sheet is not reachable from the site', 'dahirou', `select public.fiche_societe($1)`, [NEG], 'introuvable')
+await expectOk('dahirou edits the company sheet from the site', 'dahirou', `select public.maj_societe('{"telephone_societe":"699000000"}'::jsonb)`)
+ok('the change is on HENZO SARL itself', (await db.query(`select telephone_societe t from public.fermes where id = $1`, [fermeAli])).rows[0].t === '699000000')
+const BSG = (await one('kenfack', `insert into public.bandes (code, date_arrivee, nombre_initial) values ('G1', current_date - 30, 400) returning id`)).id
+const CLG = (await one('kenfack', `insert into public.tiers (type_tiers, nom) values ('client', 'Restaurant Garoua') returning id`)).id
+const VSG = (await oneP('kenfack', `insert into public.ventes (bande_id, client_id, produit, unite, quantite, prix_unitaire, nombre_sujets, mode_paiement) values ($1, $2, 'poulets', 'piece', 20, 3500, 20, 'especes') returning id`, [BSG, CLG])).id
+const FSG = (await oneP('kenfack', `select public.creer_facture($1::uuid[]) as id`, [[VSG]])).id
+ok('a site invoice continues the company numbering (0005)', /-0005$/.test((await oneP('dahirou', `select numero from public.factures where id = $1`, [FSG])).numero))
+const sf = (await oneP('dahirou', `select public.situation_fiscale(extract(year from current_date)::int) s`)).s
+const caMois = Number(sf.ca[new Date().toISOString().slice(0, 7)] ?? 0)
+ok('company taxes add up both sites', Number(sf.sites) === 2 && caMois >= 70000 + 87500, JSON.stringify({ sites: sf.sites, caMois }))
+const solSite = await as('dahirou', `select sum(credit_periode) c from public.soldes_comptables('2000-01-01', current_date) where cle = 'vente_poulets'`)
+const solSoc = await as('dahirou', `select sum(credit_periode) c, sum(debit_cumule) d, sum(credit_cumule) cc from public.soldes_comptables('2000-01-01', current_date, true)`)
+ok('accounts: the site alone, or the whole company', Number(solSite.rows[0].c) === 70000 && Number(solSoc.rows[0].d) === Number(solSoc.rows[0].cc)
+  && Number(solSoc.rows[0].c) > Number(solSite.rows[0].c), JSON.stringify({ site: solSite.rows[0], soc: solSoc.rows[0] }))
+const js = await as('dahirou', `select distinct site from public.journal_societe('2000-01-01', current_date)`)
+ok('company journal shows the lines of both sites', js.rows.length === 2, JSON.stringify(js.rows))
+ok('the company journal never shows the trading company', !js.rows.some((r) => r.site === 'HENZO AGRO'))
+await expectErr('kenfack cannot read the company journal', 'kenfack', `select * from public.journal_societe('2000-01-01', current_date)`)
+await expectOk('dahirou renumbers a account from the site', 'dahirou', `select public.maj_compte('transport', '61811', null)`)
+ok('the whole company gets the new number', (await db.query(`select count(*) n from public.plan_comptable where cle = 'transport' and numero = '61811' and ferme_id in ($1, $2)`, [fermeAli, SITE])).rows[0].n === 2)
+await expectOk('dahirou sets the accident rate from the site', 'dahirou', `select public.maj_parametres_paie('{"taux_accidents_travail":"2.5"}'::jsonb)`)
+ok('payroll settings are the company ones', Number((await db.query(`select taux_accidents_travail t from public.parametres_paie where ferme_id = $1`, [fermeAli])).rows[0].t) === 2.5)
+ok('dahirou reads the company payroll settings from the site', (await as('dahirou', `select ferme_id from public.parametres_paie`)).rows.map((r) => r.ferme_id).join() === fermeAli)
+await expectOk('dahirou puts the rate back', 'dahirou', `select public.maj_parametres_paie('{"taux_accidents_travail":"1.75"}'::jsonb)`)
+for (const u of ['ali', 'kenfack', 'dahirou']) await expectOk(`${u} back to the main site`, u, `select public.changer_ferme($1)`, [fermeAli])
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))

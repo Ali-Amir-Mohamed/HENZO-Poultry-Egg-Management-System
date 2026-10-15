@@ -1041,7 +1041,8 @@
     "membersHint": "For an account to work in another company: open it, then Settings > Accounts > \"Add an existing account\".",
     "type": "Activity",
     "typeElevage": "Poultry farm (like HENZO)",
-    "typeNegoce": "Buying and reselling company (like HENZO AGRO)"
+    "typeNegoce": "Buying and reselling company (like HENZO AGRO)",
+    "typeSite": "New site of this company (same sheet, same invoices, same accounts)"
   },
   "filtres": {
     "from": "From",
@@ -1717,7 +1718,9 @@
         "tva": "VAT",
         "patente": "Business licence",
         "autre": "Other tax"
-      }
+      },
+      "allSites_one": "whole company",
+      "allSites_other": "whole company ({{count}} sites)"
     },
     "soc": {
       "identity": "Company identity",
@@ -1742,7 +1745,9 @@
       "cga": "Member of an approved management centre (CGA)",
       "tva": "VAT registered",
       "readOnly": "Only the direction and finance edit this sheet.",
-      "cnps": "CNPS employer number"
+      "cnps": "CNPS employer number",
+      "sites_one": "Sheet shared by the whole company.",
+      "sites_other": "Sheet shared by the {{count}} sites of the company (you are on \"{{site}}\")."
     }
   },
   "paie": {
@@ -1923,7 +1928,11 @@
       "vente_reformees": "Ventes de poules réformées",
       "vente_fientes": "Ventes de fientes",
       "vente_autres": "Autres ventes"
-    }
+    },
+    "scope": "Scope",
+    "thisSite": "This site",
+    "wholeCompany": "Whole company",
+    "site": "Site"
   },
   "systeme": {
     "welcome": "Hello {{name}}",
@@ -1942,7 +1951,10 @@
     "back": "Change application",
     "negoceTagline": "Buying and reselling: chicks, feed, medicines",
     "negoceSubtitle": "Enter your credentials to access HENZO AGRO.",
-    "noAccess": "Your account has no access to {{nom}}: you are in your usual system. Ask the director to add you."
+    "noAccess": "Your account has no access to {{nom}}: you are in your usual system. Ask the director to add you.",
+    "whichSite": "Which site do you want to open?",
+    "siteHint": "Farm site: its flocks, stock, cash boxes and team.",
+    "openSite": "Open this site"
   },
   "negoce": {
     "sellTitle": "New sale",

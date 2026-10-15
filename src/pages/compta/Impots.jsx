@@ -22,19 +22,20 @@ export default function Impots() {
   const run = useRun()
   const annee = new Date().getFullYear()
   const q = useQuery(async () => {
-    const [soc, ca, paiements, bareme, depenses] = await Promise.all([
-      supabase.from('fermes').select('regime_fiscal, adherent_cga, assujetti_tva, taux_tva, taux_acompte, taux_is, niu').eq('id', profile.ferme_id).maybeSingle(),
-      supabase.from('chiffre_affaires_mensuel').select('mois, chiffre_affaires').gte('mois', `${annee - 1}-01-01`),
-      supabase.from('paiements_impots').select('*, depense:depenses(annulee)').gte('periode', `${annee}-01-01`).order('date_paiement', { ascending: false }),
-      supabase.from('bareme_igs').select('*').order('classe'),
-      supabase.from('depenses').select('montant, categorie').eq('statut', 'validee').eq('annulee', false).gte('date_depense', `${annee}-01-01`)
+    // the whole company: every site (Yaoundé, Garoua…) counts
+    const [soc, situation, bareme] = await Promise.all([
+      supabase.rpc('fiche_societe'),
+      supabase.rpc('situation_fiscale', { p_annee: annee }),
+      supabase.from('bareme_igs').select('*').order('classe')
     ])
+    const sf = must(situation)
     return {
       soc: must(soc) ?? {},
-      ca: Object.fromEntries(must(ca).map((r) => [String(r.mois).slice(0, 7), Number(r.chiffre_affaires)])),
-      paiements: must(paiements).filter((p) => !p.depense?.annulee),
+      ca: Object.fromEntries(Object.entries(sf.ca).map(([k, v]) => [k, Number(v)])),
+      paiements: sf.paiements,
       bareme: must(bareme),
-      charges: must(depenses).filter((d) => !['retrait_associe', 'impots_taxes'].includes(d.categorie)).reduce((s, d) => s + Number(d.montant), 0)
+      charges: Number(sf.charges),
+      sites: Number(sf.sites)
     }
   }, [profile?.ferme_id])
 
@@ -53,7 +54,7 @@ export default function Impots() {
   }
 
   if (!q.data) return <Loading error={q.error} />
-  const { soc, ca, paiements, bareme, charges } = q.data
+  const { soc, ca, paiements, bareme, charges, sites } = q.data
   const payeur = can(role, 'impots.payer')
   const aujourdhui = new Date()
   const moisCourant = aujourdhui.getMonth()
@@ -81,7 +82,7 @@ export default function Impots() {
 
   return (
     <>
-      <Panel icon="wallet" tone="yolk" title={t('compta.imp.title', { annee })} subtitle={t(`compta.regimes.${soc.regime_fiscal ?? 'reel'}`)}>
+      <Panel icon="wallet" tone="yolk" title={t('compta.imp.title', { annee })} subtitle={[t(`compta.regimes.${soc.regime_fiscal ?? 'reel'}`), sites > 1 && t('compta.imp.allSites', { count: sites })].filter(Boolean).join(' · ')}>
         <div className="kpis">
           <div className="kpi"><span className="kpi-label">{t('compta.imp.turnover')}</span><strong className="kpi-value">{money(caAnnee, lang)}</strong></div>
           {!igs && <div className="kpi"><span className="kpi-label">{t('compta.imp.advancesPaid')}</span><strong className="kpi-value">{money(acomptesPayes, lang)}</strong></div>}
@@ -181,7 +182,7 @@ export default function Impots() {
               <li key={p.id}>
                 <div className="grow">
                   <strong>{t(`compta.imp.types.${p.type_impot}`)}</strong> · {new Date(p.periode).toLocaleDateString(lang, { month: 'long', year: 'numeric' })}
-                  <div className="muted small">{day(p.date_paiement, lang)}{p.reference ? ` · ${t('compta.imp.receipt')} ${p.reference}` : ''}</div>
+                  <div className="muted small">{day(p.date_paiement, lang)}{p.reference ? ` · ${t('compta.imp.receipt')} ${p.reference}` : ''}{sites > 1 ? ` · ${p.site}` : ''}</div>
                 </div>
                 <strong>{money(p.montant, lang)}</strong>
               </li>

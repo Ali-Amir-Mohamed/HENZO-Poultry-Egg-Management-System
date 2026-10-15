@@ -17,7 +17,7 @@ export default function Bulletin() {
   const q = useQuery(async () => {
     const b = must(await supabase.from('bulletins_paie').select('*, employe:employes(nom, poste, numero_cnps, date_embauche), paie:paies(mode_paiement, annulee, created_at, motif_retenues)').eq('paie_id', id).maybeSingle())
     if (!b) throw new Error(t('paie.notFound'))
-    const s = must(await supabase.from('fermes').select('nom, raison_sociale, forme_juridique, capital_social, niu, rccm, adresse_siege, numero_cnps_employeur').eq('id', b.ferme_id).maybeSingle()) ?? {}
+    const s = must(await supabase.rpc('fiche_societe', { p_ferme: b.ferme_id })) ?? {}
     return { b, s }
   }, [id])
 

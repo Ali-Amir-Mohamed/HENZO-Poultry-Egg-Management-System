@@ -26,7 +26,7 @@ export default function Facture() {
     if (!f) throw new Error(t('compta.fact.notFound'))
     const [lignes, societe, situation] = await Promise.all([
       supabase.from('facture_lignes').select('*').eq('facture_id', id).order('ordre'),
-      supabase.from('fermes').select('nom, raison_sociale, forme_juridique, capital_social, niu, rccm, adresse_siege, telephone_societe, email_societe, banque_paiement, mentions_facture').eq('id', f.ferme_id).maybeSingle(),
+      supabase.rpc('fiche_societe', { p_ferme: f.ferme_id }),
       supabase.from('factures_situation').select('reste').eq('id', id).maybeSingle()
     ])
     return { f, lignes: must(lignes), s: must(societe) ?? {}, reste: Number(must(situation)?.reste ?? 0) }

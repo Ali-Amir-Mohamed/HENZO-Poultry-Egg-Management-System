@@ -56,15 +56,18 @@ export default function App() {
   const [vise, setVise] = useState(lireVise)
   const [societes, setSocietes] = useState(null)
   const [choisi, setChoisi] = useState(choixFait)
+  const [typeInitial, setTypeInitial] = useState(null)
   useEffect(() => {
     if (!session || !profile || choisi || !navigator.onLine) return
     supabase.rpc('mes_societes').then(({ data }) => {
       const liste = data ?? []
       const v = lireVise()
       if (!v) return setSocietes(liste)
-      // a system was picked on the portal: open its company (or say there is no access to it)
-      const cible = liste.find((s) => s.type_activite === v)
+      // a system was picked on the portal: open its company, ask which site if it has several, or say there is no access to it
+      const cibles = liste.filter((s) => s.type_activite === v)
+      const cible = cibles[0]
       ecrireVise(null)
+      if (cibles.length > 1) { setTypeInitial(v); return setSocietes(liste) }
       marquerChoix()
       setChoisi(true)
       if (!cible) ecrireRefus(v)
@@ -99,8 +102,8 @@ export default function App() {
     )
   }
 
-  if (!choisi && societes && new Set(societes.map((s) => s.type_activite)).size > 1) {
-    return <ChoixSysteme societes={societes} onChoisi={() => setChoisi(true)} />
+  if (!choisi && societes && (typeInitial || new Set(societes.map((s) => s.type_activite)).size > 1 || societes.length > 1)) {
+    return <ChoixSysteme societes={societes} typeInitial={typeInitial} onChoisi={() => setChoisi(true)} />
   }
 
   return (

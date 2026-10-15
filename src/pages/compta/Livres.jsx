@@ -12,6 +12,7 @@ import { useAsk, useRun } from '../../components/Dialog'
 // Accounting books (SYSCOHADA), built from what HENZO already records: journal, general ledger,
 // trial balance, income statement, simplified balance sheet, chart of accounts (editable by direction and finance).
 // Stocks, depreciation and the year-end tax remain the accountant's entries.
+// A company with several sites (Yaoundé, Garoua…) can see one site or the whole company.
 const VUES = ['journal', 'grandlivre', 'balance', 'resultat', 'bilan', 'plan']
 const LIMITE = 3000
 const classe = (c) => Number(String(c)[0])
@@ -31,7 +32,11 @@ export default function Livres() {
   const lang = i18n.resolvedLanguage
   const p = usePeriode()
   const [vue, setVue] = useState('balance')
-  const soldes = useQuery(async () => must(await supabase.rpc('soldes_comptables', { p_debut: p.debut, p_fin: p.fin })), [p.debut, p.fin])
+  const fiche = useQuery(async () => must(await supabase.rpc('fiche_societe')))
+  const plusieurs = Number(fiche.data?.nombre_sites ?? 1) > 1
+  const [toute, setToute] = useState(false)
+  p.toute = plusieurs && toute
+  const soldes = useQuery(async () => must(await supabase.rpc('soldes_comptables', { p_debut: p.debut, p_fin: p.fin, p_toute_societe: p.toute })), [p.debut, p.fin, p.toute])
 
   return (
     <div className="stack">
@@ -48,6 +53,14 @@ export default function Livres() {
               ))}
             </select>
           </label>
+          {plusieurs && (
+            <label className="field compact-field"><span>{t('livres.scope')}</span>
+              <select value={toute ? 'societe' : 'site'} onChange={(e) => setToute(e.target.value === 'societe')}>
+                <option value="site">{t('livres.thisSite')} ({fiche.data.site})</option>
+                <option value="societe">{t('livres.wholeCompany')}</option>
+              </select>
+            </label>
+          )}
         </div>
         <div className="segmented small wrap">
           {VUES.map((v) => <button key={v} type="button" className={vue === v ? 'active' : ''} onClick={() => setVue(v)}>{t(`livres.views.${v}`)}</button>)}
@@ -68,14 +81,15 @@ function Journal({ p }) {
   const lang = i18n.resolvedLanguage
   const [code, setCode] = useState('')
   const q = useQuery(async () => {
+    if (p.toute) return must(await supabase.rpc('journal_societe', { p_debut: p.debut, p_fin: p.fin, p_journal: code || null, p_limite: LIMITE }))
     let r = supabase.from('journal_comptable').select('date_ecriture, journal, piece, libelle, compte, intitule, debit, credit')
       .gte('date_ecriture', p.debut).lte('date_ecriture', p.fin).order('date_ecriture').order('piece').order('debit', { ascending: false }).limit(LIMITE)
     if (code) r = r.eq('journal', code)
     return must(await r)
-  }, [p.debut, p.fin, code])
+  }, [p.debut, p.fin, code, p.toute])
   const exporter = () => exportExcel(`journal-${p.debut}`, [
     { label: t('saisie.date'), value: (l) => l.date_ecriture }, { label: t('livres.journal'), value: (l) => l.journal },
-    { label: t('livres.piece'), value: (l) => l.piece }, { label: t('livres.account'), value: (l) => l.compte },
+    { label: t('livres.piece'), value: (l) => l.piece }, ...(p.toute ? [{ label: t('livres.site'), value: (l) => l.site }] : []), { label: t('livres.account'), value: (l) => l.compte },
     { label: t('livres.label'), value: (l) => l.intitule }, { label: t('export.label'), value: (l) => l.libelle },
     { label: t('livres.debit'), value: (l) => Number(l.debit) }, { label: t('livres.credit'), value: (l) => Number(l.credit) }
   ], q.data ?? [])
@@ -100,7 +114,7 @@ function Journal({ p }) {
                 <tr key={i}>
                   <td>{day(l.date_ecriture, lang)}</td><td>{l.journal}</td>
                   <td><strong>{l.compte}</strong> <span className="muted">{l.intitule}</span></td>
-                  <td>{l.libelle}</td>
+                  <td>{l.libelle}{l.site ? <div className="muted small">{l.site}</div> : null}</td>
                   <td className="num">{Number(l.debit) ? nombre(l.debit) : ''}</td><td className="num">{Number(l.credit) ? nombre(l.credit) : ''}</td>
                 </tr>
               ))}
@@ -120,9 +134,10 @@ function GrandLivre({ p, soldes }) {
   const [compte, setCompte] = useState('')
   const lignes = useQuery(async () => {
     if (!compte) return null
+    if (p.toute) return must(await supabase.rpc('journal_societe', { p_debut: p.debut, p_fin: p.fin, p_compte: compte, p_limite: LIMITE }))
     return must(await supabase.from('journal_comptable').select('date_ecriture, journal, piece, libelle, debit, credit')
       .eq('compte', compte).gte('date_ecriture', p.debut).lte('date_ecriture', p.fin).order('date_ecriture').order('piece').limit(LIMITE))
-  }, [compte, p.debut, p.fin])
+  }, [compte, p.debut, p.fin, p.toute])
   if (!soldes.data) return <Loading error={soldes.error} />
   const s = soldes.data.find((x) => x.compte === compte)
   const ouverture = s ? (Number(s.debit_cumule) - Number(s.credit_cumule)) - (Number(s.debit_periode) - Number(s.credit_periode)) : 0
@@ -143,7 +158,7 @@ function GrandLivre({ p, soldes }) {
                 cumul += Number(l.debit) - Number(l.credit)
                 return (
                   <tr key={i}>
-                    <td>{day(l.date_ecriture, lang)}</td><td>{l.journal}</td><td>{l.libelle}</td>
+                    <td>{day(l.date_ecriture, lang)}</td><td>{l.journal}</td><td>{l.libelle}{l.site ? <div className="muted small">{l.site}</div> : null}</td>
                     <td className="num">{Number(l.debit) ? nombre(l.debit) : ''}</td><td className="num">{Number(l.credit) ? nombre(l.credit) : ''}</td>
                     <td className="num">{nombre(cumul)}</td>
                   </tr>

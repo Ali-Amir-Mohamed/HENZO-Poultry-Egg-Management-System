@@ -5,11 +5,14 @@ import Icon from '../../components/Icon'
 import { Loading, Panel } from '../../components/ui'
 import { useAsk } from '../../components/Dialog'
 import { changerFerme } from '../../components/FarmSwitch'
+import { useAuth } from '../../auth/AuthProvider'
+import { estNegoce } from '../../lib/systeme'
 
 // Group companies (director): list, switch, create – a poultry farm (HENZO) or a buying and reselling company (HENZO AGRO).
 // Each has its own cash boxes, stock, sales and accounts (stored in the database's "fermes" table).
 export default function Fermes() {
   const { t } = useTranslation()
+  const { profile } = useAuth()
   const ask = useAsk()
   const pending = usePendingCount()
   const q = useQuery(async () => must(await supabase.rpc('mes_societes')))
@@ -20,11 +23,11 @@ export default function Fermes() {
   }
   const creer = async () => {
     const v = await ask.form({ title: t('fermes.new'), icon: 'plus', submit: t('fermes.create'), fields: [
-      { name: 'type', label: t('fermes.type'), type: 'select', value: 'negoce', options: [{ value: 'negoce', label: t('fermes.typeNegoce') }, { value: 'elevage', label: t('fermes.typeElevage') }] },
+      { name: 'type', label: t('fermes.type'), type: 'select', value: estNegoce(profile) ? 'negoce' : 'site', options: [...(estNegoce(profile) ? [] : [{ value: 'site', label: t('fermes.typeSite') }]), { value: 'negoce', label: t('fermes.typeNegoce') }, { value: 'elevage', label: t('fermes.typeElevage') }] },
       { name: 'nom', label: t('fermes.name'), required: true, placeholder: 'ex. HENZO AGRO' }
     ], message: t('fermes.newHint') })
     if (!v) return
-    const { data, error } = await supabase.rpc('creer_ferme', { p_nom: v.nom, p_type: v.type })
+    const { data, error } = await supabase.rpc('creer_ferme', v.type === 'site' ? { p_nom: v.nom, p_type: 'elevage', p_site_de: profile.ferme_id } : { p_nom: v.nom, p_type: v.type })
     if (error) return ask.error(error.message)
     q.reload()
     if (await ask.confirm(t('fermes.created', { nom: v.nom }), { title: t('fermes.new'), icon: 'plus', submit: t('fermes.open') })) {

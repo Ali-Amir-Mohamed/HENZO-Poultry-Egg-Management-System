@@ -18,9 +18,9 @@ export default function Portail({ sousTitre, cartes, onChoisir, erreur, entete, 
             return (
               <button key={c.cle} type="button" className={`portail-carte ${negoce ? 'negoce' : 'elevage'}`} onClick={() => onChoisir(c)} disabled={!!occupe}>
                 <span className="portail-icone"><Icon name={negoce ? 'box' : 'hen'} size={18} /></span>
-                <strong>{t(negoce ? 'systeme.negoce' : 'systeme.elevage')}</strong>
-                <span className="portail-desc">{t(negoce ? 'systeme.negoceHint' : 'systeme.elevageHint')}</span>
-                <span className="portail-lien">{occupe === c.cle ? t('common.loading') : t('systeme.open', { nom: c.nom })} →</span>
+                <strong>{c.site ? c.nom : t(negoce ? 'systeme.negoce' : 'systeme.elevage')}</strong>
+                <span className="portail-desc">{c.site ? t('systeme.siteHint') : t(negoce ? 'systeme.negoceHint' : 'systeme.elevageHint')}</span>
+                <span className="portail-lien">{occupe === c.cle ? t('common.loading') : c.site ? t('systeme.openSite') : t('systeme.open', { nom: c.nom })} →</span>
                 {c.role && <small className="portail-role">{t(`roles.${c.role}`)}{c.actif ? ` · ${t('systeme.last')}` : ''}</small>}
               </button>
             )
