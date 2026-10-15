@@ -12,7 +12,7 @@
 --            journal, bilans, demandes de correction, historique des connexions,
 --            employés, avances et paies, capital placé par bande,
 --            ventes, stock, caisse, envois et prix des boutiques,
---            factures et impôts payés.
+--            factures, impôts payés et bulletins de paie (les paramètres de paie restent).
 -- Conserve aussi : les boutiques et leurs vendeurs.
 -- Conserve aussi : les téléphones abonnés aux notifications.
 -- TRUNCATE ne déclenche pas les protections ligne par ligne (registre non
@@ -21,6 +21,7 @@
 
 truncate table
   public.paiements_impots,
+  public.bulletins_paie,
   public.facture_lignes,
   public.factures,
   public.demandes_correction,

@@ -737,3 +737,9 @@ html, body { overflow-x: clip; }
 .invoice-foot { display: flex; flex-direction: column; gap: 2px; border-top: 1px solid #ddd; padding-top: 8px; text-align: center; }
 @media (max-width: 640px) { .invoice { padding: 14px; } .invoice-title { text-align: left; } .invoice-client { margin-left: 0; } }
 @media print { .invoice { border: none; max-width: none; padding: 0; } }
+
+/* ---------- Payslip ---------- */
+.signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 8px; }
+.signatures div { border-top: 1px solid #bbb; padding-top: 6px; min-height: 64px; }
+textarea.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .9rem; }
+.table td .num { text-align: right; }

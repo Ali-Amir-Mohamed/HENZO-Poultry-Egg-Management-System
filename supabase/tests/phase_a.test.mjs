@@ -1115,6 +1115,42 @@ ok('a tax payment is a validated "taxes" expense without supplier', depImpot.cat
 await expectOk('a big tax payment needs no supplier', 'dahirou', `select public.payer_impot('solde_is', current_date, 900000, 'banque')`)
 ok('the employee sees no invoice', (await as('employe', `select * from public.factures`)).rows.length === 0)
 
+// ---------- 0036: payslips ----------
+try {
+  await db.exec(readFileSync(new URL('0036_paie.sql', MIG), 'utf8'))
+  ok('migration 0036 runs', true)
+} catch (e) { ok('migration 0036 runs', false, e.message); process.exit(1) }
+const calc = async (base, primes = 0) => (await db.query(`select public.calculer_paie((select id from public.fermes order by created_at limit 1), $1, $2) as b`, [base, primes])).rows[0].b
+const b100 = await calc(100000)
+ok('100 000 F: CNPS 4 200, IRPP 2 413, CAC 241, CFC 1 000, RAV 750, TDL 500 = 9 104 withheld',
+  b100.cnps_salarie === 4200 && b100.irpp === 2413 && b100.cac === 241 && b100.cfc_salarie === 1000 && b100.rav === 750 && b100.tdl === 500 && b100.total_retenues === 9104, JSON.stringify(b100))
+ok('100 000 F: employer pays 15 450 (CNPS 4 200 + 7 000 + 1 750, CFC 1 500, FNE 1 000)', b100.total_patronal === 15450, JSON.stringify(b100))
+const b1m = await calc(900000, 100000)
+ok('1 000 000 F: CNPS capped at 750 000 (31 500), IRPP 144 392 (progressive scale)', b1m.base_cnps === 750000 && b1m.cnps_salarie === 31500 && b1m.irpp === 144392 && b1m.rav === 12350 && b1m.tdl === 2500, JSON.stringify(b1m))
+const b50 = await calc(50000)
+ok('50 000 F: no IRPP, RAV or TDL (below thresholds)', b50.irpp === 0 && b50.rav === 0 && b50.tdl === 0 && b50.total_retenues === 2600, JSON.stringify(b50))
+await expectErr('kenfack cannot preview a payslip', 'kenfack', `select public.simuler_paie($1)`, [NEW])
+const sim = (await oneP('dahirou', `select public.simuler_paie($1) as s`, [NEW])).s
+ok('dahirou previews Moussa (55 000 F): 3 610 withheld', sim.declare_cnps === true && sim.total_retenues === 3610, JSON.stringify(sim))
+const PAIE = (await oneP('dahirou', `select public.payer_salaire($1, '2026-11-01', 'especes') as id`, [NEW])).id
+const pa = await oneP('dahirou', `select p.net, p.retenues_legales, d.montant from public.paies p join public.depenses d on d.id = p.depense_id where p.id = $1`, [PAIE])
+ok('the cash box pays only the net: 55 000 − 3 610 = 51 390', Number(pa.net) === 51390 && Number(pa.retenues_legales) === 3610 && Number(pa.montant) === 51390, JSON.stringify(pa))
+const bu = await oneP('ali', `select brut, net_a_payer, total_patronal from public.bulletins_paie where paie_id = $1`, [PAIE])
+ok('a payslip is kept, ali sees it', Number(bu.brut) === 55000 && Number(bu.net_a_payer) === 51390, JSON.stringify(bu))
+ok('kenfack sees no payslip', (await as('kenfack', `select * from public.bulletins_paie`)).rows.length === 0)
+const ch = await one('dahirou', `select a_reverser_cnps, a_reverser_impots from public.charges_salaires_mensuelles where mois = '2026-11-01'`)
+ok('to pay over: CNPS 2 310 + 2 310 + 3 850 + 963 = 9 433; taxes 550 + 825 + 550 + 750 = 2 675', Number(ch.a_reverser_cnps) === 9433 && Number(ch.a_reverser_impots) === 2675, JSON.stringify(ch))
+await expectOk('dahirou pays the CNPS for November', 'dahirou', `select public.payer_impot('cnps', '2026-11-01', 9433, 'banque')`)
+ok('the CNPS payment is a "social contributions" expense', (await one('dahirou', `select d.categorie from public.paiements_impots p join public.depenses d on d.id = p.depense_id where p.type_impot = 'cnps'`)).categorie === 'cotisations_sociales')
+await expectOk('dahirou marks an employee as not declared', 'dahirou', `update public.employes set declare_cnps = false, numero_cnps = null where id = $1`, [EMP])
+await expectNoRows('kenfack cannot change the CNPS declaration', 'kenfack', `update public.employes set declare_cnps = false where id = '${NEW}' returning id`)
+await expectOk('dahirou sets a CNPS number', 'dahirou', `update public.employes set numero_cnps = '123456789' where id = $1`, [NEW])
+await expectErr('kenfack cannot change pay settings', 'kenfack', `select public.maj_parametres_paie('{"taux_accidents_travail":"2.5"}'::jsonb)`, [], 'finance')
+await expectOk('dahirou sets the accident rate to 2.5 %', 'dahirou', `select public.maj_parametres_paie('{"taux_accidents_travail":"2.5"}'::jsonb)`)
+ok('the new rate is used', (await calc(100000)).cnps_accidents === 2500)
+await expectErr('an empty scale is refused', 'dahirou', `select public.maj_parametres_paie('{"bareme_irpp":[]}'::jsonb)`, [], 'Barème')
+await expectOk('dahirou puts the rate back', 'dahirou', `select public.maj_parametres_paie('{"taux_accidents_travail":"1.75"}'::jsonb)`)
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))

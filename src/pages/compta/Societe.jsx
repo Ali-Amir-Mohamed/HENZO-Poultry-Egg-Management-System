@@ -10,7 +10,7 @@ import { Field, Loading, Panel } from '../../components/ui'
 // The company's legal and tax sheet: printed on every invoice and used for the tax calculations.
 // Director and finance edit it; the rates are to be confirmed by the accountant.
 const CHAMPS = ['raison_sociale', 'forme_juridique', 'capital_social', 'niu', 'rccm', 'adresse_siege', 'telephone_societe', 'email_societe',
-  'banque_paiement', 'mentions_facture', 'prefixe_facture', 'regime_fiscal', 'adherent_cga', 'assujetti_tva', 'taux_tva', 'taux_acompte', 'taux_is']
+  'banque_paiement', 'mentions_facture', 'numero_cnps_employeur', 'prefixe_facture', 'regime_fiscal', 'adherent_cga', 'assujetti_tva', 'taux_tva', 'taux_acompte', 'taux_is']
 
 export default function Societe() {
   const { t } = useTranslation()
@@ -45,6 +45,7 @@ export default function Societe() {
           <Field label={t('compta.soc.siege')}><input disabled={ro} value={form.adresse_siege} onChange={set('adresse_siege')} /></Field>
           <Field label={t('reglages.phone')}><input disabled={ro} type="tel" value={form.telephone_societe} onChange={set('telephone_societe')} /></Field>
           <Field label={t('compta.soc.email')}><input disabled={ro} type="email" value={form.email_societe} onChange={set('email_societe')} /></Field>
+          <Field label={t('compta.soc.cnps')}><input disabled={ro} value={form.numero_cnps_employeur} onChange={set('numero_cnps_employeur')} /></Field>
         </div>
       </Panel>
 

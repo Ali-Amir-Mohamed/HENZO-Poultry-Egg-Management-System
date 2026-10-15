@@ -30,6 +30,7 @@ const MonCompte = lazy(() => import('./pages/MonCompte'))
 const Administration = lazy(() => import('./pages/Administration'))
 const Compta = lazy(() => import('./pages/Compta'))
 const Facture = lazy(() => import('./pages/Facture'))
+const Bulletin = lazy(() => import('./pages/Bulletin'))
 
 function Guard({ section, children }) {
   const { role } = useAuth()
@@ -74,6 +75,7 @@ export default function App() {
         <Route path="administration" element={<Guard section="administration"><Administration /></Guard>} />
         <Route path="compta" element={<Guard section="compta"><Compta /></Guard>} />
         <Route path="facture/:id" element={<Guard section="compta"><Facture /></Guard>} />
+        <Route path="bulletin/:id" element={<Guard section="argent"><Bulletin /></Guard>} />
         <Route path="reglages" element={<Guard section="reglages"><Reglages /></Guard>} />
         <Route path="reglages/tiers/:id" element={<Guard section="reglages"><FicheTiers /></Guard>} />
         <Route path="sync" element={<Guard section="sync"><Sync /></Guard>} />
