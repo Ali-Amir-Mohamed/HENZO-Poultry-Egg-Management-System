@@ -748,3 +748,20 @@ textarea.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, mono
 .compact-field { min-width: 140px; flex: 0 1 180px; }
 .row.wrap { flex-wrap: wrap; }
 .table tr.strong td { border-top: 2px solid var(--border, #ddd); }
+
+/* ---------- Two systems: choice screen, HENZO AGRO colours ---------- */
+.choix-systeme { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.4rem; padding: 2rem 1rem; background: var(--bg); }
+.choix-head { text-align: center; display: flex; flex-direction: column; align-items: center; gap: .4rem; }
+.choix-head h1 { margin: .4rem 0 0; }
+.choix-head p { margin: 0; color: var(--muted); }
+.choix-cartes { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; width: 100%; max-width: 640px; }
+.choix-carte { display: flex; flex-direction: column; align-items: flex-start; gap: .35rem; text-align: left; padding: 1.3rem; border-radius: 16px; border: 2px solid transparent; cursor: pointer; color: #fff; font: inherit; box-shadow: 0 10px 30px -14px rgba(0,0,0,.45); transition: transform .15s ease, border-color .15s ease; }
+.choix-carte:hover, .choix-carte:focus-visible { transform: translateY(-2px); border-color: rgba(255,255,255,.7); }
+.choix-carte.elevage { background: var(--green-800, #1f4d2b); }
+.choix-carte.negoce { background: #1d3b63; }
+.choix-carte strong { font-size: 1.3rem; letter-spacing: .06em; }
+.choix-carte small { color: rgba(255,255,255,.75); }
+.choix-carte .choix-role { margin-top: .4rem; font-weight: 600; }
+.choix-icone { width: 54px; height: 54px; border-radius: 14px; display: grid; place-items: center; background: rgba(255,255,255,.14); margin-bottom: .3rem; }
+.shell.negoce .topbar { background: #1d3b63; }
+.hero.negoce { background: linear-gradient(135deg, #1d3b63, #2d5a8f); }

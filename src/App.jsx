@@ -1,4 +1,7 @@
-import { lazy } from 'react'
+import { lazy, useEffect, useState } from 'react'
+import ChoixSysteme from './pages/ChoixSysteme'
+import { choixFait, estNegoce } from './lib/systeme'
+import { supabase } from './lib/supabase'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from './auth/AuthProvider'
@@ -31,6 +34,7 @@ const Administration = lazy(() => import('./pages/Administration'))
 const Compta = lazy(() => import('./pages/Compta'))
 const Facture = lazy(() => import('./pages/Facture'))
 const Bulletin = lazy(() => import('./pages/Bulletin'))
+const AccueilNegoce = lazy(() => import('./pages/negoce/AccueilNegoce'))
 
 function Guard({ section, children }) {
   const { role } = useAuth()
@@ -41,6 +45,13 @@ function Guard({ section, children }) {
 export default function App() {
   const { session, profile, loading, signOut, role } = useAuth()
   const { t } = useTranslation()
+  // Two systems behind one link: accounts in both choose at the start of the session
+  const [societes, setSocietes] = useState(null)
+  const [choisi, setChoisi] = useState(choixFait)
+  useEffect(() => {
+    if (!session || !profile || choisi || !navigator.onLine) return
+    supabase.rpc('mes_societes').then(({ data }) => setSocietes(data ?? []), () => setSocietes([]))
+  }, [session, profile, choisi])
 
   if (loading) {
     return <div className="splash"><Logo size={64} /><p>{t('common.loading')}</p></div>
@@ -56,11 +67,15 @@ export default function App() {
     )
   }
 
+  if (!choisi && societes && new Set(societes.map((s) => s.type_activite)).size > 1) {
+    return <ChoixSysteme societes={societes} onChoisi={() => setChoisi(true)} />
+  }
+
   return (
     <Routes>
       <Route element={<Layout />}>
         {/* a seller lands directly on his shop */}
-        <Route index element={role === 'vendeur' ? <Navigate to="/boutique" replace /> : <Dashboard />} />
+        <Route index element={role === 'vendeur' ? <Navigate to="/boutique" replace /> : estNegoce(profile) ? <AccueilNegoce /> : <Dashboard />} />
         <Route path="boutique" element={<Guard section="boutique"><Boutique /></Guard>} />
         <Route path="recu-boutique/:id" element={<RecuBoutique />} />
         <Route path="saisie" element={<Guard section="saisie"><Saisie /></Guard>} />

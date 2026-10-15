@@ -16,7 +16,7 @@ export default function Recu() {
   const q = useQuery(async () => {
     if (navigator.onLine) {
       const [v, f] = await Promise.all([
-        supabase.from('ventes').select('*, client:tiers(nom, telephone), bande:bandes(code), lot:lots_pondeuses(code)').eq('id', id).maybeSingle(),
+        supabase.from('ventes').select('*, client:tiers(nom, telephone), bande:bandes(code), lot:lots_pondeuses(code), article:articles(nom)').eq('id', id).maybeSingle(),
         supabase.from('fermes').select('nom').limit(1).maybeSingle()
       ])
       if (v.data) return { v: v.data, ferme: f.data?.nom }
@@ -42,7 +42,8 @@ export default function Recu() {
   const { v, ferme } = q.data
   const numero = v.id.slice(0, 8).toUpperCase()
   const reste = Number(v.montant) - Number(v.montant_encaisse)
-  const ligne = `${Number(v.quantite).toLocaleString(lang)} ${t(`unites.${v.unite}`)} ${t(`produits.${v.produit}`)}`
+  const nomProduit = v.article?.nom ?? t(`produits.${v.produit}`)
+  const ligne = `${Number(v.quantite).toLocaleString(lang)} ${t(`unites.${v.unite}`)} ${nomProduit}`
   const nomFerme = ferme || t('app.name')
 
   const texte = [
@@ -82,7 +83,7 @@ export default function Recu() {
           <thead><tr><th>{t('recu.item')}</th><th>{t('recu.qty')}</th><th>{t('recu.price')}</th><th>{t('recu.amount')}</th></tr></thead>
           <tbody>
             <tr>
-              <td>{t(`produits.${v.produit}`)}{v.nombre_sujets && v.unite === 'kg' ? ` (${t('argent.birds', { n: v.nombre_sujets })})` : ''}</td>
+              <td>{nomProduit}{v.nombre_sujets && v.unite === 'kg' ? ` (${t('argent.birds', { n: v.nombre_sujets })})` : ''}</td>
               <td>{Number(v.quantite).toLocaleString(lang)} {t(`unites.${v.unite}`)}</td>
               <td>{money(v.prix_unitaire, lang)}</td>
               <td>{money(v.montant, lang)}</td>

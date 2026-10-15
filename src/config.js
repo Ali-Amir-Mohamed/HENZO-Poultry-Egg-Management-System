@@ -99,7 +99,11 @@ export const PERMISSIONS = {
   'facture.annuler': [D],        // cancel an invoice (number never reused)
   'impots.payer': [D, F],        // record a tax payment (= taxes expense)
   'societe.edit': [D, F],        // company legal / tax sheet
-  'compta.livres': [D, F]        // accounting books and chart of accounts
+  'compta.livres': [D, F],       // accounting books and chart of accounts
+  'vente.marchandise': [X, E],   // HENZO AGRO: sell goods from stock
+  'groupe.receptionner': [X],    // receive a delivery from a group company
+  'groupe.refuser': [X, F],      // refuse it
+  'groupe.lier': [D, F]          // link a customer / supplier to a group company
 }
 
 // Roles automatically signed out after a period of inactivity (employees work offline: not them)
@@ -138,5 +142,5 @@ export const PRODUITS = {
     { produit: 'fientes', unites: ['piece', 'kg'] }
   ]
 }
-export const ARTICLE_CATEGORIES = ['aliment', 'medicament', 'autre']
+export const ARTICLE_CATEGORIES = ['aliment', 'medicament', 'poussins', 'autre']
 export const ARTICLE_UNITES = ['kg', 'sac', 'litre', 'dose', 'flacon', 'piece']

@@ -11,7 +11,7 @@ export default function Fermes() {
   const { t } = useTranslation()
   const ask = useAsk()
   const pending = usePendingCount()
-  const q = useQuery(async () => must(await supabase.rpc('mes_fermes')))
+  const q = useQuery(async () => must(await supabase.rpc('mes_societes')))
 
   const ouvrir = async (f) => {
     if (pending > 0) return ask.error(t('fermes.pendingFirst', { count: pending }))
@@ -19,10 +19,11 @@ export default function Fermes() {
   }
   const creer = async () => {
     const v = await ask.form({ title: t('fermes.new'), icon: 'barn', submit: t('fermes.create'), fields: [
-      { name: 'nom', label: t('fermes.name'), required: true, placeholder: 'ex. Ferme de Garoua' }
+      { name: 'type', label: t('fermes.type'), type: 'select', value: 'elevage', options: [{ value: 'elevage', label: t('systeme.elevage') }, { value: 'negoce', label: t('systeme.negoce') }] },
+      { name: 'nom', label: t('fermes.name'), required: true, placeholder: 'ex. HENZO AGRO' }
     ], message: t('fermes.newHint') })
     if (!v) return
-    const { data, error } = await supabase.rpc('creer_ferme', { p_nom: v.nom })
+    const { data, error } = await supabase.rpc('creer_ferme', { p_nom: v.nom, p_type: v.type })
     if (error) return ask.error(error.message)
     q.reload()
     if (await ask.confirm(t('fermes.created', { nom: v.nom }), { title: t('fermes.new'), icon: 'barn', submit: t('fermes.open') })) {
@@ -39,7 +40,7 @@ export default function Fermes() {
             <li key={f.ferme_id}>
               <div className="grow">
                 <strong>{f.nom}</strong>
-                <div className="muted small">{t(`roles.${f.role}`)}</div>
+                <div className="muted small">{t(f.type_activite === 'negoce' ? 'systeme.negoce' : 'systeme.elevage')} · {t(`roles.${f.role}`)}</div>
               </div>
               {f.active
                 ? <span className="tag ok">{t('fermes.current')}</span>

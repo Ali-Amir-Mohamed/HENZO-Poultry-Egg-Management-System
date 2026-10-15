@@ -80,7 +80,8 @@
     "plateaux": "Plateaux d’œufs",
     "poules_reformees": "Poules réformées",
     "fientes": "Fientes",
-    "autre": "Autre"
+    "autre": "Autre",
+    "marchandise": "Marchandise"
   },
   "categories": {
     "poussins": "Poussins",
@@ -125,7 +126,8 @@
   "articleCategories": {
     "aliment": "Aliment",
     "medicament": "Médicament",
-    "autre": "Autre"
+    "autre": "Autre",
+    "poussins": "Poussins"
   },
   "tiersTypes": {
     "client": "Client",
@@ -1036,7 +1038,8 @@
     "title": "Mes fermes",
     "subtitle": "Chaque ferme a ses caisses, ses bandes, son stock et ses comptes. Le sélecteur en haut de l’écran permet de passer de l’une à l’autre.",
     "current": "Ferme actuelle",
-    "membersHint": "Pour qu’un compte travaille dans une autre ferme : ouvrez cette ferme, puis Réglages > Comptes > « Ajouter un compte existant »."
+    "membersHint": "Pour qu’un compte travaille dans une autre ferme : ouvrez cette ferme, puis Réglages > Comptes > « Ajouter un compte existant ».",
+    "type": "Type"
   },
   "filtres": {
     "from": "Du",
@@ -1919,5 +1922,64 @@
       "vente_fientes": "Ventes de fientes",
       "vente_autres": "Autres ventes"
     }
+  },
+  "systeme": {
+    "welcome": "Bonjour {{name}}",
+    "pick": "Dans quel système voulez-vous travailler ?",
+    "elevage": "Élevage",
+    "negoce": "Achat et revente",
+    "elevageHint": "Bandes, saisies, boutiques, argent, salaires",
+    "negoceHint": "Stock, ventes aux éleveurs, livraisons au groupe, factures",
+    "last": "dernier utilisé"
+  },
+  "negoce": {
+    "sellTitle": "Nouvelle vente",
+    "sellHint": "Poussins, aliment, médicaments : sortis du stock automatiquement.",
+    "walkIn": "Client de passage",
+    "group": "groupe",
+    "product": "Produit",
+    "qtyIn": "Quantité ({{unite}})",
+    "deposit": "Acompte versé",
+    "onCredit": "À crédit",
+    "cash": "Comptant",
+    "groupHint": "{{nom}} est une société du groupe : la vente est à crédit, la livraison apparaît chez elle à réceptionner, et c’est elle qui enregistre le paiement.",
+    "sold": "Vente enregistrée : {{n}}.",
+    "soldGroup": "Vente enregistrée ({{n}}) : la livraison attend la réception chez le client du groupe.",
+    "sell": "Vendre",
+    "stockTitle": "Stock",
+    "manageStock": "Gérer le stock",
+    "noStock": "Aucun produit en stock : ajoutez-les dans Stock.",
+    "salesTitle": "Dernières ventes",
+    "today": "Aujourd’hui : {{n}}"
+  },
+  "groupe": {
+    "receivedTitle": "Livraisons du groupe à recevoir",
+    "toReceive_one": "{{count}} livraison à réceptionner",
+    "toReceive_other": "{{count}} livraisons à réceptionner",
+    "allDone": "Tout est traité.",
+    "receive": "Réceptionner",
+    "refuse": "Refuser",
+    "receiveTitle": "Réceptionner : {{nom}}",
+    "receiveHint": "Dans quel produit de stock ranger cette livraison ? L’achat est créé à crédit et part en validation chez la finance.",
+    "stockProduct": "Produit de stock",
+    "newProduct": "Créer « {{nom}} »",
+    "receiveConfirm": "Réceptionner {{q}} {{unite}} de {{nom}} ({{n}}) ? L’achat est créé à crédit et part en validation chez la finance.",
+    "refuseTitle": "Refuser la livraison : {{nom}}",
+    "receivedHint": "Le paiement se fait ensuite dans Argent (dette fournisseur) : la société du groupe le reçoit automatiquement.",
+    "sentTitle": "Livraisons envoyées au groupe",
+    "sentHint": "Le client du groupe réceptionne, puis paie depuis chez lui : l’encaissement arrive ici tout seul.",
+    "company": "Société du groupe",
+    "status": {
+      "en_attente": "À réceptionner",
+      "receptionne": "Réceptionnée",
+      "refuse": "Refusée",
+      "annule": "Annulée"
+    },
+    "link": "Société du groupe",
+    "linkTitle": "Lier « {{nom}} » à une société du groupe",
+    "none": "Aucune (client ou fournisseur ordinaire)",
+    "linkHint": "Les ventes à ce client deviennent des livraisons à réceptionner dans l’autre société, payées depuis là-bas.",
+    "noOther": "Vous n’êtes membre d’aucune autre société du groupe.",
+    "tag": "Groupe : {{nom}}"
   }
 }

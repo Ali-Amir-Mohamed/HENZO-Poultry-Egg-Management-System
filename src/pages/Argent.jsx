@@ -278,7 +278,8 @@ function Depenses({ onAsked }) {
   })
 
   const credit = form.paiement === 'credit'
-  const stockable = STOCKABLES.includes(form.categorie)
+  // HENZO AGRO keeps chicks in stock: a chick purchase then enters the stock like feed
+  const stockable = STOCKABLES.includes(form.categorie) || (form.categorie === 'poussins' && (refs.data?.articles ?? []).some((a) => a.categorie === 'poussins'))
   // No big anonymous purchase: supplier required above the threshold (database rule too)
   const supplierRequired = credit || (refs.data?.seuilTiers != null && Number(form.montant) > Number(refs.data.seuilTiers)
     && !['salaires', 'retrait_associe'].includes(form.categorie))
@@ -503,7 +504,7 @@ function Ventes({ onAsked }) {
   const run = useRun()
   const { f, setF, keep } = useFiltres()
   const list = useQuery(async () => must(await supabase.from(TABLES.ventes)
-    .select('*, client:tiers(nom), bande:bandes(code), lot:lots_pondeuses(code)')
+    .select('*, client:tiers(nom), bande:bandes(code), lot:lots_pondeuses(code), article:articles(nom)')
     .gte('date_vente', f.from).lte('date_vente', f.to)
     .order('date_vente', { ascending: false }).order('created_at', { ascending: false }).limit(1000)), [f.from, f.to])
   const ventes = keep(list.data ?? [], {
@@ -541,7 +542,7 @@ function Ventes({ onAsked }) {
           {ventes.map((v) => (
             <li key={v.id} className={v.annulee ? 'cancelled' : ''}>
               <div className="grow">
-                <strong>{t(`produits.${v.produit}`)} · {v.bande?.code ?? v.lot?.code}</strong>
+                <strong>{v.article?.nom ?? t(`produits.${v.produit}`)}{v.bande || v.lot ? ` · ${v.bande?.code ?? v.lot?.code}` : ''}</strong>
                 <div className="muted small">
                   {day(v.date_vente, lang)} · {Number(v.quantite).toLocaleString(lang)} {t(`unites.${v.unite}`)} × {money(v.prix_unitaire, lang)}
                   {v.nombre_sujets ? ` · ${t('argent.birds', { n: v.nombre_sujets })}` : ''}

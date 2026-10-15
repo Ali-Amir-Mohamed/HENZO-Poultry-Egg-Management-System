@@ -50,6 +50,7 @@ function Tiers() {
   const { role } = useAuth()
   const lang = i18n.resolvedLanguage
   const list = useQuery(async () => must(await supabase.from(TABLES.tiers).select('*').order('nom')))
+  const societes = useQuery(async () => (await supabase.rpc('mes_societes')).data ?? [])
   const [form, setForm] = useState({ type_tiers: 'client', nom: '', telephone: '', adresse: '', niu: '', rccm: '', credit_autorise: false, plafond_credit: '0' })
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value })
   const grant = can(role, 'credit.grant')
@@ -89,6 +90,17 @@ function Tiers() {
     await run(supabase.from(TABLES.tiers).update(patch).eq('id', c.id), list.reload)
   }
 
+  // Link to another company of the group (its sales become deliveries to receive, paid from the buyer)
+  const lier = async (c) => {
+    const autres = (societes.data ?? []).filter((s) => !s.active)
+    if (autres.length === 0) return ask.error(t('groupe.noOther'))
+    const v = await ask.form({ title: t('groupe.linkTitle', { nom: c.nom }), icon: 'users', submit: t('dialog.save'), message: t('groupe.linkHint'), fields: [
+      { name: 'ferme', label: t('groupe.company'), type: 'select', value: c.ferme_liee_id ?? '', options: [{ value: '', label: t('groupe.none') }, ...autres.map((s) => ({ value: s.ferme_id, label: s.nom }))] }
+    ] })
+    if (v) await run(supabase.rpc('lier_tiers', { p_tiers: c.id, p_ferme: v.ferme || null }), list.reload)
+  }
+  const nomSociete = (id) => (societes.data ?? []).find((s) => s.ferme_id === id)?.nom ?? t('groupe.company')
+
   return (
     <>
       {can(role, 'tiers.edit') && (
@@ -127,8 +139,10 @@ function Tiers() {
                   <div className="row-actions">
                     <Link to={`/reglages/tiers/${c.id}`} className="btn ghost sm">{t('tiers.history')}</Link>
                     {can(role, 'tiers.edit') && <button className="btn ghost sm" onClick={() => editTiers(c)}>{t('common.edit')}</button>}
+                    {can(role, 'groupe.lier') && <button className="btn ghost sm" onClick={() => lier(c)}>{t('groupe.link')}</button>}
                   </div>
                 </div>
+                {c.ferme_liee_id && <span className="tag ok">{t('groupe.tag', { nom: nomSociete(c.ferme_liee_id) })}</span>}
                 {c.credit_autorise && <span className="tag warn">{t('reglages.creditUpTo', { n: money(c.plafond_credit, lang) })}</span>}
               </li>
             ))}

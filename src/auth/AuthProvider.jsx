@@ -17,7 +17,7 @@ async function loadProfile(user) {
   if (!navigator.onLine) return readCachedProfile(user.id)
   const { data, error } = await supabase
     .from(TABLES.profiles)
-    .select('id, nom_complet, role, ferme_id')
+    .select('id, nom_complet, role, ferme_id, ferme:fermes(nom, type_activite)')
     .eq('id', user.id)
     .eq('actif', true)
     .maybeSingle()

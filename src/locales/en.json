@@ -80,7 +80,8 @@
     "plateaux": "Egg trays",
     "poules_reformees": "Culled hens",
     "fientes": "Manure",
-    "autre": "Other"
+    "autre": "Other",
+    "marchandise": "Goods"
   },
   "categories": {
     "poussins": "Chicks",
@@ -125,7 +126,8 @@
   "articleCategories": {
     "aliment": "Feed",
     "medicament": "Medicine",
-    "autre": "Other"
+    "autre": "Other",
+    "poussins": "Chicks"
   },
   "tiersTypes": {
     "client": "Customer",
@@ -1036,7 +1038,8 @@
     "title": "My farms",
     "subtitle": "Each farm has its own cash boxes, flocks, stock and accounts. Use the selector at the top of the screen to switch.",
     "current": "Current farm",
-    "membersHint": "To let an account work on another farm: open that farm, then Settings > Accounts > “Add an existing account”."
+    "membersHint": "To let an account work on another farm: open that farm, then Settings > Accounts > “Add an existing account”.",
+    "type": "Type"
   },
   "filtres": {
     "from": "From",
@@ -1919,5 +1922,64 @@
       "vente_fientes": "Ventes de fientes",
       "vente_autres": "Autres ventes"
     }
+  },
+  "systeme": {
+    "welcome": "Hello {{name}}",
+    "pick": "Which system do you want to work in?",
+    "elevage": "Poultry farming",
+    "negoce": "Buying and reselling",
+    "elevageHint": "Flocks, entries, shops, money, salaries",
+    "negoceHint": "Stock, sales to farmers, deliveries to the group, invoices",
+    "last": "last used"
+  },
+  "negoce": {
+    "sellTitle": "New sale",
+    "sellHint": "Chicks, feed, medicines: taken out of stock automatically.",
+    "walkIn": "Walk-in customer",
+    "group": "group",
+    "product": "Product",
+    "qtyIn": "Quantity ({{unite}})",
+    "deposit": "Deposit paid",
+    "onCredit": "On credit",
+    "cash": "Cash",
+    "groupHint": "{{nom}} is a group company: the sale is on credit, the delivery shows there to receive, and they record the payment.",
+    "sold": "Sale recorded: {{n}}.",
+    "soldGroup": "Sale recorded ({{n}}): the delivery waits to be received by the group customer.",
+    "sell": "Sell",
+    "stockTitle": "Stock",
+    "manageStock": "Manage stock",
+    "noStock": "No product in stock: add them in Stock.",
+    "salesTitle": "Latest sales",
+    "today": "Today: {{n}}"
+  },
+  "groupe": {
+    "receivedTitle": "Group deliveries to receive",
+    "toReceive_one": "{{count}} delivery to receive",
+    "toReceive_other": "{{count}} deliveries to receive",
+    "allDone": "All handled.",
+    "receive": "Receive",
+    "refuse": "Refuse",
+    "receiveTitle": "Receive: {{nom}}",
+    "receiveHint": "Which stock product does this delivery go into? The purchase is created on credit and goes to finance for validation.",
+    "stockProduct": "Stock product",
+    "newProduct": "Create \"{{nom}}\"",
+    "receiveConfirm": "Receive {{q}} {{unite}} of {{nom}} ({{n}})? The purchase is created on credit and goes to finance for validation.",
+    "refuseTitle": "Refuse the delivery: {{nom}}",
+    "receivedHint": "Payment is then made in Money (supplier debt): the group company receives it automatically.",
+    "sentTitle": "Deliveries sent to the group",
+    "sentHint": "The group customer receives, then pays from their side: the receipt arrives here by itself.",
+    "company": "Group company",
+    "status": {
+      "en_attente": "To receive",
+      "receptionne": "Received",
+      "refuse": "Refused",
+      "annule": "Cancelled"
+    },
+    "link": "Group company",
+    "linkTitle": "Link \"{{nom}}\" to a group company",
+    "none": "None (ordinary customer or supplier)",
+    "linkHint": "Sales to this customer become deliveries to receive in the other company, paid from there.",
+    "noOther": "You are not a member of any other group company.",
+    "tag": "Group: {{nom}}"
   }
 }

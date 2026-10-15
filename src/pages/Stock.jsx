@@ -8,6 +8,7 @@ import { localDate } from '../lib/stats'
 import Icon from '../components/Icon'
 import { day, Empty, Field, FormCard, Loading, Panel } from '../components/ui'
 import { useAsk, useRun } from '../components/Dialog'
+import LivraisonsGroupe from './stock/LivraisonsGroupe'
 
 // Stock: entries come from purchases (expenses), consumption from field entries.
 export default function Stock() {
@@ -73,6 +74,7 @@ export default function Stock() {
 
   return (
     <div className="stack">
+      <LivraisonsGroupe />
       {!stock.data ? <Loading error={stock.error} /> : stock.data.length === 0 ? <Empty icon="box" text={t('stock.empty')} /> : (
         <div className="cards">
           {stock.data.map((s) => {

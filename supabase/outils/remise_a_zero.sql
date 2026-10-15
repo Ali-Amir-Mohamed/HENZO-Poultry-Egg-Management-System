@@ -20,6 +20,7 @@
 -- =====================================================================
 
 truncate table
+  public.achats_intersocietes,
   public.paiements_impots,
   public.bulletins_paie,
   public.facture_lignes,

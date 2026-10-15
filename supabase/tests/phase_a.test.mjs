@@ -1188,6 +1188,70 @@ await expectOk('dahirou renumbers feed purchases to 60221', 'dahirou', `select p
 ok('the journal uses the new number', (await as('dahirou', `select distinct compte, intitule from public.journal_comptable where cle = 'achat_aliment'`)).rows.every((r) => r.compte === '60221' && r.intitule === 'Aliment chair et ponte'))
 ok('a new farm gets its chart of accounts', (await db.query(`select count(*) n from public.plan_comptable where ferme_id = (select id from public.fermes order by created_at desc limit 1)`)).rows[0].n > 30)
 
+// ---------- 0038: two companies ----------
+try {
+  await db.exec(readFileSync(new URL('0038_deux_societes.sql', MIG), 'utf8'))
+  ok('migration 0038 runs', true)
+} catch (e) { ok('migration 0038 runs', false, e.message); process.exit(1) }
+const NEG = (await as('ali', `select public.creer_ferme('HENZO AGRO', 'negoce') as id`)).rows[0].id
+const neg = (await db.query(`select f.type_activite, (select numero from public.plan_comptable where ferme_id = f.id and cle = 'achat_aliment') n from public.fermes f where id = $1`, [NEG])).rows[0]
+ok('ali creates a trading company with trading accounts (6012)', neg.type_activite === 'negoce' && neg.n === '6012', JSON.stringify(neg))
+await expectOk('ali opens the trading company', 'ali', `select public.changer_ferme($1)`, [NEG])
+await expectOk('ali adds kenfack (operations)', 'ali', `select public.ajouter_membre('kenfack', 'exploitation')`)
+await expectOk('ali adds dahirou (finance)', 'ali', `select public.ajouter_membre('dahirou', 'finance')`)
+await expectOk('kenfack opens the trading company', 'kenfack', `select public.changer_ferme($1)`, [NEG])
+await expectOk('dahirou opens the trading company', 'dahirou', `select public.changer_ferme($1)`, [NEG])
+const ARTN = (await one('kenfack', `insert into public.articles (nom, categorie, unite) values ('Aliment démarrage', 'aliment', 'sac') returning id`)).id
+await expectOk('chicks can be a stock product of the trading company', 'kenfack', `insert into public.articles (nom, categorie, unite) values ('Poussins chair', 'poussins', 'piece')`)
+await expectOk('100 bags enter the stock', 'kenfack', `insert into public.mouvements_stock (article_id, type_mouvement, quantite) values ($1, 'entree', 100)`, [ARTN])
+const CLH = (await one('kenfack', `insert into public.tiers (type_tiers, nom) values ('client', 'HENZO SARL') returning id`)).id
+const CLX = (await one('kenfack', `insert into public.tiers (type_tiers, nom) values ('client', 'Éleveur Mbarga') returning id`)).id
+await expectErr('kenfack cannot link a group company', 'kenfack', `select public.lier_tiers($1, $2)`, [CLH, fermeAli], 'finance')
+await expectErr('a company cannot be linked to itself', 'dahirou', `select public.lier_tiers($1, $2)`, [CLH, NEG], 'autre')
+await expectOk('dahirou links the client to HENZO SARL', 'dahirou', `select public.lier_tiers($1, $2)`, [CLH, fermeAli])
+const VM = `insert into public.ventes (client_id, produit, article_id, unite, quantite, prix_unitaire, mode_paiement) values ($1, 'marchandise', $2, 'sac', $3, $4, 'especes') returning id, a_credit, montant_encaisse, unite`
+await expectErr('cannot sell more than the stock', 'kenfack', VM, [CLX, ARTN, 500, 16200], 'Stock insuffisant')
+const vg = (await as('kenfack', VM, [CLH, ARTN, 10, 16200])).rows[0]
+ok('a sale to HENZO SARL is on credit, nothing cashed', vg.a_credit === true && Number(vg.montant_encaisse) === 0 && vg.unite === 'sac', JSON.stringify(vg))
+const vx = (await as('kenfack', VM, [CLX, ARTN, 5, 16200])).rows[0]
+ok('a cash sale to another farmer is cashed', vx.a_credit === false && Number(vx.montant_encaisse) === 81000)
+const stockN = async () => Number((await db.query(`select coalesce(sum(case type_mouvement when 'sortie' then -quantite else quantite end), 0) s from public.mouvements_stock where article_id = $1`, [ARTN])).rows[0].s)
+ok('stock goes down to 85 bags', (await stockN()) === 85)
+await expectErr('the buyer pays, not a manual receipt at the seller', 'kenfack', `insert into public.paiements_clients (vente_id, montant, mode_paiement) values ($1, 1000, 'especes')`, [vg.id], 'groupe')
+const FN = (await oneP('kenfack', `select public.creer_facture($1::uuid[]) as id`, [[vg.id]])).id
+ok('the trading company invoices the bags', (await oneP('kenfack', `select designation from public.facture_lignes where facture_id = $1`, [FN])).designation === 'Aliment démarrage')
+const ventesM = Number((await one('dahirou', `select coalesce(sum(credit - debit), 0) s from public.journal_comptable where cle = 'vente_marchandises'`)).s)
+ok('trading company accounts: goods sales 162 000 + 81 000', ventesM === 243000, String(ventesM))
+ok('trading company journal is balanced', (await as('dahirou', `select piece from public.journal_comptable group by piece having sum(debit) <> sum(credit)`)).rows.length === 0)
+// buyer side
+await expectOk('kenfack back to HENZO SARL', 'kenfack', `select public.changer_ferme($1)`, [fermeAli])
+await expectOk('dahirou back to HENZO SARL', 'dahirou', `select public.changer_ferme($1)`, [fermeAli])
+const liv = (await as('kenfack', `select * from public.achats_intersocietes where statut = 'en_attente'`)).rows
+ok('HENZO SARL sees the delivery to receive', liv.length === 1 && Number(liv[0].montant) === 162000 && liv[0].article_nom === 'Aliment démarrage', JSON.stringify(liv))
+ok('kenfack and dahirou are told', (await as('kenfack', `select * from public.notifications where type_notification = 'livraison_groupe'`)).rows.length >= 1)
+await expectErr('dahirou does not receive goods', 'dahirou', `select public.receptionner_livraison_groupe($1)`, [liv[0].id], 'exploitation')
+const DEPG = (await oneP('kenfack', `select public.receptionner_livraison_groupe($1) as id`, [liv[0].id])).id
+const dg = await oneP('dahirou', `select d.categorie, d.montant, d.a_credit, d.statut, t.nom four, t.ferme_liee_id, a.nom art from public.depenses d join public.tiers t on t.id = d.fournisseur_id left join public.articles a on a.id = d.article_id where d.id = $1`, [DEPG])
+ok('reception creates a credit feed purchase from HENZO AGRO, waiting for dahirou', dg.categorie === 'aliment' && Number(dg.montant) === 162000 && dg.a_credit === true && dg.statut === 'a_valider'
+  && dg.four === 'HENZO AGRO' && dg.ferme_liee_id === NEG && dg.art === 'Aliment démarrage', JSON.stringify(dg))
+await expectErr('a delivery is received only once', 'kenfack', `select public.receptionner_livraison_groupe($1)`, [liv[0].id], 'déjà')
+await expectOk('dahirou validates the purchase', 'dahirou', `update public.depenses set statut = 'validee' where id = $1`, [DEPG])
+ok('the bags enter HENZO SARL stock', Number((await one('kenfack', `select stock from public.stock_articles where nom = 'Aliment démarrage'`)).stock) === 10)
+await expectOk('dahirou pays HENZO AGRO 100 000', 'dahirou', `insert into public.paiements_fournisseurs (depense_id, montant, mode_paiement) values ($1, 100000, 'banque')`, [DEPG])
+ok('the trading company has received 100 000, 62 000 still due', Number((await db.query(`select public.reste_a_payer_vente($1) r`, [vg.id])).rows[0].r) === 62000
+  && Number((await db.query(`select solde from public.soldes_caisses where ferme_id = $1 and mode = 'banque' and activite = 'chair'`, [NEG])).rows[0].solde) === 100000)
+await expectErr('the seller cannot cancel a received delivery', 'ali', `update public.ventes set annulee = true, motif_annulation = 'x' where id = '${vg.id}'`)
+// refusal
+await expectOk('kenfack goes back to the trading company', 'kenfack', `select public.changer_ferme($1)`, [NEG])
+const vg2 = (await as('kenfack', VM, [CLH, ARTN, 2, 16200])).rows[0]
+await expectOk('kenfack back to HENZO SARL', 'kenfack', `select public.changer_ferme($1)`, [fermeAli])
+const livG2 = (await as('kenfack', `select id from public.achats_intersocietes where vente_id = $1`, [vg2.id])).rows[0].id
+await expectErr('a refusal needs a reason', 'kenfack', `select public.refuser_livraison_groupe($1, '')`, [livG2], 'motif')
+await expectOk('kenfack refuses a damaged delivery', 'kenfack', `select public.refuser_livraison_groupe($1, 'Sacs abîmés')`, [livG2])
+ok('the seller is told', Number((await db.query(`select count(*) n from public.notifications where ferme_id = $1 and type_notification = 'livraison_refusee'`, [NEG])).rows[0].n) >= 1)
+await expectOk('ali back to HENZO SARL', 'ali', `select public.changer_ferme($1)`, [fermeAli])
+ok('HENZO SARL journal is still balanced', (await as('dahirou', `select piece from public.journal_comptable group by piece having sum(debit) <> sum(credit)`)).rows.length === 0)
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))

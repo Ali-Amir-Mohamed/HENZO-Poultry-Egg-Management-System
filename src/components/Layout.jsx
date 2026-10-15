@@ -3,7 +3,7 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/AuthProvider'
 import { supabase } from '../lib/supabase'
-import { canAccess } from '../config'
+import { sectionVisible, estNegoce } from '../lib/systeme'
 import { useInstallPrompt, useOnline, usePendingCount } from '../hooks'
 import LanguageSwitch from './LanguageSwitch'
 import ThemeSwitch from './ThemeSwitch'
@@ -38,19 +38,20 @@ export default function Layout() {
   const online = useOnline()
   const pending = usePendingCount()
   const install = useInstallPrompt()
-  const sections = SECTIONS.filter((s) => canAccess(role, s.key))
+  const sections = SECTIONS.filter((s) => sectionVisible(s.key, role, profile))
+  const negoce = estNegoce(profile)
   // Administration reminders (also sent every morning by the database when pg_cron is on)
   useEffect(() => { if (role === 'directeur' && navigator.onLine) supabase.rpc('rappels_administration').then(() => {}, () => {}) }, [role])
   const needsMore = sections.length > MOBILE_SLOTS + 1
 
   return (
-    <div className="shell">
+    <div className={`shell ${negoce ? 'negoce' : ''}`}>
       <header className="topbar">
         <div className="topbar-inner">
           <div className="brand">
             <Logo size={38} />
             <div>
-              <strong>{t('app.name')}</strong>
+              <strong>{negoce ? profile.ferme.nom : t('app.name')}</strong>
               <NavLink to="/compte" className="account-link" title={t('compte.title')}>{profile?.nom_complet || t(`roles.${role}`)}</NavLink>
               <FarmSwitch />
             </div>

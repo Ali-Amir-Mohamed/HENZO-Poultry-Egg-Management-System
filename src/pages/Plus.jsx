@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/AuthProvider'
-import { canAccess } from '../config'
+import { sectionVisible } from '../lib/systeme'
 import { SECTIONS } from '../components/Layout'
 import Icon from '../components/Icon'
 import { faceIdSupported, nomBiometrie } from '../lib/faceid'
@@ -10,8 +10,8 @@ import { APP_VERSION, forcerMiseAJour } from '../lib/version'
 // Phone-only page listing the sections that do not fit in the bottom bar
 export default function Plus() {
   const { t } = useTranslation()
-  const { role, signOut } = useAuth()
-  const sections = SECTIONS.filter((s) => canAccess(role, s.key)).slice(4)
+  const { role, profile, signOut } = useAuth()
+  const sections = SECTIONS.filter((s) => sectionVisible(s.key, role, profile)).slice(4)
   return (
     <section className="panel">
       <ul className="menu">
