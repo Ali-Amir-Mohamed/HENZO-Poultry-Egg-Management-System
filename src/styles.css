@@ -743,3 +743,8 @@ html, body { overflow-x: clip; }
 .signatures div { border-top: 1px solid #bbb; padding-top: 6px; min-height: 64px; }
 textarea.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .9rem; }
 .table td .num { text-align: right; }
+
+/* ---------- Accounting books ---------- */
+.compact-field { min-width: 140px; flex: 0 1 180px; }
+.row.wrap { flex-wrap: wrap; }
+.table tr.strong td { border-top: 2px solid var(--border, #ddd); }

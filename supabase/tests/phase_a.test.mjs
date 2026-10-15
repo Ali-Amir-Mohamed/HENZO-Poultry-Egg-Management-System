@@ -1151,6 +1151,43 @@ ok('the new rate is used', (await calc(100000)).cnps_accidents === 2500)
 await expectErr('an empty scale is refused', 'dahirou', `select public.maj_parametres_paie('{"bareme_irpp":[]}'::jsonb)`, [], 'Barème')
 await expectOk('dahirou puts the rate back', 'dahirou', `select public.maj_parametres_paie('{"taux_accidents_travail":"1.75"}'::jsonb)`)
 
+// ---------- 0037: accounting ----------
+try {
+  await db.exec(readFileSync(new URL('0037_comptabilite.sql', MIG), 'utf8'))
+  ok('migration 0037 runs', true)
+} catch (e) { ok('migration 0037 runs', false, e.message); process.exit(1) }
+const totJ = await one('ali', `select count(*) n, sum(debit) d, sum(credit) c from public.journal_comptable`)
+ok('the journal has entries and is balanced (debit = credit)', Number(totJ.n) > 100 && Number(totJ.d) === Number(totJ.c), JSON.stringify(totJ))
+ok('every piece is balanced', (await as('ali', `select piece from public.journal_comptable group by piece having sum(debit) <> sum(credit)`)).rows.length === 0)
+ok('every entry has a real account number', (await as('ali', `select * from public.journal_comptable where compte = '0'`)).rows.length === 0)
+const ecartsCaisses = await as('ali', `with j as (select cle, sum(debit - credit) s from public.journal_comptable group by cle),
+  c as (select 'caisse_' || mode || '_' || activite as cle, solde from public.soldes_caisses where ferme_id = public.ferme_actuelle())
+  select c.cle, c.solde, coalesce(j.s, 0) as compta from c left join j on j.cle = c.cle where coalesce(j.s, 0) <> c.solde`)
+ok('each cash box account equals the cash box balance', ecartsCaisses.rows.length === 0, JSON.stringify(ecartsCaisses.rows))
+const bq = await one('ali', `select (select coalesce(sum(debit - credit), 0) from public.journal_comptable where cle = 'caisse_boutiques') compta,
+  (select coalesce(sum(solde), 0) from public.soldes_boutiques sb join public.boutiques b on b.id = sb.boutique_id where b.ferme_id = public.ferme_actuelle()) reel`)
+ok('shop cash account equals the shops cash', Number(bq.compta) === Number(bq.reel), JSON.stringify(bq))
+const cl = await one('ali', `select (select coalesce(sum(debit - credit), 0) from public.journal_comptable where cle = 'clients') compta,
+  (select coalesce(sum(public.reste_a_payer_vente(id)), 0) from public.ventes where not annulee and boutique_id is null and ferme_id = public.ferme_actuelle()) reel`)
+ok('customers account equals what customers still owe', Number(cl.compta) === Number(cl.reel), JSON.stringify(cl))
+const pe = await one('dahirou', `select (select coalesce(sum(debit - credit), 0) from public.journal_comptable where cle = 'personnel') compta,
+  (select coalesce(sum(montant), 0) from public.avances_salaire where not annulee and paie_id is null and ferme_id = public.ferme_actuelle()) avances`)
+ok('staff account = advances not yet deducted', Number(pe.compta) === Number(pe.avances), JSON.stringify(pe))
+const cn = await one('dahirou', `select coalesce(sum(credit - debit), 0) s from public.journal_comptable where cle = 'cnps'`)
+ok('CNPS account is 0 once November is paid over', Number(cn.s) === 0, JSON.stringify(cn))
+const vtp = await one('dahirou', `select count(*) n from public.journal_comptable where journal = 'PA' and cle = 'salaires'`)
+ok('payroll entries are in the PA journal', Number(vtp.n) > 0)
+ok('VAT invoices put VAT in its own account (2 × 5 650)', Number((await one('dahirou', `select coalesce(sum(credit), 0) s from public.journal_comptable where cle = 'tva_collectee'`)).s) === 11300)
+ok('kenfack sees no accounting', (await as('kenfack', `select * from public.journal_comptable`)).rows.length === 0)
+await expectErr('kenfack cannot read the balance', 'kenfack', `select * from public.soldes_comptables(current_date - 365, current_date)`)
+const bal = await as('dahirou', `select sum(debit_cumule) d, sum(credit_cumule) c, count(*) n from public.soldes_comptables('2000-01-01', current_date)`)
+ok('the trial balance is balanced', Number(bal.rows[0].d) === Number(bal.rows[0].c) && Number(bal.rows[0].n) > 10, JSON.stringify(bal.rows[0]))
+await expectErr('an invalid account number is refused', 'dahirou', `select public.maj_compte('achat_aliment', '60A', null)`, [], 'invalide')
+await expectErr('kenfack cannot change the chart of accounts', 'kenfack', `select public.maj_compte('achat_aliment', '60221', null)`, [], 'finance')
+await expectOk('dahirou renumbers feed purchases to 60221', 'dahirou', `select public.maj_compte('achat_aliment', '60221', 'Aliment chair et ponte')`)
+ok('the journal uses the new number', (await as('dahirou', `select distinct compte, intitule from public.journal_comptable where cle = 'achat_aliment'`)).rows.every((r) => r.compte === '60221' && r.intitule === 'Aliment chair et ponte'))
+ok('a new farm gets its chart of accounts', (await db.query(`select count(*) n from public.plan_comptable where ferme_id = (select id from public.fermes order by created_at desc limit 1)`)).rows[0].n > 30)
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))

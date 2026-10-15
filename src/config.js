@@ -98,7 +98,8 @@ export const PERMISSIONS = {
   'facture.create': [D, X, F],   // official invoices from sales
   'facture.annuler': [D],        // cancel an invoice (number never reused)
   'impots.payer': [D, F],        // record a tax payment (= taxes expense)
-  'societe.edit': [D, F]         // company legal / tax sheet
+  'societe.edit': [D, F],        // company legal / tax sheet
+  'compta.livres': [D, F]        // accounting books and chart of accounts
 }
 
 // Roles automatically signed out after a period of inactivity (employees work offline: not them)
