@@ -8,7 +8,7 @@ import { EXPIRED_FLAG } from '../components/SessionGuard'
 import { faceIdActiveIci, faceIdSupported, messageFaceId, nomBiometrie } from '../lib/faceid'
 import { APP_VERSION, forcerMiseAJour } from '../lib/version'
 
-export default function Login({ systeme = 'elevage', onRetour }) {
+export default function Login({ systeme = 'elevage', site, onRetour }) {
   const negoce = systeme === 'negoce'
   const { t } = useTranslation()
   const { signIn, signInWithFaceId } = useAuth()
@@ -55,6 +55,7 @@ export default function Login({ systeme = 'elevage', onRetour }) {
         <Logo size={72} />
         <h1>{negoce ? 'HENZO AGRO' : t('app.name')}</h1>
         <p>{negoce ? t('systeme.negoceTagline') : t('app.tagline')}</p>
+        {site && <span className="login-site">{site}</span>}
       </div>
       <form className="login-card" onSubmit={submit}>
         <h2>{t('auth.title')}</h2>

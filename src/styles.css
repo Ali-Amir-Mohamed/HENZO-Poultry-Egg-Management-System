@@ -790,3 +790,4 @@ textarea.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, mono
 .login-page.negoce .btn.primary { background: #b5651d; border-color: #b5651d; }
 .farm-switch-wrap { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; margin-top: .15rem; }
 .farm-switch.apps-btn { cursor: pointer; white-space: nowrap; }
+.login-site { display: inline-block; margin-top: .3rem; padding: .2rem .7rem; border-radius: 999px; background: rgba(255, 255, 255, .14); color: #fff; font-weight: 600; font-size: .85rem; }

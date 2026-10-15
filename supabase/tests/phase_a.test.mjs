@@ -1297,6 +1297,15 @@ ok('dahirou reads the company payroll settings from the site', (await as('dahiro
 await expectOk('dahirou puts the rate back', 'dahirou', `select public.maj_parametres_paie('{"taux_accidents_travail":"1.75"}'::jsonb)`)
 for (const u of ['ali', 'kenfack', 'dahirou']) await expectOk(`${u} back to the main site`, u, `select public.changer_ferme($1)`, [fermeAli])
 
+// ---------- 0040: site names on the portal, before signing in ----------
+try {
+  await db.exec(readFileSync(new URL('0040_portail_sites.sql', MIG), 'utf8'))
+  ok('migration 0040 runs', true)
+} catch (e) { ok('migration 0040 runs', false, e.message); process.exit(1) }
+const ps = await as(null, `select * from public.portail_sites()`)
+ok('before signing in, the portal sees only farm site names', ps.rows.length >= 2 && ps.rows.every((r) => Object.keys(r).join() === 'ferme_id,nom') && !ps.rows.some((r) => r.nom === 'HENZO AGRO'), JSON.stringify(ps.rows))
+await expectNoRows('an anonymous visitor still sees no farm data', null, `select * from public.fermes`)
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))

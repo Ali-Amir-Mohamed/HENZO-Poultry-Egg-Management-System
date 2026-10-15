@@ -1,6 +1,6 @@
 import { lazy, useEffect, useState } from 'react'
 import ChoixSysteme from './pages/ChoixSysteme'
-import { choixFait, ecrireRefus, ecrireVise, estNegoce, lireVise, marquerChoix } from './lib/systeme'
+import { choixFait, ecrireRefus, ecrireVise, ecrireViseSite, estNegoce, lireVise, lireViseSite, marquerChoix } from './lib/systeme'
 import { changerFerme } from './components/FarmSwitch'
 import Portail from './components/Portail'
 import LanguageSwitch from './components/LanguageSwitch'
@@ -54,6 +54,7 @@ export default function App() {
   // after signing in, that system's company is opened. Accounts already signed in and working in both
   // get the portal again at the start of each session.
   const [vise, setVise] = useState(lireVise)
+  const [sitesPortail, setSitesPortail] = useState(null)
   const [societes, setSocietes] = useState(null)
   const [choisi, setChoisi] = useState(choixFait)
   const [typeInitial, setTypeInitial] = useState(null)
@@ -62,32 +63,55 @@ export default function App() {
     supabase.rpc('mes_societes').then(({ data }) => {
       const liste = data ?? []
       const v = lireVise()
+      const site = lireViseSite()
       if (!v) return setSocietes(liste)
-      // a system was picked on the portal: open its company, ask which site if it has several, or say there is no access to it
+      // a system (and maybe a site) was picked on the portal: open it, ask which site if still unknown,
+      // or say there is no access to it
       const cibles = liste.filter((s) => s.type_activite === v)
-      const cible = cibles[0]
+      const cible = site ? liste.find((s) => s.ferme_id === site.id) : cibles[0]
       ecrireVise(null)
-      if (cibles.length > 1) { setTypeInitial(v); return setSocietes(liste) }
+      ecrireViseSite(null)
+      if (!site && cibles.length > 1) { setTypeInitial(v); return setSocietes(liste) }
       marquerChoix()
       setChoisi(true)
-      if (!cible) ecrireRefus(v)
+      if (!cible) ecrireRefus(site?.nom ?? (v === 'negoce' ? 'HENZO AGRO' : 'HENZO'))
       else if (!cible.active) changerFerme(cible.ferme_id).catch(() => {})
     }, () => setSocietes([]))
   }, [session, profile, choisi])
-  const choisirAvantConnexion = (c) => { ecrireVise(c.type); setVise(c.type) }
-  const retourPortail = () => { ecrireVise(null); setVise(null) }
+  const choisirAvantConnexion = async (c) => {
+    // farming: which site? (only the site names are readable before signing in)
+    if (c.type === 'elevage' && navigator.onLine) {
+      const { data } = await supabase.rpc('portail_sites')
+      if ((data ?? []).length > 1) return setSitesPortail(data)
+    }
+    ecrireVise(c.type); setVise(c.type)
+  }
+  const choisirSiteAvantConnexion = (c) => { ecrireViseSite({ id: c.cle, nom: c.nom }); ecrireVise('elevage'); setVise('elevage') }
+  const retourPortail = () => { ecrireVise(null); ecrireViseSite(null); setSitesPortail(null); setVise(null) }
 
   if (loading) {
     return <div className="splash"><Logo size={64} /><p>{t('common.loading')}</p></div>
   }
   if (!session) {
-    if (vise) return <Login systeme={vise} onRetour={retourPortail} />
+    if (vise) return <Login systeme={vise} site={lireViseSite()?.nom} onRetour={retourPortail} />
+    const entete = <><ThemeSwitch className="icon-btn" /><LanguageSwitch className="icon-btn" /></>
+    if (sitesPortail) {
+      return (
+        <Portail
+          sousTitre={t('systeme.whichSite')}
+          cartes={sitesPortail.map((s) => ({ cle: s.ferme_id, type: 'elevage', nom: s.nom, site: true }))}
+          onChoisir={choisirSiteAvantConnexion}
+          entete={entete}
+          pied={<><button type="button" className="portail-lien-pied" onClick={retourPortail}>← {t('systeme.back')}</button><span>{t('systeme.footer')}</span></>}
+        />
+      )
+    }
     return (
       <Portail
         sousTitre={t('systeme.subtitlePublic')}
         cartes={[{ cle: 'elevage', type: 'elevage', nom: 'HENZO' }, { cle: 'negoce', type: 'negoce', nom: 'HENZO AGRO' }]}
         onChoisir={choisirAvantConnexion}
-        entete={<><ThemeSwitch className="icon-btn" /><LanguageSwitch className="icon-btn" /></>}
+        entete={entete}
         pied={<><span>{t('systeme.footer')}</span><span>{t('version.label')} {APP_VERSION} · <button type="button" className="portail-lien-pied" onClick={forcerMiseAJour}>{t('version.force')}</button></span></>}
       />
     )

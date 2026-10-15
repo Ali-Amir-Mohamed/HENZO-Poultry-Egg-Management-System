@@ -101,7 +101,7 @@ export default function Layout() {
       <main className="content">
         {/* key: a page error is forgotten when changing page */}
         {refus && (
-          <div className="alert warn"><Icon name="alert" size={18} />{t('systeme.noAccess', { nom: refus === 'negoce' ? 'HENZO AGRO' : 'HENZO' })}
+          <div className="alert warn"><Icon name="alert" size={18} />{t('systeme.noAccess', { nom: refus })}
             <button type="button" className="btn ghost sm" style={{ marginLeft: 'auto' }} onClick={() => { ecrireRefus(null); setRefus(null) }}>OK</button>
           </div>
         )}

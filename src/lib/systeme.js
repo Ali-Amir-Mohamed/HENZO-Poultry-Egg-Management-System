@@ -25,3 +25,7 @@ export const ecrireVise = (v) => ecrire('henzo.systeme.vise', v)
 // The account had no access to the system picked before signing in: told once, in the app
 export const lireRefus = () => lire('henzo.systeme.refus')
 export const ecrireRefus = (v) => ecrire('henzo.systeme.refus', v)
+
+// Site picked on the portal before signing in ({ id, nom }), opened right after the sign-in
+export const lireViseSite = () => { try { return JSON.parse(lire('henzo.systeme.site')) } catch { return null } }
+export const ecrireViseSite = (v) => ecrire('henzo.systeme.site', v ? JSON.stringify(v) : null)
