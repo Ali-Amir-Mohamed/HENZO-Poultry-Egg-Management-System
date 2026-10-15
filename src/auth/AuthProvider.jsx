@@ -17,11 +17,16 @@ async function loadProfile(user) {
   if (!navigator.onLine) return readCachedProfile(user.id)
   const { data, error } = await supabase
     .from(TABLES.profiles)
-    .select('id, nom_complet, role, ferme_id, ferme:fermes(nom, type_activite)')
+    .select('id, nom_complet, role, ferme_id')
     .eq('id', user.id)
     .eq('actif', true)
     .maybeSingle()
   if (error) return readCachedProfile(user.id)
+  // Active company (HENZO or HENZO AGRO): read apart, so that a failure never blocks the sign-in
+  if (data?.ferme_id) {
+    const f = await supabase.from('fermes').select('nom, type_activite').eq('id', data.ferme_id).maybeSingle()
+    data.ferme = f.error ? null : f.data
+  }
   try { localStorage.setItem(PROFILE_CACHE, JSON.stringify(data)) } catch {}
   return data
 }
