@@ -1,6 +1,7 @@
 import { Component } from 'react'
 import i18n from '../i18n'
 import Icon from './Icon'
+import { forcerMiseAJour } from '../lib/version'
 
 // A page file that no longer exists (the app was updated while it was open): reload once on the new version
 const RELOAD_KEY = 'henzo.chunkReload'
@@ -39,7 +40,8 @@ export default class ErrorBoundary extends Component {
       <section className="panel">
         <div className="alert warn"><Icon name="alert" size={18} />{t('erreur.title')}</div>
         <p className="muted">{isChunkError(this.state.error) ? t('erreur.update') : t('erreur.text')}</p>
-        <button className="btn primary" onClick={() => window.location.reload()}><Icon name="sync" size={16} />{t('erreur.reload')}</button>
+        {/* an old version kept by the browser: a plain reload is not enough, empty the cache and update */}
+        <button className="btn primary" onClick={() => (isChunkError(this.state.error) ? forcerMiseAJour() : window.location.reload())}><Icon name="sync" size={16} />{t('erreur.reload')}</button>
       </section>
     )
   }
