@@ -32,7 +32,7 @@ export const SECTIONS = [
 const MOBILE_SLOTS = 4
 
 export default function Layout() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { role, profile, signOut } = useAuth()
   const location = useLocation()
   const online = useOnline()
@@ -40,6 +40,8 @@ export default function Layout() {
   const install = useInstallPrompt()
   const sections = SECTIONS.filter((s) => sectionVisible(s.key, role, profile))
   const negoce = estNegoce(profile)
+  // HENZO AGRO: the cash boxes are not "chair" / "pondeuses" (a company switch reloads the app)
+  if (negoce) for (const lng of ['fr', 'en']) i18n.addResourceBundle(lng, 'translation', { argent: { caisse: i18n.getResource(lng, 'translation', 'negoce.caisse') } }, true, true)
   const [refus, setRefus] = useState(lireRefus)
   // Administration reminders (also sent every morning by the database when pg_cron is on)
   useEffect(() => { if (role === 'directeur' && navigator.onLine) supabase.rpc('rappels_administration').then(() => {}, () => {}) }, [role])

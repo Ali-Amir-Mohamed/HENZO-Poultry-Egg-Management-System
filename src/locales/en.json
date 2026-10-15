@@ -417,7 +417,7 @@
       "journal": "Log",
       "sauvegarde": "Backup",
       "connexions": "Logins",
-      "fermes": "Farms",
+      "fermes": "Companies",
       "ferme": "Farm settings"
     },
     "newTiers": "New customer / supplier",
@@ -1026,20 +1026,22 @@
     "save": "Save"
   },
   "fermes": {
-    "pendingFirst_one": "{{count}} entry is waiting to be sent: sync it before switching farm.",
-    "pendingFirst_other": "{{count}} entries are waiting to be sent: sync them before switching farm.",
-    "switch": "Switch farm",
-    "new": "New farm",
-    "create": "Create farm",
-    "name": "Farm name",
-    "newHint": "The new farm gets its own cash boxes (at zero), the same care programme and the same settings as the current farm. You are its director.",
-    "created": "Farm “{{nom}}” created. Open it now?",
+    "pendingFirst_one": "{{count}} entry is waiting to be sent: sync it before changing company.",
+    "pendingFirst_other": "{{count}} entries are waiting to be sent: sync them before changing company.",
+    "switch": "Change company",
+    "new": "New company",
+    "create": "Create",
+    "name": "Name",
+    "newHint": "The new company has its own cash boxes (at zero), stock, sales, invoices and accounts. You are its director.",
+    "created": "\"{{nom}}\" is created. Open it now?",
     "open": "Open",
-    "title": "My farms",
-    "subtitle": "Each farm has its own cash boxes, flocks, stock and accounts. Use the selector at the top of the screen to switch.",
-    "current": "Current farm",
-    "membersHint": "To let an account work on another farm: open that farm, then Settings > Accounts > “Add an existing account”.",
-    "type": "Type"
+    "title": "Group companies",
+    "subtitle": "Each company has its cash boxes, stock, sales and accounts. The selector at the top of the screen switches between them.",
+    "current": "Open company",
+    "membersHint": "For an account to work in another company: open it, then Settings > Accounts > \"Add an existing account\".",
+    "type": "Activity",
+    "typeElevage": "Poultry farm (like HENZO)",
+    "typeNegoce": "Buying and reselling company (like HENZO AGRO)"
   },
   "filtres": {
     "from": "From",
@@ -1960,7 +1962,11 @@
     "manageStock": "Manage stock",
     "noStock": "No product in stock: add them in Stock.",
     "salesTitle": "Latest sales",
-    "today": "Today: {{n}}"
+    "today": "Today: {{n}}",
+    "caisse": {
+      "chair": "Main cash box",
+      "pondeuse": "Second cash box"
+    }
   },
   "groupe": {
     "receivedTitle": "Group deliveries to receive",

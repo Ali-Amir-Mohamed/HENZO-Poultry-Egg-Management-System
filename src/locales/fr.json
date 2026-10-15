@@ -417,7 +417,7 @@
       "journal": "Journal",
       "sauvegarde": "Sauvegarde",
       "connexions": "Connexions",
-      "fermes": "Fermes",
+      "fermes": "Sociétés",
       "ferme": "Paramètres"
     },
     "newTiers": "Nouveau client / fournisseur",
@@ -1026,20 +1026,22 @@
     "save": "Enregistrer"
   },
   "fermes": {
-    "pendingFirst_one": "{{count}} saisie attend d’être envoyée : synchronisez-la avant de changer de ferme.",
-    "pendingFirst_other": "{{count}} saisies attendent d’être envoyées : synchronisez-les avant de changer de ferme.",
-    "switch": "Changer de ferme",
-    "new": "Nouvelle ferme",
-    "create": "Créer la ferme",
-    "name": "Nom de la ferme",
-    "newHint": "La nouvelle ferme reçoit ses propres caisses (à zéro), le même programme de soins et les mêmes réglages que la ferme actuelle. Vous en êtes le directeur.",
-    "created": "La ferme « {{nom}} » est créée. L’ouvrir maintenant ?",
+    "pendingFirst_one": "{{count}} saisie attend d’être envoyée : synchronisez-la avant de changer de société.",
+    "pendingFirst_other": "{{count}} saisies attendent d’être envoyées : synchronisez-les avant de changer de société.",
+    "switch": "Changer de société",
+    "new": "Nouvelle société",
+    "create": "Créer",
+    "name": "Nom",
+    "newHint": "La nouvelle société a ses propres caisses (à zéro), son stock, ses ventes, ses factures et sa comptabilité. Vous en êtes le directeur.",
+    "created": "« {{nom}} » est créée. L’ouvrir maintenant ?",
     "open": "Ouvrir",
-    "title": "Mes fermes",
-    "subtitle": "Chaque ferme a ses caisses, ses bandes, son stock et ses comptes. Le sélecteur en haut de l’écran permet de passer de l’une à l’autre.",
-    "current": "Ferme actuelle",
-    "membersHint": "Pour qu’un compte travaille dans une autre ferme : ouvrez cette ferme, puis Réglages > Comptes > « Ajouter un compte existant ».",
-    "type": "Type"
+    "title": "Sociétés du groupe",
+    "subtitle": "Chaque société a ses caisses, son stock, ses ventes et sa comptabilité. Le sélecteur en haut de l’écran permet de passer de l’une à l’autre.",
+    "current": "Société ouverte",
+    "membersHint": "Pour qu’un compte travaille dans une autre société : ouvrez-la, puis Réglages > Comptes > « Ajouter un compte existant ».",
+    "type": "Activité",
+    "typeElevage": "Ferme d’élevage (comme HENZO)",
+    "typeNegoce": "Société d’achat et revente (comme HENZO AGRO)"
   },
   "filtres": {
     "from": "Du",
@@ -1960,7 +1962,11 @@
     "manageStock": "Gérer le stock",
     "noStock": "Aucun produit en stock : ajoutez-les dans Stock.",
     "salesTitle": "Dernières ventes",
-    "today": "Aujourd’hui : {{n}}"
+    "today": "Aujourd’hui : {{n}}",
+    "caisse": {
+      "chair": "Caisse principale",
+      "pondeuse": "Caisse secondaire"
+    }
   },
   "groupe": {
     "receivedTitle": "Livraisons du groupe à recevoir",
