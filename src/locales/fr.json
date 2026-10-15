@@ -1042,7 +1042,8 @@
     "type": "Activité",
     "typeElevage": "Ferme d’élevage (comme HENZO)",
     "typeNegoce": "Société d’achat et revente (comme HENZO AGRO)",
-    "typeSite": "Nouveau site de cette société (même fiche, mêmes factures, même comptabilité)"
+    "typeSite": "Nouveau site de cette société (même fiche, mêmes factures, même comptabilité)",
+    "switchSite": "Changer de site"
   },
   "filtres": {
     "from": "Du",
@@ -1954,7 +1955,8 @@
     "noAccess": "Votre compte n’a pas accès à {{nom}} : vous êtes dans votre système habituel. Demandez au directeur de vous y ajouter.",
     "whichSite": "Quel site voulez-vous ouvrir ?",
     "siteHint": "Site d’élevage : ses bandes, son stock, ses caisses et son équipe.",
-    "openSite": "Ouvrir ce site"
+    "openSite": "Ouvrir ce site",
+    "apps": "Applications"
   },
   "negoce": {
     "sellTitle": "Nouvelle vente",

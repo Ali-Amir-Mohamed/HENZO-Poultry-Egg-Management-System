@@ -788,3 +788,5 @@ textarea.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, mono
 .login-retour { color: rgba(255, 255, 255, .75); }
 .login-page.negoce { background: radial-gradient(circle at 15% 10%, rgba(231, 164, 99, .32), transparent 42%), linear-gradient(160deg, #3b2614 0%, #1d1a17 70%); }
 .login-page.negoce .btn.primary { background: #b5651d; border-color: #b5651d; }
+.farm-switch-wrap { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; margin-top: .15rem; }
+.farm-switch.apps-btn { cursor: pointer; white-space: nowrap; }

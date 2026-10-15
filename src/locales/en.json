@@ -1042,7 +1042,8 @@
     "type": "Activity",
     "typeElevage": "Poultry farm (like HENZO)",
     "typeNegoce": "Buying and reselling company (like HENZO AGRO)",
-    "typeSite": "New site of this company (same sheet, same invoices, same accounts)"
+    "typeSite": "New site of this company (same sheet, same invoices, same accounts)",
+    "switchSite": "Change site"
   },
   "filtres": {
     "from": "From",
@@ -1954,7 +1955,8 @@
     "noAccess": "Your account has no access to {{nom}}: you are in your usual system. Ask the director to add you.",
     "whichSite": "Which site do you want to open?",
     "siteHint": "Farm site: its flocks, stock, cash boxes and team.",
-    "openSite": "Open this site"
+    "openSite": "Open this site",
+    "apps": "Applications"
   },
   "negoce": {
     "sellTitle": "New sale",

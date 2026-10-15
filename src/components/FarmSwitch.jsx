@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { usePendingCount } from '../hooks'
+import { oublierChoix } from '../lib/systeme'
 import { useAsk } from './Dialog'
 
 // Accounts kept for the whole device (language, last activity); every other henzo.* cache belongs to a farm
@@ -16,31 +17,43 @@ export async function changerFerme(id) {
   window.location.assign('/')
 }
 
-// Farm selector in the header, shown only to accounts that belong to several farms
+// Header: the site selector lists only the companies of the same system (the farms in HENZO);
+// the other system (HENZO AGRO) is reached through the « Applications » portal.
 export default function FarmSwitch() {
   const { t } = useTranslation()
   const ask = useAsk()
   const pending = usePendingCount()
-  const [fermes, setFermes] = useState([])
+  const [societes, setSocietes] = useState([])
 
   useEffect(() => {
     if (!navigator.onLine) return
-    supabase.rpc('mes_fermes').then(({ data }) => setFermes(data ?? []))
+    supabase.rpc('mes_societes').then(({ data }) => setSocietes(data ?? []))
   }, [])
 
-  if (fermes.length < 2) return null
-  const active = fermes.find((f) => f.active)
+  const active = societes.find((s) => s.active)
+  if (!active) return null
+  const memeSysteme = societes.filter((s) => s.type_activite === active.type_activite)
+  const autreSysteme = societes.some((s) => s.type_activite !== active.type_activite)
 
   const change = async (e) => {
-    const id = e.target.value
-    // Entries waiting in the outbox would be recorded in the new farm: send them first
+    // Entries waiting in the outbox would be recorded in the new site: send them first
     if (pending > 0) return ask.error(t('fermes.pendingFirst', { count: pending }))
-    try { await changerFerme(id) } catch (err) { ask.error(err.message) }
+    try { await changerFerme(e.target.value) } catch (err) { ask.error(err.message) }
+  }
+  const applications = () => {
+    if (pending > 0) return ask.error(t('fermes.pendingFirst', { count: pending }))
+    oublierChoix()
+    window.location.assign('/')
   }
 
   return (
-    <select className="farm-switch" value={active?.ferme_id ?? ''} onChange={change} aria-label={t('fermes.switch')}>
-      {fermes.map((f) => <option key={f.ferme_id} value={f.ferme_id}>{f.nom}</option>)}
-    </select>
+    <span className="farm-switch-wrap">
+      {memeSysteme.length > 1 && (
+        <select className="farm-switch" value={active.ferme_id} onChange={change} aria-label={t('fermes.switchSite')}>
+          {memeSysteme.map((s) => <option key={s.ferme_id} value={s.ferme_id}>{s.nom}</option>)}
+        </select>
+      )}
+      {autreSysteme && <button type="button" className="farm-switch apps-btn" onClick={applications}>⇄ {t('systeme.apps')}</button>}
+    </span>
   )
 }
