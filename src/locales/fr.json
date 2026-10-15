@@ -16,7 +16,8 @@
     "plus": "Plus",
     "logout": "Déconnexion",
     "boutique": "Boutique",
-    "administration": "Administration"
+    "administration": "Administration",
+    "compta": "Compta"
   },
   "roles": {
     "directeur": "Directeur",
@@ -94,7 +95,9 @@
     "salaires": "Salaires",
     "fonctionnement": "Fonctionnement",
     "retrait_associe": "Retrait d’associé",
-    "autre_general": "Autre (général)"
+    "autre_general": "Autre (général)",
+    "impots_taxes": "Impôts et taxes",
+    "cotisations_sociales": "Cotisations sociales (CNPS)"
   },
   "retraits": {
     "avance_benefice": "Avance sur bénéfice",
@@ -438,7 +441,8 @@
     "priceGapNote": "Une vente à un autre prix est signalée au directeur.",
     "editTitle": "Modifier {{nom}}",
     "ceilingEdit": "Plafond de crédit (FCFA)",
-    "ceilingHint": "0 = pas de crédit autorisé."
+    "ceilingHint": "0 = pas de crédit autorisé.",
+    "niuHint": "Pour les clients entreprises (factures)"
   },
   "fiche": {
     "back": "Retour à la ferme",
@@ -1073,7 +1077,8 @@
     "unit": "Unité",
     "birds": "Sujets",
     "unitPrice": "Prix unitaire (FCFA)",
-    "cashed": "Encaissé (FCFA)"
+    "cashed": "Encaissé (FCFA)",
+    "button": "Exporter (Excel)"
   },
   "recu": {
     "open": "Reçu",
@@ -1605,5 +1610,132 @@
     "editHint": "Le salaire est géré par Dahirou : il est prévenu si le poste change ou si l’employé part.",
     "since": "depuis le {{d}}",
     "salaryHint": "Les salaires ne s’affichent pas ici : Dahirou les fixe et les paie."
+  },
+  "compta": {
+    "tabs": {
+      "factures": "Factures",
+      "impots": "Impôts",
+      "societe": "Société"
+    },
+    "regimes": {
+      "reel": "Régime réel",
+      "simplifie": "Régime simplifié",
+      "igs": "Impôt général synthétique (IGS)"
+    },
+    "fact": {
+      "title": "Factures",
+      "hint": "Numérotées sans trou. Une vente n’est facturée qu’une fois.",
+      "none": "Aucune facture pour l’instant.",
+      "new": "Nouvelle facture",
+      "create": "Créer la facture",
+      "created": "Facture créée.",
+      "pickSales": "Cochez au moins une vente.",
+      "walkIn": "Client de passage (sans fiche)",
+      "clientName": "Nom du client sur la facture",
+      "date": "Date de la facture",
+      "noSales": "Aucune vente à facturer pour ce client (6 derniers mois).",
+      "selected_one": "{{count}} vente choisie",
+      "selected_other": "{{count}} ventes choisies",
+      "number": "Numéro",
+      "left": "Reste à payer",
+      "paid": "Payée",
+      "unpaid": "Non payée",
+      "due": "Reste {{n}}",
+      "cancelled": "Annulée",
+      "invoice": "Facture",
+      "notFound": "Facture introuvable",
+      "billedTo": "Facturé à",
+      "designation": "Désignation",
+      "unitPrice": "Prix unitaire",
+      "totalHt": "Total hors taxes",
+      "vat": "TVA ({{taux}} %)",
+      "noVat": "TVA non applicable",
+      "totalTtc": "Total à payer",
+      "words": "Arrêtée la présente facture à la somme de {{montant}} francs CFA.",
+      "bank": "Paiement par virement",
+      "missingIdentity": "Complétez la fiche société (raison sociale, NIU, RCCM) dans Compta > Société : ils doivent figurer sur les factures.",
+      "cancel": "Annuler la facture",
+      "cancelTitle": "Annuler la facture {{n}}"
+    },
+    "imp": {
+      "title": "Impôts {{annee}}",
+      "turnover": "Chiffre d’affaires",
+      "advancesPaid": "Acomptes payés",
+      "igsYear": "IGS de l’année",
+      "cgaYes": "Adhérent d’un CGA",
+      "cgaNo": "Pas adhérent d’un CGA",
+      "tvaYes": "Assujetti à la TVA ({{taux}} %)",
+      "tvaNo": "Non assujetti à la TVA",
+      "rate": "Acompte : {{taux}} % du chiffre d’affaires",
+      "noNiu": "Le NIU n’est pas encore renseigné (Compta > Société).",
+      "monthly": "Acompte de chaque mois",
+      "monthlyHint": "À payer avant le 15 du mois suivant, sur le chiffre d’affaires du mois.",
+      "month": "Mois",
+      "advance": "Acompte",
+      "vat": "TVA collectée",
+      "paidCol": "Payé",
+      "nothing": "Rien à payer",
+      "paid": "Payé",
+      "late": "En retard",
+      "toPay": "Avant le {{d}}",
+      "pay": "Payer",
+      "payHint": "Le paiement est enregistré comme une dépense « impôts et taxes ».",
+      "box": "Caisse qui paie",
+      "receipt": "N° de quittance",
+      "vatHint": "TVA collectée estimée sur les ventes. La TVA payée sur vos achats est à donner au comptable.",
+      "igsTitle": "IGS par trimestre",
+      "igsClass": "Classe {{classe}}, d’après le chiffre d’affaires de l’an dernier ({{ca}})",
+      "igsNoData": "Pas de chiffre d’affaires l’an dernier : la classe de la première année est fixée par les impôts.",
+      "quarter": "Trimestre",
+      "quarterN": "{{n}}e trimestre",
+      "due": "Montant dû",
+      "igsHint": "Barème 2026, avec 10 % de centimes communaux, et −50 % pour un adhérent CGA. À payer dans les 15 jours après chaque trimestre.",
+      "estimate": "Estimation de l’impôt de l’année",
+      "estimateHint": "Calcul simple à partir des ventes et des dépenses de HENZO : le comptable fait le calcul officiel.",
+      "charges": "Dépenses (hors retraits d’associés et impôts)",
+      "result": "Bénéfice estimé",
+      "onProfit": "Impôt sur le bénéfice ({{taux}} %)",
+      "minimum": "Minimum sur le chiffre d’affaires ({{taux}} %)",
+      "taxYear": "Impôt de l’année (le plus élevé)",
+      "remaining": "Reste estimé à payer",
+      "profitApplies": "C’est l’impôt sur le bénéfice qui s’applique : chaque facture de dépense compte.",
+      "minimumApplies": "C’est le minimum sur le chiffre d’affaires qui s’applique (bénéfice faible).",
+      "payments": "Impôts payés cette année",
+      "noPayment": "Aucun impôt payé cette année.",
+      "payOther": "Payer : {{x}}",
+      "cancelHint": "Une erreur ? Le directeur annule la dépense correspondante dans Argent > Dépenses.",
+      "types": {
+        "acompte_is": "Acompte d’impôt",
+        "solde_is": "Solde de l’impôt sur les sociétés",
+        "igs": "IGS",
+        "tva": "TVA",
+        "patente": "Patente",
+        "autre": "Autre impôt"
+      }
+    },
+    "soc": {
+      "identity": "Identité de la société",
+      "identityHint": "Imprimée sur chaque facture.",
+      "raison": "Raison sociale",
+      "forme": "Forme juridique",
+      "capital": "Capital social (FCFA)",
+      "siege": "Adresse du siège",
+      "email": "E-mail",
+      "invoices": "Factures",
+      "prefix": "Préfixe des numéros (ex. FA)",
+      "bank": "Banque et numéro de compte (pour être payé)",
+      "bankPh": "Ex. Afriland, compte n° …",
+      "mentions": "Mentions en bas des factures",
+      "mentionsPh": "Ex. Paiement à 30 jours. Merci de votre confiance.",
+      "tax": "Impôts",
+      "taxHint": "Taux à faire confirmer par votre comptable ou votre CGA.",
+      "regime": "Régime fiscal",
+      "acompte": "Taux de l’acompte (% du CA, centimes compris)",
+      "is": "Impôt sur les sociétés (%, centimes compris)",
+      "tvaRate": "Taux de TVA (%)",
+      "cga": "Adhérent d’un centre de gestion agréé (CGA)",
+      "tva": "Assujetti à la TVA",
+      "readOnly": "Seuls la direction et la finance modifient cette fiche."
+    }
   }
 }

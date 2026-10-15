@@ -50,7 +50,7 @@ function Tiers() {
   const { role } = useAuth()
   const lang = i18n.resolvedLanguage
   const list = useQuery(async () => must(await supabase.from(TABLES.tiers).select('*').order('nom')))
-  const [form, setForm] = useState({ type_tiers: 'client', nom: '', telephone: '', adresse: '', credit_autorise: false, plafond_credit: '0' })
+  const [form, setForm] = useState({ type_tiers: 'client', nom: '', telephone: '', adresse: '', niu: '', rccm: '', credit_autorise: false, plafond_credit: '0' })
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value })
   const grant = can(role, 'credit.grant')
   const ask = useAsk()
@@ -61,10 +61,12 @@ function Tiers() {
       ...form,
       telephone: form.telephone || null,
       adresse: form.adresse || null,
+      niu: form.niu.trim() || null,
+      rccm: form.rccm.trim() || null,
       credit_autorise: grant && form.credit_autorise,
       plafond_credit: grant && form.credit_autorise ? Number(form.plafond_credit) : 0
     }))
-    setForm({ ...form, nom: '', telephone: '', adresse: '' })
+    setForm({ ...form, nom: '', telephone: '', adresse: '', niu: '', rccm: '' })
     list.reload()
   }
 
@@ -77,10 +79,12 @@ function Tiers() {
         options: ['client', 'fournisseur', 'client_fournisseur'].map((x) => ({ value: x, label: t(`tiersTypes.${x}`) })) },
       { name: 'telephone', label: t('reglages.phone'), type: 'tel', value: c.telephone ?? '' },
       { name: 'adresse', label: t('reglages.address'), value: c.adresse ?? '' },
+      { name: 'niu', label: 'NIU', value: c.niu ?? '', hint: t('reglages.niuHint') },
+      { name: 'rccm', label: 'RCCM', value: c.rccm ?? '' },
       ...(withCredit ? [{ name: 'plafond_credit', label: t('reglages.ceilingEdit'), type: 'number', min: 0, value: c.credit_autorise ? c.plafond_credit : 0, hint: t('reglages.ceilingHint') }] : [])
     ] })
     if (!v) return
-    const patch = { nom: v.nom, type_tiers: v.type_tiers, telephone: v.telephone || null, adresse: v.adresse || null }
+    const patch = { nom: v.nom, type_tiers: v.type_tiers, telephone: v.telephone || null, adresse: v.adresse || null, niu: v.niu.trim() || null, rccm: v.rccm.trim() || null }
     if (withCredit) Object.assign(patch, { credit_autorise: Number(v.plafond_credit) > 0, plafond_credit: Number(v.plafond_credit) || 0 })
     await run(supabase.from(TABLES.tiers).update(patch).eq('id', c.id), list.reload)
   }
@@ -98,6 +102,8 @@ function Tiers() {
             <Field label={t('reglages.name')}><input required value={form.nom} onChange={set('nom')} /></Field>
             <Field label={t('reglages.phone')}><input type="tel" value={form.telephone} onChange={set('telephone')} /></Field>
             <Field label={t('reglages.address')}><input value={form.adresse} onChange={set('adresse')} /></Field>
+            <Field label="NIU"><input value={form.niu} onChange={set('niu')} placeholder={t('reglages.niuHint')} /></Field>
+            <Field label="RCCM"><input value={form.rccm} onChange={set('rccm')} /></Field>
           </div>
           {grant && form.type_tiers !== 'fournisseur' && (
             <div className="grid-2">
@@ -117,7 +123,7 @@ function Tiers() {
               <li key={c.id}>
                 <div className="grow">
                   <Link to={`/reglages/tiers/${c.id}`} className="card-title">{c.nom}<Icon name="chevron" size={14} /></Link>
-                  <div className="muted small">{t(`tiersTypes.${c.type_tiers}`)}{c.telephone ? ` · ${c.telephone}` : ''}{c.adresse ? ` · ${c.adresse}` : ''}</div>
+                  <div className="muted small">{t(`tiersTypes.${c.type_tiers}`)}{c.telephone ? ` · ${c.telephone}` : ''}{c.adresse ? ` · ${c.adresse}` : ''}{c.niu ? ` · NIU ${c.niu}` : ''}</div>
                   <div className="row-actions">
                     <Link to={`/reglages/tiers/${c.id}`} className="btn ghost sm">{t('tiers.history')}</Link>
                     {can(role, 'tiers.edit') && <button className="btn ghost sm" onClick={() => editTiers(c)}>{t('common.edit')}</button>}

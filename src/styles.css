@@ -718,3 +718,22 @@ html, body { overflow-x: clip; }
 .account-link:hover { text-decoration: underline; opacity: 1; }
 .link-panel { flex-direction: row; align-items: center; gap: .6rem; text-decoration: none; color: inherit; }
 .link-panel svg:last-child { margin-left: auto; }
+
+/* ---------- Compta: invoices ---------- */
+.table .num, .table th.num { text-align: right; white-space: nowrap; }
+.invoice { background: #fff; color: #111; border: 1px solid var(--line, #e3e6ee); border-radius: 10px; padding: 24px; max-width: 780px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+.invoice small, .invoice .muted { color: #555; }
+.invoice.cancelled { opacity: .6; }
+.invoice-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+.invoice-company { display: flex; gap: 10px; align-items: flex-start; }
+.invoice-company div, .invoice-client { display: flex; flex-direction: column; gap: 2px; }
+.invoice-title { text-align: right; }
+.invoice-title h2 { margin: 0 0 4px; letter-spacing: .08em; font-size: 1.3rem; }
+.invoice-client { border: 1px solid #ddd; border-radius: 8px; padding: 10px 12px; max-width: 360px; margin-left: auto; }
+.invoice .table th { background: #f3f4f7; color: #111; }
+.invoice .table td, .invoice .table th { border-color: #e2e4ea; }
+.invoice-totals { max-width: 360px; margin-left: auto; width: 100%; }
+.invoice-words { font-style: italic; border-top: 1px dashed #ccc; padding-top: 8px; }
+.invoice-foot { display: flex; flex-direction: column; gap: 2px; border-top: 1px solid #ddd; padding-top: 8px; text-align: center; }
+@media (max-width: 640px) { .invoice { padding: 14px; } .invoice-title { text-align: left; } .invoice-client { margin-left: 0; } }
+@media print { .invoice { border: none; max-width: none; padding: 0; } }

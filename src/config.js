@@ -39,6 +39,7 @@ export const ACCESS = {
   planning: [D, X, F],
   analyses: [D, X, F],
   argent: [D, X, F],
+  compta: [D, X, F],               // invoices, taxes, company sheet (accounting)
   stock: [D, X, F],
   reglages: [D, X, F],
   boutique: [D, X, F, E, V],
@@ -93,7 +94,11 @@ export const PERMISSIONS = {
   'sauvegarde': [D],
   'correction': [D],
   'correction.request': [X, F],  // ask the director to cancel / correct a financial record
-  'transfert': [D, F]
+  'transfert': [D, F],
+  'facture.create': [D, X, F],   // official invoices from sales
+  'facture.annuler': [D],        // cancel an invoice (number never reused)
+  'impots.payer': [D, F],        // record a tax payment (= taxes expense)
+  'societe.edit': [D, F]         // company legal / tax sheet
 }
 
 // Roles automatically signed out after a period of inactivity (employees work offline: not them)
@@ -120,7 +125,7 @@ export function toLoginEmail(identifier) {
 export const MODES_PAIEMENT = ['especes', 'mobile_money', 'banque']
 export const CATEGORIES_DEPENSE = {
   ferme: ['poussins', 'aliment', 'medicament', 'main_oeuvre', 'transport', 'entretien', 'autre_ferme'],
-  generale: ['loyer', 'charges', 'salaires', 'fonctionnement', 'retrait_associe', 'autre_general']
+  generale: ['loyer', 'charges', 'salaires', 'fonctionnement', 'impots_taxes', 'cotisations_sociales', 'retrait_associe', 'autre_general']
 }
 export const CATEGORIES_RETRAIT = ['avance_benefice', 'depense_personnelle', 'frais_medicaux', 'urgence_familiale', 'autre']
 export const PRODUITS = {

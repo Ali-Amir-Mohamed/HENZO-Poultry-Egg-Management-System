@@ -16,7 +16,8 @@
     "plus": "More",
     "logout": "Log out",
     "boutique": "Shop",
-    "administration": "Administration"
+    "administration": "Administration",
+    "compta": "Accounts"
   },
   "roles": {
     "directeur": "Director",
@@ -94,7 +95,9 @@
     "salaires": "Salaries",
     "fonctionnement": "Running costs",
     "retrait_associe": "Partner withdrawal",
-    "autre_general": "Other (general)"
+    "autre_general": "Other (general)",
+    "impots_taxes": "Taxes",
+    "cotisations_sociales": "Social contributions (CNPS)"
   },
   "retraits": {
     "avance_benefice": "Profit advance",
@@ -438,7 +441,8 @@
     "priceGapNote": "A sale at a different price is reported to the director.",
     "editTitle": "Edit {{nom}}",
     "ceilingEdit": "Credit ceiling (FCFA)",
-    "ceilingHint": "0 = no credit allowed."
+    "ceilingHint": "0 = no credit allowed.",
+    "niuHint": "For business customers (invoices)"
   },
   "fiche": {
     "back": "Back to farm",
@@ -1073,7 +1077,8 @@
     "unit": "Unit",
     "birds": "Birds",
     "unitPrice": "Unit price (FCFA)",
-    "cashed": "Cashed (FCFA)"
+    "cashed": "Cashed (FCFA)",
+    "button": "Export (Excel)"
   },
   "recu": {
     "open": "Receipt",
@@ -1605,5 +1610,132 @@
     "editHint": "Salaries are handled by Dahirou: he is notified if the job changes or the employee leaves.",
     "since": "since {{d}}",
     "salaryHint": "Salaries are not shown here: Dahirou sets and pays them."
+  },
+  "compta": {
+    "tabs": {
+      "factures": "Invoices",
+      "impots": "Taxes",
+      "societe": "Company"
+    },
+    "regimes": {
+      "reel": "Real regime",
+      "simplifie": "Simplified regime",
+      "igs": "Synthetic general tax (IGS)"
+    },
+    "fact": {
+      "title": "Invoices",
+      "hint": "Numbered without gaps. A sale is invoiced only once.",
+      "none": "No invoice yet.",
+      "new": "New invoice",
+      "create": "Create the invoice",
+      "created": "Invoice created.",
+      "pickSales": "Tick at least one sale.",
+      "walkIn": "Walk-in customer (no record)",
+      "clientName": "Customer name on the invoice",
+      "date": "Invoice date",
+      "noSales": "No sale to invoice for this customer (last 6 months).",
+      "selected_one": "{{count}} sale selected",
+      "selected_other": "{{count}} sales selected",
+      "number": "Number",
+      "left": "Left to pay",
+      "paid": "Paid",
+      "unpaid": "Unpaid",
+      "due": "{{n}} left",
+      "cancelled": "Cancelled",
+      "invoice": "Invoice",
+      "notFound": "Invoice not found",
+      "billedTo": "Billed to",
+      "designation": "Description",
+      "unitPrice": "Unit price",
+      "totalHt": "Total excl. tax",
+      "vat": "VAT ({{taux}} %)",
+      "noVat": "VAT not applicable",
+      "totalTtc": "Total due",
+      "words": "This invoice is closed at the sum of {{montant}} CFA francs.",
+      "bank": "Payment by transfer",
+      "missingIdentity": "Fill in the company sheet (name, NIU, RCCM) in Accounts > Company: they must appear on invoices.",
+      "cancel": "Cancel the invoice",
+      "cancelTitle": "Cancel invoice {{n}}"
+    },
+    "imp": {
+      "title": "Taxes {{annee}}",
+      "turnover": "Turnover",
+      "advancesPaid": "Advances paid",
+      "igsYear": "IGS for the year",
+      "cgaYes": "Member of an approved management centre (CGA)",
+      "cgaNo": "Not a CGA member",
+      "tvaYes": "VAT registered ({{taux}} %)",
+      "tvaNo": "Not VAT registered",
+      "rate": "Advance: {{taux}} % of turnover",
+      "noNiu": "The NIU is not filled in yet (Accounts > Company).",
+      "monthly": "Monthly advance",
+      "monthlyHint": "Due before the 15th of the next month, on the month’s turnover.",
+      "month": "Month",
+      "advance": "Advance",
+      "vat": "VAT collected",
+      "paidCol": "Paid",
+      "nothing": "Nothing due",
+      "paid": "Paid",
+      "late": "Late",
+      "toPay": "Before {{d}}",
+      "pay": "Pay",
+      "payHint": "The payment is recorded as a \"taxes\" expense.",
+      "box": "Paying cash box",
+      "receipt": "Receipt no.",
+      "vatHint": "VAT collected, estimated from sales. VAT paid on purchases goes to the accountant.",
+      "igsTitle": "IGS by quarter",
+      "igsClass": "Class {{classe}}, from last year’s turnover ({{ca}})",
+      "igsNoData": "No turnover last year: the tax office sets the first year’s class.",
+      "quarter": "Quarter",
+      "quarterN": "Quarter {{n}}",
+      "due": "Amount due",
+      "igsHint": "2026 scale, plus 10 % local surcharge, −50 % for a CGA member. Due within 15 days after each quarter.",
+      "estimate": "Estimated tax for the year",
+      "estimateHint": "Simple calculation from HENZO sales and expenses: the accountant makes the official one.",
+      "charges": "Expenses (excl. partner withdrawals and taxes)",
+      "result": "Estimated profit",
+      "onProfit": "Tax on profit ({{taux}} %)",
+      "minimum": "Minimum on turnover ({{taux}} %)",
+      "taxYear": "Tax for the year (the higher)",
+      "remaining": "Estimated left to pay",
+      "profitApplies": "The tax on profit applies: every expense invoice counts.",
+      "minimumApplies": "The minimum on turnover applies (low profit).",
+      "payments": "Taxes paid this year",
+      "noPayment": "No tax paid this year.",
+      "payOther": "Pay: {{x}}",
+      "cancelHint": "A mistake? The director cancels the matching expense in Money > Expenses.",
+      "types": {
+        "acompte_is": "Tax advance",
+        "solde_is": "Corporate tax balance",
+        "igs": "IGS",
+        "tva": "VAT",
+        "patente": "Business licence",
+        "autre": "Other tax"
+      }
+    },
+    "soc": {
+      "identity": "Company identity",
+      "identityHint": "Printed on every invoice.",
+      "raison": "Company name",
+      "forme": "Legal form",
+      "capital": "Share capital (FCFA)",
+      "siege": "Registered address",
+      "email": "Email",
+      "invoices": "Invoices",
+      "prefix": "Number prefix (e.g. FA)",
+      "bank": "Bank and account number (to be paid)",
+      "bankPh": "E.g. Afriland, account no. …",
+      "mentions": "Notes at the bottom of invoices",
+      "mentionsPh": "E.g. Payment within 30 days. Thank you.",
+      "tax": "Taxes",
+      "taxHint": "Rates to be confirmed by your accountant or CGA.",
+      "regime": "Tax regime",
+      "acompte": "Advance rate (% of turnover, surcharge included)",
+      "is": "Corporate tax (%, surcharge included)",
+      "tvaRate": "VAT rate (%)",
+      "cga": "Member of an approved management centre (CGA)",
+      "tva": "VAT registered",
+      "readOnly": "Only the direction and finance edit this sheet."
+    }
   }
 }

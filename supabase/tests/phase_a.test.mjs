@@ -1066,6 +1066,55 @@ await expectErr('dahirou does not set a farm price', 'dahirou', `insert into pub
 await expectErr('ali does not set a farm price', 'ali', `insert into public.prix_vente (produit, unite, prix) values ('poulets', 'piece', 1)`)
 await expectOk('dahirou still sets a shop price range', 'dahirou', `insert into public.prix_boutique (produit, forme, unite, prix_min, prix_max) values ('poule_reformee', 'vivant', 'piece', 2000, 3000)`)
 
+// ---------- 0035: invoices and taxes ----------
+try {
+  await db.exec(readFileSync(new URL('0035_factures_impots.sql', MIG), 'utf8'))
+  ok('migration 0035 runs', true)
+} catch (e) { ok('migration 0035 runs', false, e.message); process.exit(1) }
+await expectErr('kenfack cannot edit the company sheet', 'kenfack', `select public.maj_societe('{"niu":"X"}'::jsonb)`, [], 'finance')
+await expectOk('dahirou fills the company sheet', 'dahirou', `select public.maj_societe($1::jsonb)`, [JSON.stringify({ raison_sociale: 'HENZO SARL', niu: 'M012345678901A', rccm: 'RC/YAO/2026/B/1234', capital_social: '1500000', adherent_cga: true })])
+const soc = await one('ali', `select raison_sociale, niu, capital_social, adherent_cga, regime_fiscal, assujetti_tva from public.fermes where id = public.ferme_actuelle()`)
+ok('company sheet saved', soc.raison_sociale === 'HENZO SARL' && soc.niu === 'M012345678901A' && Number(soc.capital_social) === 1500000 && soc.adherent_cga === true && soc.regime_fiscal === 'reel' && soc.assujetti_tva === false, JSON.stringify(soc))
+await expectOk('an empty legal form keeps SARL', 'dahirou', `select public.maj_societe('{"forme_juridique":"","taux_tva":""}'::jsonb)`)
+ok('legal form still SARL', (await one('ali', `select forme_juridique from public.fermes where id = public.ferme_actuelle()`)).forme_juridique === 'SARL')
+await expectOk('client gets a NIU', 'kenfack', `update public.tiers set niu = 'P098765432109Z' where nom = 'Client B'`)
+const CLB = (await one('kenfack', `select id from public.tiers where nom = 'Client B'`)).id
+const vente = async (n, prix, client = CLB) => (await oneP('kenfack', `insert into public.ventes (bande_id, client_id, produit, unite, quantite, prix_unitaire, nombre_sujets, mode_paiement, montant_encaisse) values ($1, $2, 'poulets', 'piece', $3, $4, $6, 'especes', $5) returning id`, [DOM, client, n, prix, n * prix, n])).id
+const VF1 = await vente(10, 3500), VF2 = await vente(4, 3500)
+await expectErr('the employee cannot invoice', 'employe', `select public.creer_facture($1::uuid[])`, [[VF1]])
+const F1 = (await oneP('kenfack', `select public.creer_facture($1::uuid[]) as id`, [[VF1, VF2]])).id
+const f1 = await oneP('dahirou', `select numero, client_nom, client_niu, total_ht, total_tva, total_ttc, tva_applicable from public.factures where id = $1`, [F1])
+ok('invoice FA-<year>-0001 for Client B, 49 000 F, no VAT', /^FA-\d{4}-0001$/.test(f1.numero) && f1.client_nom === 'Client B' && f1.client_niu === 'P098765432109Z'
+  && Number(f1.total_ttc) === 49000 && Number(f1.total_ht) === 49000 && Number(f1.total_tva) === 0 && f1.tva_applicable === false, JSON.stringify(f1))
+ok('two lines with a clear description', (await as('dahirou', `select designation from public.facture_lignes where facture_id = $1 order by ordre`, [F1])).rows.every((r) => r.designation.startsWith('Poulets de chair (bande DOM1)')))
+ok('nothing left to collect (paid cash)', Number((await oneP('dahirou', `select reste from public.factures_situation where id = $1`, [F1])).reste) === 0)
+await expectErr('a sale is invoiced only once', 'kenfack', `select public.creer_facture($1::uuid[])`, [[VF1]], 'déjà facturée')
+const VOther = (await oneP('kenfack', `insert into public.ventes (bande_id, produit, unite, quantite, prix_unitaire, nombre_sujets, mode_paiement, montant_encaisse) values ($1, 'poulets', 'piece', 1, 3500, 1, 'especes', 3500) returning id`, [DOM])).id
+await expectErr('one invoice = one client', 'kenfack', `select public.creer_facture($1::uuid[])`, [[VF1, VOther]], 'même client')
+await expectErr('a walk-in sale needs a client name', 'kenfack', `select public.creer_facture($1::uuid[])`, [[VOther]], 'nom du client')
+await expectErr('a date before the last invoice is refused', 'kenfack', `select public.creer_facture($1::uuid[], current_date - 1, 'Passant')`, [[VOther]])
+await expectOk('walk-in sale invoiced with a name', 'kenfack', `select public.creer_facture($1::uuid[], current_date, 'Restaurant Le Palmier')`, [[VOther]])
+await expectErr('an invoiced sale cannot be cancelled', 'ali', `update public.ventes set annulee = true, motif_annulation = 'x' where id = $1`, [VF1], 'facture')
+await expectOk('dahirou turns VAT on', 'dahirou', `select public.maj_societe('{"assujetti_tva":true}'::jsonb)`)
+const VF3 = await vente(10, 3500)
+const F3 = (await oneP('dahirou', `select public.creer_facture($1::uuid[]) as id`, [[VF3]])).id
+const f3 = await oneP('dahirou', `select numero, total_ht, total_tva, total_ttc from public.factures where id = $1`, [F3])
+ok('with VAT 19.25 %: 35 000 TTC = 29 350 HT + 5 650 VAT, number 0003', Number(f3.total_ttc) === 35000 && Number(f3.total_ht) === 29350 && Number(f3.total_tva) === 5650 && /-0003$/.test(f3.numero), JSON.stringify(f3))
+await expectErr('kenfack cannot cancel an invoice', 'kenfack', `select public.annuler_facture($1, 'x')`, [F1], 'directeur')
+await expectErr('cancelling needs a reason', 'ali', `select public.annuler_facture($1, '')`, [F1], 'motif')
+await expectOk('ali cancels the invoice', 'ali', `select public.annuler_facture($1, 'Erreur de client')`, [F1])
+await expectOk('the sale can be invoiced again', 'kenfack', `select public.creer_facture($1::uuid[])`, [[VF1]])
+ok('numbers never reuse a cancelled one', (await as('ali', `select numero from public.factures where ferme_id = public.ferme_actuelle() order by sequence`)).rows.map((r) => r.numero.slice(-4)).join(',') === '0001,0002,0003,0004')
+await expectOk('dahirou turns VAT back off', 'dahirou', `select public.maj_societe('{"assujetti_tva":false}'::jsonb)`)
+ok('monthly turnover is available', Number((await one('dahirou', `select coalesce(sum(chiffre_affaires), 0) ca from public.chiffre_affaires_mensuel where mois = date_trunc('month', current_date)::date`)).ca) >= 87500)
+ok('IGS scale has 10 classes', (await as('dahirou', `select * from public.bareme_igs`)).rows.length === 10)
+await expectErr('kenfack cannot pay a tax', 'kenfack', `select public.payer_impot('acompte_is', current_date, 1925, 'especes')`, [], 'finance')
+const PI = (await oneP('dahirou', `select public.payer_impot('acompte_is', current_date, 1925, 'banque', 'chair', current_date, 'Q-2026-001') as id`)).id
+const depImpot = await oneP('dahirou', `select d.categorie, d.statut, d.montant, d.montant_paye, d.fournisseur_id from public.paiements_impots p join public.depenses d on d.id = p.depense_id where p.id = $1`, [PI])
+ok('a tax payment is a validated "taxes" expense without supplier', depImpot.categorie === 'impots_taxes' && depImpot.statut === 'validee' && Number(depImpot.montant_paye) === 1925 && depImpot.fournisseur_id === null, JSON.stringify(depImpot))
+await expectOk('a big tax payment needs no supplier', 'dahirou', `select public.payer_impot('solde_is', current_date, 900000, 'banque')`)
+ok('the employee sees no invoice', (await as('employe', `select * from public.factures`)).rows.length === 0)
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))
