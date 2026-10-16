@@ -43,8 +43,8 @@ const AccueilNegoce = lazy(() => import('./pages/negoce/AccueilNegoce'))
 
 function Guard({ section, children }) {
   const { role } = useAuth()
-  const { t } = useTranslation()
-  return canAccess(role, section) ? children : <div className="panel empty">{t('common.forbidden')}</div>
+  // a page the role cannot open (e.g. the address left by the previous account): back to the role's home page
+  return canAccess(role, section) ? children : <Navigate to="/" replace />
 }
 
 export default function App() {
