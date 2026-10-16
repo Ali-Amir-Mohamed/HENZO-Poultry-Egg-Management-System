@@ -2011,5 +2011,16 @@
     "linkHint": "Les ventes à ce client deviennent des livraisons à réceptionner dans l’autre société, payées depuis là-bas.",
     "noOther": "Vous n’êtes membre d’aucune autre société du groupe.",
     "tag": "Groupe : {{nom}}"
+  },
+  "sites": {
+    "cashTitle": "Caisses de tous les sites",
+    "cashHint": "Toute la société : {{n}}. Chaque site garde ses propres caisses.",
+    "site": "Site",
+    "total": "Total",
+    "company": "Toute la société",
+    "attach": "Rattacher comme site",
+    "attachConfirm": "« {{ferme}} » devient un site de la société ouverte « {{societe}} » : même fiche, mêmes factures, même paie, une seule comptabilité et un seul impôt. Elle garde ses bandes, son stock et ses caisses. Continuer ?",
+    "attached": "« {{ferme}} » est maintenant un site",
+    "attachedHint": "Ses chiffres sont compris dans la comptabilité et les impôts de toute la société (Compta)."
   }
 }

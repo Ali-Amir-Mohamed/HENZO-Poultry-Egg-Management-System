@@ -2011,5 +2011,16 @@
     "linkHint": "Sales to this customer become deliveries to receive in the other company, paid from there.",
     "noOther": "You are not a member of any other group company.",
     "tag": "Group: {{nom}}"
+  },
+  "sites": {
+    "cashTitle": "Cash boxes of all sites",
+    "cashHint": "Whole company: {{n}}. Each site keeps its own cash boxes.",
+    "site": "Site",
+    "total": "Total",
+    "company": "Whole company",
+    "attach": "Attach as a site",
+    "attachConfirm": "\"{{ferme}}\" becomes a site of the open company \"{{societe}}\": same sheet, same invoices, same payroll, one set of accounts and one tax. It keeps its flocks, stock and cash boxes. Continue?",
+    "attached": "\"{{ferme}}\" is now a site",
+    "attachedHint": "Its figures are included in the whole company accounts and taxes (Accounts)."
   }
 }

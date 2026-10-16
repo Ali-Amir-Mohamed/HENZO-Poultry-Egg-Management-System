@@ -17,6 +17,7 @@ import Prets from './argent/Prets'
 import Verification from './argent/Verification'
 import Demarrage from './reglages/Demarrage'
 import Salaires from './argent/Salaires'
+import CaissesSites from './argent/CaissesSites'
 
 // Money: cash boxes, sales, expenses, receivables and payables.
 // Financial records are never edited: only validated, rejected or cancelled (database rules).
@@ -43,7 +44,7 @@ export default function Argent() {
         ...(can(role, 'demarrage') ? [{ id: 'demarrage', label: 'argent.tabs.demarrage', icon: 'flag' }] : [])
       ]} />
       <Demandes key={rev} />
-      {tab === 'caisses' && <Caisses onAsked={asked} />}
+      {tab === 'caisses' && <><CaissesSites /><Caisses onAsked={asked} /></>}
       {tab === 'depenses' && <Depenses onAsked={asked} />}
       {tab === 'ventes' && <Ventes onAsked={asked} />}
       {tab === 'credits' && <Credits />}

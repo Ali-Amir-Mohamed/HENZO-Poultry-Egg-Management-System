@@ -21,6 +21,15 @@ export default function Fermes() {
     if (pending > 0) return ask.error(t('fermes.pendingFirst', { count: pending }))
     try { await changerFerme(f.ferme_id) } catch (err) { ask.error(err.message) }
   }
+  // A farm created on its own becomes a site of the open company (one sheet, one numbering, common accounts and taxes)
+  const rattacher = async (f) => {
+    const ouverte = q.data.find((x) => x.active)
+    if (!(await ask.confirm(t('sites.attachConfirm', { ferme: f.nom, societe: ouverte?.nom }), { title: t('sites.attach'), icon: 'users', submit: t('sites.attach') }))) return
+    const { error } = await supabase.rpc('rattacher_site', { p_ferme: f.ferme_id, p_societe: ouverte.ferme_id })
+    if (error) return ask.error(error.message)
+    q.reload()
+    ask.info(t('sites.attached', { ferme: f.nom }), t('sites.attachedHint'))
+  }
   const creer = async () => {
     const v = await ask.form({ title: t('fermes.new'), icon: 'plus', submit: t('fermes.create'), fields: [
       { name: 'type', label: t('fermes.type'), type: 'select', value: estNegoce(profile) ? 'negoce' : 'site', options: [...(estNegoce(profile) ? [] : [{ value: 'site', label: t('fermes.typeSite') }]), { value: 'negoce', label: t('fermes.typeNegoce') }, { value: 'elevage', label: t('fermes.typeElevage') }] },
@@ -49,7 +58,10 @@ export default function Fermes() {
               </div>
               {f.active
                 ? <span className="tag ok">{t('fermes.current')}</span>
-                : <button className="btn ghost sm" onClick={() => ouvrir(f)}>{t('fermes.open')}</button>}
+                : <>
+                  {f.type_activite === 'elevage' && !estNegoce(profile) && f.role === 'directeur' && <button className="btn ghost sm" onClick={() => rattacher(f)}>{t('sites.attach')}</button>}
+                  <button className="btn ghost sm" onClick={() => ouvrir(f)}>{t('fermes.open')}</button>
+                </>}
             </li>
           ))}
         </ul>

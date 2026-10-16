@@ -1306,6 +1306,23 @@ const ps = await as(null, `select * from public.portail_sites()`)
 ok('before signing in, the portal sees only farm site names', ps.rows.length >= 2 && ps.rows.every((r) => Object.keys(r).join() === 'ferme_id,nom') && !ps.rows.some((r) => r.nom === 'HENZO AGRO'), JSON.stringify(ps.rows))
 await expectNoRows('an anonymous visitor still sees no farm data', null, `select * from public.fermes`)
 
+// ---------- 0041: attach a farm as a site, cash of all sites ----------
+try {
+  await db.exec(readFileSync(new URL('0041_regrouper_sites.sql', MIG), 'utf8'))
+  ok('migration 0041 runs', true)
+} catch (e) { ok('migration 0041 runs', false, e.message); process.exit(1) }
+await expectErr('kenfack cannot attach a site', 'kenfack', `select public.rattacher_site($1, $2)`, [F2, fermeAli], 'directeur')
+await expectErr('the trading company cannot become a farm site', 'ali', `select public.rattacher_site($1, $2)`, [NEG, fermeAli], 'élevage')
+await expectErr('a site is attached only once', 'ali', `select public.rattacher_site($1, $2)`, [SITE, fermeAli], 'déjà')
+await expectOk('ali attaches Ferme Nord to HENZO SARL', 'ali', `select public.rattacher_site($1, $2)`, [F2, fermeAli])
+ok('Ferme Nord is now a site of HENZO SARL', (await db.query(`select societe_id from public.fermes where id = $1`, [F2])).rows[0].societe_id === fermeAli)
+ok('it takes the company chart of accounts', (await db.query(`select numero from public.plan_comptable where ferme_id = $1 and cle = 'transport'`, [F2])).rows[0].numero === '61811')
+const cs = await as('dahirou', `select distinct site from public.caisses_societe()`)
+ok('cash boxes of all the company sites (3 sites, not HENZO AGRO)', cs.rows.length === 3 && !cs.rows.some((r) => r.site === 'HENZO AGRO'), JSON.stringify(cs.rows))
+const totCaisses = { groupe: (await one('dahirou', `select sum(solde) s from public.caisses_societe()`)).s, reel: (await db.query(`select sum(sc.solde) s from public.soldes_caisses sc join public.fermes f on f.id = sc.ferme_id where coalesce(f.societe_id, f.id) = $1`, [fermeAli])).rows[0].s }
+ok('their total is the real total', Number(totCaisses.groupe) === Number(totCaisses.reel), JSON.stringify(totCaisses))
+await expectErr('kenfack cannot see all the cash boxes', 'kenfack', `select * from public.caisses_societe()`)
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))

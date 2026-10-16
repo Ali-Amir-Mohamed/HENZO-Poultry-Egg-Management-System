@@ -34,7 +34,7 @@ export default function Livres() {
   const [vue, setVue] = useState('balance')
   const fiche = useQuery(async () => must(await supabase.rpc('fiche_societe')))
   const plusieurs = Number(fiche.data?.nombre_sites ?? 1) > 1
-  const [toute, setToute] = useState(false)
+  const [toute, setToute] = useState(true)   // a company with several sites: one set of accounts by default
   p.toute = plusieurs && toute
   const soldes = useQuery(async () => must(await supabase.rpc('soldes_comptables', { p_debut: p.debut, p_fin: p.fin, p_toute_societe: p.toute })), [p.debut, p.fin, p.toute])
 
@@ -56,8 +56,8 @@ export default function Livres() {
           {plusieurs && (
             <label className="field compact-field"><span>{t('livres.scope')}</span>
               <select value={toute ? 'societe' : 'site'} onChange={(e) => setToute(e.target.value === 'societe')}>
-                <option value="site">{t('livres.thisSite')} ({fiche.data.site})</option>
                 <option value="societe">{t('livres.wholeCompany')}</option>
+                <option value="site">{t('livres.thisSite')} ({fiche.data.site})</option>
               </select>
             </label>
           )}
