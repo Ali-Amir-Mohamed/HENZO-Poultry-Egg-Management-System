@@ -18,6 +18,8 @@ import Verification from './argent/Verification'
 import Demarrage from './reglages/Demarrage'
 import Salaires from './argent/Salaires'
 import CaissesSites from './argent/CaissesSites'
+import Factures from './compta/Factures'
+import Impots from './compta/Impots'
 
 // Money: cash boxes, sales, expenses, receivables and payables.
 // Financial records are never edited: only validated, rejected or cancelled (database rules).
@@ -41,6 +43,8 @@ export default function Argent() {
         { id: 'prets', label: 'argent.tabs.prets', icon: 'receipt' },
         { id: 'verification', label: 'argent.tabs.verification', icon: 'check' },
         ...(can(role, 'salaires') ? [{ id: 'salaires', label: 'argent.tabs.salaires', icon: 'users' }] : []),
+        ...(can(role, 'facture.create') ? [{ id: 'factures', label: 'compta.tabs.factures', icon: 'receipt' }] : []),
+        ...(can(role, 'impots.payer') ? [{ id: 'impots', label: 'compta.tabs.impots', icon: 'wallet' }] : []),
         ...(can(role, 'demarrage') ? [{ id: 'demarrage', label: 'argent.tabs.demarrage', icon: 'flag' }] : [])
       ]} />
       <Demandes key={rev} />
@@ -52,6 +56,8 @@ export default function Argent() {
       {tab === 'prets' && <Prets />}
       {tab === 'verification' && <Verification />}
       {tab === 'salaires' && <Salaires />}
+      {tab === 'factures' && <Factures />}
+      {tab === 'impots' && <Impots />}
       {tab === 'demarrage' && <Demarrage />}
     </div>
   )

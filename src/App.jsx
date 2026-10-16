@@ -44,7 +44,7 @@ const AccueilNegoce = lazy(() => import('./pages/negoce/AccueilNegoce'))
 function Guard({ section, children }) {
   const { role } = useAuth()
   // a page the role cannot open (e.g. the address left by the previous account): back to the role's home page
-  return canAccess(role, section) ? children : <Navigate to="/" replace />
+  return [].concat(section).some((s) => canAccess(role, s)) ? children : <Navigate to="/" replace />
 }
 
 export default function App() {
@@ -148,7 +148,7 @@ export default function App() {
         <Route path="stock" element={<Guard section="stock"><Stock /></Guard>} />
         <Route path="administration" element={<Guard section="administration"><Administration /></Guard>} />
         <Route path="compta" element={<Guard section="compta"><Compta /></Guard>} />
-        <Route path="facture/:id" element={<Guard section="compta"><Facture /></Guard>} />
+        <Route path="facture/:id" element={<Guard section={['argent', 'compta']}><Facture /></Guard>} />
         <Route path="bulletin/:id" element={<Guard section="argent"><Bulletin /></Guard>} />
         <Route path="reglages" element={<Guard section="reglages"><Reglages /></Guard>} />
         <Route path="reglages/tiers/:id" element={<Guard section="reglages"><FicheTiers /></Guard>} />

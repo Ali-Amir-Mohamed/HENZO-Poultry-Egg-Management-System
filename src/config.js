@@ -40,7 +40,7 @@ export const ACCESS = {
   planning: [D, X, F],
   analyses: [D, X, F],
   argent: [D, X, F],
-  compta: [D, X, F, C],            // invoices, taxes, company sheet (accounting)
+  compta: [C],                     // accounting, taxes, payroll totals, company sheet: the accountant only
   stock: [D, X, F],
   reglages: [D, X, F],
   boutique: [D, X, F, E, V],
@@ -96,12 +96,13 @@ export const PERMISSIONS = {
   'correction': [D],
   'correction.request': [X, F],  // ask the director to cancel / correct a financial record
   'transfert': [D, F],
-  'facture.create': [D, X, F],   // official invoices from sales
+  'facture.create': [D, X, F],   // official invoices from sales (Argent > Factures)
+  'factures.voir': [D, X, F, C], // see the invoices
   'facture.annuler': [D],        // cancel an invoice (number never reused)
-  'impots.payer': [D, F],        // record a tax payment (= taxes expense)
-  'societe.edit': [D, F, C],     // company legal / tax sheet (the accountant corrects the rates)
-  'compta.livres': [D, F, C],    // accounting books and chart of accounts
-  'compta.paie': [D, F, C],      // payroll totals (never individual salaries) and payroll settings
+  'impots.payer': [D, F],        // record a tax payment (= taxes expense), in Argent > Impôts
+  'societe.edit': [C],           // company legal / tax sheet (the accountant)
+  'compta.livres': [C],          // accounting books and chart of accounts
+  'compta.paie': [C],            // payroll totals (never individual salaries) and payroll settings
   'vente.marchandise': [X, E],   // HENZO AGRO: sell goods from stock
   'groupe.receptionner': [X],    // receive a delivery from a group company
   'groupe.refuser': [X, F],      // refuse it

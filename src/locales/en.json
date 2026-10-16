@@ -1664,7 +1664,7 @@
       "totalTtc": "Total due",
       "words": "This invoice is closed at the sum of {{montant}} CFA francs.",
       "bank": "Payment by transfer",
-      "missingIdentity": "Fill in the company sheet (name, NIU, RCCM) in Accounts > Company: they must appear on invoices.",
+      "missingIdentity": "The accountant must fill in the company sheet (name, NIU, RCCM) in Accounts > Company: they must appear on invoices.",
       "cancel": "Cancel the invoice",
       "cancelTitle": "Cancel invoice {{n}}"
     },
@@ -1678,7 +1678,7 @@
       "tvaYes": "VAT registered ({{taux}} %)",
       "tvaNo": "Not VAT registered",
       "rate": "Advance: {{taux}} % of turnover",
-      "noNiu": "The NIU is not filled in yet (Accounts > Company).",
+      "noNiu": "The NIU is not filled in yet: the accountant fills it in Accounts > Company.",
       "monthly": "Monthly advance",
       "monthlyHint": "Due before the 15th of the next month, on the month’s turnover.",
       "month": "Month",

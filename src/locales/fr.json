@@ -1664,7 +1664,7 @@
       "totalTtc": "Total à payer",
       "words": "Arrêtée la présente facture à la somme de {{montant}} francs CFA.",
       "bank": "Paiement par virement",
-      "missingIdentity": "Complétez la fiche société (raison sociale, NIU, RCCM) dans Compta > Société : ils doivent figurer sur les factures.",
+      "missingIdentity": "Le comptable doit compléter la fiche société (raison sociale, NIU, RCCM) dans Compta > Société : ces mentions doivent figurer sur les factures.",
       "cancel": "Annuler la facture",
       "cancelTitle": "Annuler la facture {{n}}"
     },
@@ -1678,7 +1678,7 @@
       "tvaYes": "Assujetti à la TVA ({{taux}} %)",
       "tvaNo": "Non assujetti à la TVA",
       "rate": "Acompte : {{taux}} % du chiffre d’affaires",
-      "noNiu": "Le NIU n’est pas encore renseigné (Compta > Société).",
+      "noNiu": "Le NIU n’est pas encore renseigné : le comptable le remplit dans Compta > Société.",
       "monthly": "Acompte de chaque mois",
       "monthlyHint": "À payer avant le 15 du mois suivant, sur le chiffre d’affaires du mois.",
       "month": "Mois",
