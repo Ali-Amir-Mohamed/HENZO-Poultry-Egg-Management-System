@@ -2044,6 +2044,10 @@
     "open": "Open WhatsApp",
     "number": "Customer WhatsApp number",
     "hint": "WhatsApp opens straight on the conversation with this number, the message already written: just press Send.",
-    "invalid": "Invalid number: type for example 699 00 00 00 (or with the +237 code)."
+    "invalid": "Invalid number: type for example 699 00 00 00 (or with the +237 code).",
+    "imageHint": "The invoice image will be copied and downloaded, then WhatsApp opens on the conversation with this number: paste the image (Ctrl+V) and send.",
+    "imageReady": "Image ready",
+    "imageCopied": "The image is copied: in the WhatsApp conversation press Ctrl+V (or right-click > Paste), then Send. It is also in your downloads.",
+    "imageDownloaded": "The image is in your downloads: in the WhatsApp conversation, attach it with the paperclip, then Send."
   }
 }

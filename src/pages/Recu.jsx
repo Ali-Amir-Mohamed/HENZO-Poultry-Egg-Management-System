@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
@@ -8,7 +9,7 @@ import Icon, { Logo } from '../components/Icon'
 import { day, Loading, money } from '../components/ui'
 import BoutonFacture from '../components/BoutonFacture'
 import { useAsk } from '../components/Dialog'
-import { envoyerWhatsApp } from '../lib/whatsapp'
+import { envoyerImageWhatsApp } from '../lib/whatsapp'
 
 // Sale receipt: printable (or saved as PDF from the print window) and shareable on WhatsApp
 export default function Recu() {
@@ -16,6 +17,7 @@ export default function Recu() {
   const navigate = useNavigate()
   const { t, i18n } = useTranslation()
   const ask = useAsk()
+  const docRef = useRef(null)   // the document, turned into an image for WhatsApp
   const lang = i18n.resolvedLanguage
   const q = useQuery(async () => {
     if (navigator.onLine) {
@@ -66,7 +68,7 @@ export default function Recu() {
     <div className="stack">
       <button className="back no-print" onClick={() => navigate(-1)}><Icon name="chevron" size={16} className="flip" />{t('fiche.back')}</button>
 
-      <article className={`receipt ${v.annulee ? 'cancelled' : ''}`}>
+      <article ref={docRef} className={`receipt ${v.annulee ? 'cancelled' : ''}`}>
         <header>
           <Logo size={42} />
           <div>
@@ -103,7 +105,7 @@ export default function Recu() {
         <BoutonFacture vente={v.id} enAttente={q.data.pending} big />
         <div className="row no-print">
           <button className="btn primary" onClick={() => window.print()}><Icon name="download" size={16} />{t('recu.print')}</button>
-          <button type="button" className="btn ghost" onClick={() => envoyerWhatsApp(ask, t, { telephone: v.client?.telephone, texte })}><Icon name="users" size={16} />{t('recu.whatsapp')}</button>
+          <button type="button" className="btn ghost" onClick={() => envoyerImageWhatsApp(ask, t, { element: docRef.current, nom: `recu-${numero}`, telephone: v.client?.telephone, texte, legende: `${nomFerme} – ${t('recu.title')} n° ${numero} – ${money(v.montant, lang)}` })}><Icon name="users" size={16} />{t('recu.whatsapp')}</button>
         </div>
         </>
       )}

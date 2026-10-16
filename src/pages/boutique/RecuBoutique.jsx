@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../../lib/supabase'
@@ -8,7 +9,7 @@ import { day, Loading, money } from '../../components/ui'
 import { readRefBoutique } from './data'
 import BoutonFacture from '../../components/BoutonFacture'
 import { useAsk } from '../../components/Dialog'
-import { envoyerWhatsApp } from '../../lib/whatsapp'
+import { envoyerImageWhatsApp } from '../../lib/whatsapp'
 
 // Receipt of a shop sale (printable, WhatsApp); also works for a sale not sent yet (offline)
 export default function RecuBoutique() {
@@ -16,6 +17,7 @@ export default function RecuBoutique() {
   const navigate = useNavigate()
   const { t, i18n } = useTranslation()
   const ask = useAsk()
+  const docRef = useRef(null)   // the document, turned into an image for WhatsApp
   const lang = i18n.resolvedLanguage
   const q = useQuery(async () => {
     if (navigator.onLine) {
@@ -43,7 +45,7 @@ export default function RecuBoutique() {
   return (
     <div className="stack">
       <button className="back no-print" onClick={() => navigate(-1)}><Icon name="chevron" size={16} className="flip" />{t('fiche.back')}</button>
-      <article className={`receipt ${v.annulee ? 'cancelled' : ''}`}>
+      <article ref={docRef} className={`receipt ${v.annulee ? 'cancelled' : ''}`}>
         <header>
           <Logo size={42} />
           <div><strong>{q.data.boutique || 'HENZO'}</strong><small>{q.data.ferme}{q.data.adresse ? ` · ${q.data.adresse}` : ''}</small><small>{t('recu.title')} n° {numero}</small></div>
@@ -67,7 +69,7 @@ export default function RecuBoutique() {
         <BoutonFacture venteBoutique={v.id} enAttente={q.data.pending} big />
         <div className="row no-print">
           <button className="btn primary" onClick={() => window.print()}><Icon name="download" size={16} />{t('recu.print')}</button>
-          <button type="button" className="btn ghost" onClick={() => envoyerWhatsApp(ask, t, { telephone: v.client_telephone, texte })}><Icon name="users" size={16} />{t('recu.whatsapp')}</button>
+          <button type="button" className="btn ghost" onClick={() => envoyerImageWhatsApp(ask, t, { element: docRef.current, nom: `recu-${numero}`, telephone: v.client_telephone, texte, legende: `${entete || 'HENZO'} – ${t('recu.title')} n° ${numero} – ${money(v.montant, lang)}` })}><Icon name="users" size={16} />{t('recu.whatsapp')}</button>
         </div>
         </>
       )}

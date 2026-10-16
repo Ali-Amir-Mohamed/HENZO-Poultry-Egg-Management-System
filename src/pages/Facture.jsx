@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
@@ -5,7 +6,7 @@ import { useAuth } from '../auth/AuthProvider'
 import { must, useQuery } from '../hooks'
 import { can } from '../config'
 import { montantEnLettres } from '../lib/montantEnLettres'
-import { envoyerWhatsApp } from '../lib/whatsapp'
+import { envoyerImageWhatsApp } from '../lib/whatsapp'
 import Icon, { Logo } from '../components/Icon'
 import { day, Loading } from '../components/ui'
 import { useAsk, useRun } from '../components/Dialog'
@@ -21,6 +22,7 @@ export default function Facture() {
   const lang = i18n.resolvedLanguage
   const { role } = useAuth()
   const ask = useAsk()
+  const docRef = useRef(null)   // the document, turned into an image for WhatsApp
   const run = useRun()
   const q = useQuery(async () => {
     const r = must(await supabase.rpc('facture_complete', { p_facture: id }))
@@ -58,7 +60,7 @@ export default function Facture() {
       <button className="back no-print" onClick={() => navigate(-1)}><Icon name="chevron" size={16} className="flip" />{t('fiche.back')}</button>
       {manque && <div className="alert warn no-print"><Icon name="alert" size={16} />{t('compta.fact.missingIdentity')}</div>}
 
-      <article className={`invoice ${f.annulee ? 'cancelled' : ''}`}>
+      <article ref={docRef} className={`invoice ${f.annulee ? 'cancelled' : ''}`}>
         <header className="invoice-head">
           <div className="invoice-company">
             <Logo size={44} />
@@ -120,7 +122,7 @@ export default function Facture() {
 
       <div className="row no-print">
         <button className="btn primary" onClick={() => window.print()}><Icon name="download" size={16} />{t('recu.print')}</button>
-        {!f.annulee && <button type="button" className="btn ghost" onClick={() => envoyerWhatsApp(ask, t, { telephone: f.client_telephone, texte })}><Icon name="users" size={16} />{t('recu.whatsapp')}</button>}
+        {!f.annulee && <button type="button" className="btn ghost" onClick={() => envoyerImageWhatsApp(ask, t, { element: docRef.current, nom: `facture-${f.numero}`, telephone: f.client_telephone, texte, legende: `${nom} – ${t('compta.fact.invoice')} ${f.numero} – ${nombre(f.total_ttc)} FCFA` })}><Icon name="users" size={16} />{t('recu.whatsapp')}</button>}
         {!f.annulee && can(role, 'facture.annuler') && <button className="btn ghost danger" onClick={annuler}>{t('compta.fact.cancel')}</button>}
       </div>
     </div>

@@ -2044,6 +2044,10 @@
     "open": "Ouvrir WhatsApp",
     "number": "Numéro WhatsApp du client",
     "hint": "WhatsApp s’ouvre directement sur la conversation avec ce numéro, le message déjà écrit : il ne reste qu’à appuyer sur Envoyer.",
-    "invalid": "Numéro invalide : tapez par exemple 699 00 00 00 (ou avec l’indicatif +237)."
+    "invalid": "Numéro invalide : tapez par exemple 699 00 00 00 (ou avec l’indicatif +237).",
+    "imageHint": "L’image de la facture va être copiée et téléchargée, puis WhatsApp s’ouvre sur la conversation avec ce numéro : collez l’image (Ctrl+V) et envoyez.",
+    "imageReady": "Image prête",
+    "imageCopied": "L’image est copiée : dans la conversation WhatsApp, faites Ctrl+V (ou clic droit > Coller), puis Envoyer. Elle est aussi dans vos téléchargements.",
+    "imageDownloaded": "L’image est dans vos téléchargements : dans la conversation WhatsApp, joignez-la avec le trombone, puis Envoyer."
   }
 }
