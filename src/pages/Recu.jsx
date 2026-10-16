@@ -7,12 +7,15 @@ import { readCachedReference } from '../lib/referenceData'
 import Icon, { Logo } from '../components/Icon'
 import { day, Loading, money } from '../components/ui'
 import BoutonFacture from '../components/BoutonFacture'
+import { useAsk } from '../components/Dialog'
+import { envoyerWhatsApp } from '../lib/whatsapp'
 
 // Sale receipt: printable (or saved as PDF from the print window) and shareable on WhatsApp
 export default function Recu() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { t, i18n } = useTranslation()
+  const ask = useAsk()
   const lang = i18n.resolvedLanguage
   const q = useQuery(async () => {
     if (navigator.onLine) {
@@ -58,10 +61,6 @@ export default function Recu() {
     reste > 0 ? `${t('recu.due')} : ${money(reste, lang)}${v.date_echeance ? ` – ${t('recu.dueOn', { d: day(v.date_echeance, lang) })}` : ''}` : null,
     t('recu.thanks')
   ].filter(Boolean).join('\n')
-  // WhatsApp: straight to the customer when their number is known (Cameroon numbers: 237 prefix added)
-  const tel = (v.client?.telephone ?? '').replace(/\D/g, '')
-  const numeroWa = tel.length === 9 ? `237${tel}` : tel
-  const whatsapp = `https://wa.me/${numeroWa}?text=${encodeURIComponent(texte)}`
 
   return (
     <div className="stack">
@@ -104,7 +103,7 @@ export default function Recu() {
         <BoutonFacture vente={v.id} enAttente={q.data.pending} big />
         <div className="row no-print">
           <button className="btn primary" onClick={() => window.print()}><Icon name="download" size={16} />{t('recu.print')}</button>
-          <a className="btn ghost" href={whatsapp} target="_blank" rel="noreferrer"><Icon name="users" size={16} />{t('recu.whatsapp')}</a>
+          <button type="button" className="btn ghost" onClick={() => envoyerWhatsApp(ask, t, { telephone: v.client?.telephone, texte })}><Icon name="users" size={16} />{t('recu.whatsapp')}</button>
         </div>
         </>
       )}

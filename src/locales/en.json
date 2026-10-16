@@ -2038,5 +2038,12 @@
     "attachConfirm": "\"{{ferme}}\" becomes a site of the open company \"{{societe}}\": same sheet, same invoices, same payroll, one set of accounts and one tax. It keeps its flocks, stock and cash boxes. Continue?",
     "attached": "\"{{ferme}}\" is now a site",
     "attachedHint": "Its figures are included in the whole company accounts and taxes (Accounts)."
+  },
+  "whatsapp": {
+    "title": "Send on WhatsApp",
+    "open": "Open WhatsApp",
+    "number": "Customer WhatsApp number",
+    "hint": "WhatsApp opens straight on the conversation with this number, the message already written: just press Send.",
+    "invalid": "Invalid number: type for example 699 00 00 00 (or with the +237 code)."
   }
 }

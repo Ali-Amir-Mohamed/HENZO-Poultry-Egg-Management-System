@@ -5,6 +5,7 @@ import { useAuth } from '../auth/AuthProvider'
 import { must, useQuery } from '../hooks'
 import { can } from '../config'
 import { montantEnLettres } from '../lib/montantEnLettres'
+import { envoyerWhatsApp } from '../lib/whatsapp'
 import Icon, { Logo } from '../components/Icon'
 import { day, Loading } from '../components/ui'
 import { useAsk, useRun } from '../components/Dialog'
@@ -51,8 +52,6 @@ export default function Facture() {
     `*${t('compta.fact.totalTtc')} : ${nombre(f.total_ttc)} FCFA*`,
     reste > 0 ? `${t('compta.fact.left')} : ${nombre(reste)} FCFA` : t('compta.fact.paid')
   ].join('\n')
-  const tel = (f.client_telephone ?? '').replace(/\D/g, '')
-  const whatsapp = `https://wa.me/${tel.length === 9 ? `237${tel}` : tel}?text=${encodeURIComponent(texte)}`
 
   return (
     <div className="stack">
@@ -121,7 +120,7 @@ export default function Facture() {
 
       <div className="row no-print">
         <button className="btn primary" onClick={() => window.print()}><Icon name="download" size={16} />{t('recu.print')}</button>
-        {!f.annulee && <a className="btn ghost" href={whatsapp} target="_blank" rel="noreferrer"><Icon name="users" size={16} />{t('recu.whatsapp')}</a>}
+        {!f.annulee && <button type="button" className="btn ghost" onClick={() => envoyerWhatsApp(ask, t, { telephone: f.client_telephone, texte })}><Icon name="users" size={16} />{t('recu.whatsapp')}</button>}
         {!f.annulee && can(role, 'facture.annuler') && <button className="btn ghost danger" onClick={annuler}>{t('compta.fact.cancel')}</button>}
       </div>
     </div>

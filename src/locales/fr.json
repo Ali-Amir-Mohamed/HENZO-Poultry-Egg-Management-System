@@ -2038,5 +2038,12 @@
     "attachConfirm": "« {{ferme}} » devient un site de la société ouverte « {{societe}} » : même fiche, mêmes factures, même paie, une seule comptabilité et un seul impôt. Elle garde ses bandes, son stock et ses caisses. Continuer ?",
     "attached": "« {{ferme}} » est maintenant un site",
     "attachedHint": "Ses chiffres sont compris dans la comptabilité et les impôts de toute la société (Compta)."
+  },
+  "whatsapp": {
+    "title": "Envoyer sur WhatsApp",
+    "open": "Ouvrir WhatsApp",
+    "number": "Numéro WhatsApp du client",
+    "hint": "WhatsApp s’ouvre directement sur la conversation avec ce numéro, le message déjà écrit : il ne reste qu’à appuyer sur Envoyer.",
+    "invalid": "Numéro invalide : tapez par exemple 699 00 00 00 (ou avec l’indicatif +237)."
   }
 }

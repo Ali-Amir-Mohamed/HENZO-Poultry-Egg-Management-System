@@ -7,12 +7,15 @@ import Icon, { Logo } from '../../components/Icon'
 import { day, Loading, money } from '../../components/ui'
 import { readRefBoutique } from './data'
 import BoutonFacture from '../../components/BoutonFacture'
+import { useAsk } from '../../components/Dialog'
+import { envoyerWhatsApp } from '../../lib/whatsapp'
 
 // Receipt of a shop sale (printable, WhatsApp); also works for a sale not sent yet (offline)
 export default function RecuBoutique() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { t, i18n } = useTranslation()
+  const ask = useAsk()
   const lang = i18n.resolvedLanguage
   const q = useQuery(async () => {
     if (navigator.onLine) {
@@ -36,8 +39,6 @@ export default function RecuBoutique() {
   const texte = [`*${entete || 'HENZO'}* – ${t('recu.title')} n° ${numero}`, `${t('recu.date')} : ${day(v.date_vente, lang)}`,
     v.client_nom ? `${t('recu.client')} : ${v.client_nom}` : null, `${article} : ${qte} × ${money(v.prix_unitaire, lang)}`,
     `*${t('recu.total')} : ${money(v.montant, lang)}* (${t(`modes.${v.mode_paiement}`)})`, t('recu.thanks')].filter(Boolean).join('\n')
-  const tel = (v.client_telephone ?? '').replace(/\D/g, '')
-  const whatsapp = `https://wa.me/${tel.length === 9 ? `237${tel}` : tel}?text=${encodeURIComponent(texte)}`
 
   return (
     <div className="stack">
@@ -66,7 +67,7 @@ export default function RecuBoutique() {
         <BoutonFacture venteBoutique={v.id} enAttente={q.data.pending} big />
         <div className="row no-print">
           <button className="btn primary" onClick={() => window.print()}><Icon name="download" size={16} />{t('recu.print')}</button>
-          <a className="btn ghost" href={whatsapp} target="_blank" rel="noreferrer"><Icon name="users" size={16} />{t('recu.whatsapp')}</a>
+          <button type="button" className="btn ghost" onClick={() => envoyerWhatsApp(ask, t, { telephone: v.client_telephone, texte })}><Icon name="users" size={16} />{t('recu.whatsapp')}</button>
         </div>
         </>
       )}
