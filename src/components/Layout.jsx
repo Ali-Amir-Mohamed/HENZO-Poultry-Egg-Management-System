@@ -68,7 +68,7 @@ export default function Layout() {
                 <Icon name="download" size={18} /><span className="hide-sm">{t('status.install')}</span>
               </button>
             )}
-            {!['employe', 'vendeur'].includes(role) && <Notifications />}
+            {!['employe', 'vendeur', 'comptable'].includes(role) && <Notifications />}
             <ThemeSwitch />
             <LanguageSwitch />
             <button className="icon-btn" onClick={signOut} title={t('nav.logout')} aria-label={t('nav.logout')}>

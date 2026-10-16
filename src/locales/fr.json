@@ -24,7 +24,8 @@
     "exploitation": "Exploitation",
     "finance": "Finance",
     "employe": "Employé",
-    "vendeur": "Vendeur"
+    "vendeur": "Vendeur",
+    "comptable": "Comptable"
   },
   "auth": {
     "title": "Connexion",
@@ -839,7 +840,8 @@
     "chooseShop": "Choisissez la boutique de ce vendeur.",
     "shopTitle": "Boutique de {{nom}}",
     "changeShop": "Changer de boutique",
-    "sellerHint": "Ce vendeur verra uniquement sa boutique : vendre, stock, réceptions, caisse. Rien d’autre de la ferme."
+    "sellerHint": "Ce vendeur verra uniquement sa boutique : vendre, stock, réceptions, caisse. Rien d’autre de la ferme.",
+    "accountantHint": "Le comptable voit la comptabilité, les impôts et les totaux de la paie de toute la société, et corrige les taux. Il ne fait aucun paiement."
   },
   "journal": {
     "title": "Journal d’activité",
@@ -1623,7 +1625,8 @@
       "factures": "Factures",
       "impots": "Impôts",
       "societe": "Société",
-      "livres": "Comptabilité"
+      "livres": "Comptabilité",
+      "paie": "Paie"
     },
     "regimes": {
       "reel": "Régime réel",
@@ -1830,7 +1833,14 @@
       "cnps_accidents": "CNPS accidents du travail",
       "cfc_patronal": "Crédit foncier (CFC)",
       "fne": "Fonds national de l’emploi (FNE)"
-    }
+    },
+    "totalsTitle": "Paie de toute la société",
+    "totalsHint": "Totaux de chaque mois : salaires bruts, à reverser à la CNPS et aux impôts, déjà reversé. Les salaires de chacun ne sont pas affichés ici.",
+    "noTotals": "Aucun bulletin de paie pour l’instant.",
+    "paidCnps": "CNPS reversée",
+    "paidTaxes": "Impôts reversés",
+    "paidAmount": "reversé {{n}}",
+    "leftToPay": "reste {{n}}"
   },
   "livres": {
     "title": "Comptabilité (SYSCOHADA)",

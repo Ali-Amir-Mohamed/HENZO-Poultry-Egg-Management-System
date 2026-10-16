@@ -29,6 +29,7 @@ function usePeriode() {
 
 export default function Livres() {
   const { t, i18n } = useTranslation()
+  const { profile } = useAuth()
   const lang = i18n.resolvedLanguage
   const p = usePeriode()
   const [vue, setVue] = useState('balance')
@@ -36,6 +37,7 @@ export default function Livres() {
   const plusieurs = Number(fiche.data?.nombre_sites ?? 1) > 1
   const [toute, setToute] = useState(true)   // a company with several sites: one set of accounts by default
   p.toute = plusieurs && toute
+  p.site = fiche.data ? profile?.ferme_id : null
   const soldes = useQuery(async () => must(await supabase.rpc('soldes_comptables', { p_debut: p.debut, p_fin: p.fin, p_toute_societe: p.toute })), [p.debut, p.fin, p.toute])
 
   return (
@@ -80,13 +82,9 @@ function Journal({ p }) {
   const { t, i18n } = useTranslation()
   const lang = i18n.resolvedLanguage
   const [code, setCode] = useState('')
-  const q = useQuery(async () => {
-    if (p.toute) return must(await supabase.rpc('journal_societe', { p_debut: p.debut, p_fin: p.fin, p_journal: code || null, p_limite: LIMITE }))
-    let r = supabase.from('journal_comptable').select('date_ecriture, journal, piece, libelle, compte, intitule, debit, credit')
-      .gte('date_ecriture', p.debut).lte('date_ecriture', p.fin).order('date_ecriture').order('piece').order('debit', { ascending: false }).limit(LIMITE)
-    if (code) r = r.eq('journal', code)
-    return must(await r)
-  }, [p.debut, p.fin, code, p.toute])
+  const q = useQuery(async () => must(await supabase.rpc('journal_societe', {
+    p_debut: p.debut, p_fin: p.fin, p_journal: code || null, p_limite: LIMITE, p_site: p.toute ? null : p.site
+  })), [p.debut, p.fin, code, p.toute, p.site])
   const exporter = () => exportExcel(`journal-${p.debut}`, [
     { label: t('saisie.date'), value: (l) => l.date_ecriture }, { label: t('livres.journal'), value: (l) => l.journal },
     { label: t('livres.piece'), value: (l) => l.piece }, ...(p.toute ? [{ label: t('livres.site'), value: (l) => l.site }] : []), { label: t('livres.account'), value: (l) => l.compte },
@@ -134,10 +132,8 @@ function GrandLivre({ p, soldes }) {
   const [compte, setCompte] = useState('')
   const lignes = useQuery(async () => {
     if (!compte) return null
-    if (p.toute) return must(await supabase.rpc('journal_societe', { p_debut: p.debut, p_fin: p.fin, p_compte: compte, p_limite: LIMITE }))
-    return must(await supabase.from('journal_comptable').select('date_ecriture, journal, piece, libelle, debit, credit')
-      .eq('compte', compte).gte('date_ecriture', p.debut).lte('date_ecriture', p.fin).order('date_ecriture').order('piece').limit(LIMITE))
-  }, [compte, p.debut, p.fin, p.toute])
+    return must(await supabase.rpc('journal_societe', { p_debut: p.debut, p_fin: p.fin, p_compte: compte, p_limite: LIMITE, p_site: p.toute ? null : p.site }))
+  }, [compte, p.debut, p.fin, p.toute, p.site])
   if (!soldes.data) return <Loading error={soldes.error} />
   const s = soldes.data.find((x) => x.compte === compte)
   const ouverture = s ? (Number(s.debit_cumule) - Number(s.credit_cumule)) - (Number(s.debit_periode) - Number(s.credit_periode)) : 0

@@ -6,12 +6,14 @@ import Factures from './compta/Factures'
 import Impots from './compta/Impots'
 import Societe from './compta/Societe'
 import Livres from './compta/Livres'
+import PaieTotaux from './compta/PaieTotaux'
 
 // Accounting and taxes: official invoices, monthly taxes, accounting books (direction, finance), the company's legal sheet
 const TABS = [
   { id: 'factures', label: 'compta.tabs.factures', icon: 'receipt' },
   { id: 'impots', label: 'compta.tabs.impots', icon: 'wallet' },
   { id: 'livres', label: 'compta.tabs.livres', icon: 'chart', perm: 'compta.livres' },
+  { id: 'paie', label: 'compta.tabs.paie', icon: 'users', perm: 'compta.paie' },
   { id: 'societe', label: 'compta.tabs.societe', icon: 'note' }
 ]
 
@@ -27,6 +29,7 @@ export default function Compta() {
       {actif === 'factures' && <Factures />}
       {actif === 'impots' && <Impots />}
       {actif === 'livres' && <Livres />}
+      {actif === 'paie' && <PaieTotaux />}
       {actif === 'societe' && <Societe />}
     </div>
   )

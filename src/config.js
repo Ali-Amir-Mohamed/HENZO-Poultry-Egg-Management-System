@@ -26,10 +26,11 @@ export const ROLES = {
   EXPLOITATION: 'exploitation',   // Kenfack Dirand
   FINANCE: 'finance',             // Dahirou Bachar
   EMPLOYE: 'employe',
-  VENDEUR: 'vendeur'              // shop seller: his shop only
+  VENDEUR: 'vendeur',             // shop seller: his shop only
+  COMPTABLE: 'comptable'          // accountant / CGA: accounts and taxes of the whole company, never moves money
 }
 
-const { DIRECTEUR: D, EXPLOITATION: X, FINANCE: F, EMPLOYE: E, VENDEUR: V } = ROLES
+const { DIRECTEUR: D, EXPLOITATION: X, FINANCE: F, EMPLOYE: E, VENDEUR: V, COMPTABLE: C } = ROLES
 
 // Which roles can open each section of the app (the database enforces the same rules)
 export const ACCESS = {
@@ -39,7 +40,7 @@ export const ACCESS = {
   planning: [D, X, F],
   analyses: [D, X, F],
   argent: [D, X, F],
-  compta: [D, X, F],               // invoices, taxes, company sheet (accounting)
+  compta: [D, X, F, C],            // invoices, taxes, company sheet (accounting)
   stock: [D, X, F],
   reglages: [D, X, F],
   boutique: [D, X, F, E, V],
@@ -98,8 +99,9 @@ export const PERMISSIONS = {
   'facture.create': [D, X, F],   // official invoices from sales
   'facture.annuler': [D],        // cancel an invoice (number never reused)
   'impots.payer': [D, F],        // record a tax payment (= taxes expense)
-  'societe.edit': [D, F],        // company legal / tax sheet
-  'compta.livres': [D, F],       // accounting books and chart of accounts
+  'societe.edit': [D, F, C],     // company legal / tax sheet (the accountant corrects the rates)
+  'compta.livres': [D, F, C],    // accounting books and chart of accounts
+  'compta.paie': [D, F, C],      // payroll totals (never individual salaries) and payroll settings
   'vente.marchandise': [X, E],   // HENZO AGRO: sell goods from stock
   'groupe.receptionner': [X],    // receive a delivery from a group company
   'groupe.refuser': [X, F],      // refuse it
@@ -107,7 +109,7 @@ export const PERMISSIONS = {
 }
 
 // Roles automatically signed out after a period of inactivity (employees work offline: not them)
-export const SESSION_EXPIRY_ROLES = [D, X, F]
+export const SESSION_EXPIRY_ROLES = [D, X, F, C]
 
 export const TYPES_TACHE = ['vaccination', 'traitement', 'pesee', 'achat_aliment', 'remboursement', 'arrivee_poussins', 'vente_prevue', 'nettoyage', 'autre']
 

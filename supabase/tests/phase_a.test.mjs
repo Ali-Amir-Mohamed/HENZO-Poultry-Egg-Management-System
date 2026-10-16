@@ -1323,12 +1323,45 @@ const totCaisses = { groupe: (await one('dahirou', `select sum(solde) s from pub
 ok('their total is the real total', Number(totCaisses.groupe) === Number(totCaisses.reel), JSON.stringify(totCaisses))
 await expectErr('kenfack cannot see all the cash boxes', 'kenfack', `select * from public.caisses_societe()`)
 
+// ---------- 0042-0043: accountant role ----------
+try {
+  await db.exec(readFileSync(new URL('0042_role_comptable.sql', MIG), 'utf8'))
+  await db.exec(readFileSync(new URL('0043_comptable.sql', MIG), 'utf8'))
+  ok('migrations 0042 and 0043 run', true)
+} catch (e) { ok('migrations 0042 and 0043 run', false, e.message); process.exit(1) }
+U.comptable = '77777777-7777-7777-7777-777777777777'
+await db.query(`insert into auth.users (id, email) values ($1, 'comptable@henzo.local')`, [U.comptable])
+await db.query(`update public.profiles set role = 'comptable', nom_complet = 'Cabinet comptable', ferme_id = $2 where id = $1`, [U.comptable, fermeAli])
+await db.query(`insert into public.membres_fermes (user_id, ferme_id, role) values ($1, $2, 'comptable') on conflict (user_id, ferme_id) do update set role = 'comptable'`, [U.comptable, fermeAli])
+const balC = await as('comptable', `select sum(debit_cumule) d, sum(credit_cumule) c, count(*) n from public.soldes_comptables('2000-01-01', current_date, true)`)
+ok('the accountant reads the trial balance of the whole company', Number(balC.rows[0].n) > 10 && Number(balC.rows[0].d) === Number(balC.rows[0].c), JSON.stringify(balC.rows[0]))
+const jsC = await as('comptable', `select distinct site from public.journal_societe('2000-01-01', current_date)`)
+ok('the accountant reads the journal of every site', ['Ferme HENZO', 'HENZO Garoua'].every((n) => jsC.rows.some((r) => r.site === n)) && !jsC.rows.some((r) => r.site === 'HENZO AGRO'), JSON.stringify(jsC.rows))
+ok('or of one site only', (await as('comptable', `select distinct site from public.journal_societe('2000-01-01', current_date, null, null, 3000, $1)`, [SITE])).rows.map((r) => r.site).join() === 'HENZO Garoua')
+await expectErr('but not of the trading company', 'comptable', `select * from public.journal_societe('2000-01-01', current_date, null, null, 3000, $1)`, [NEG], 'introuvable')
+ok('the accountant reads the taxes of the whole company', Number((await one('comptable', `select public.situation_fiscale(extract(year from current_date)::int) s`)).s.sites) === 3)
+ok('the accountant reads the invoices', (await as('comptable', `select * from public.factures`)).rows.length > 0)
+const totaux = await as('comptable', `select * from public.charges_salaires_societe('2000-01-01')`)
+ok('the accountant reads payroll totals (November: CNPS 9 433, paid)', totaux.rows.some((r) => new Date(r.mois).toISOString().startsWith('2026-11') && Number(r.a_reverser_cnps) === 9433 && Number(r.paye_cnps) === 9433), JSON.stringify(totaux.rows))
+ok('but no payslip and no salary', (await as('comptable', `select * from public.bulletins_paie`)).rows.length === 0 && (await as('comptable', `select * from public.employes`)).rows.length === 0)
+ok('and no field entries nor stock movements', (await as('comptable', `select * from public.mortalites`)).rows.length === 0 && (await as('comptable', `select * from public.mouvements_stock`)).rows.length === 0)
+await expectOk('the accountant corrects the advance rate', 'comptable', `select public.maj_societe('{"taux_acompte":"2.2"}'::jsonb)`)
+await expectOk('the accountant corrects a payroll rate', 'comptable', `select public.maj_parametres_paie('{"taux_accidents_travail":"1.75"}'::jsonb)`)
+await expectOk('the accountant renumbers an account', 'comptable', `select public.maj_compte('entretien', '62411', null)`)
+ok('the accountant reads the payroll settings and the chart of accounts', (await as('comptable', `select * from public.parametres_paie`)).rows.length === 1 && (await as('comptable', `select * from public.plan_comptable`)).rows.length > 30)
+await expectErr('the accountant cannot pay a tax', 'comptable', `select public.payer_impot('acompte_is', current_date, 1000, 'banque')`)
+await expectErr('the accountant cannot make an invoice', 'comptable', `select public.creer_facture($1::uuid[])`, [[VSG]])
+await expectErr('the accountant cannot record an expense', 'comptable', `insert into public.depenses (portee, activite, categorie, libelle, montant, mode_paiement) values ('generale', 'chair', 'fonctionnement', 'x', 1000, 'especes')`)
+await expectErr('the accountant cannot pay a salary', 'comptable', `select public.payer_salaire($1, '2026-12-01', 'especes')`, [NEW])
+await expectNoRows('the accountant cannot validate an expense', 'comptable', `update public.depenses set statut = 'validee' where statut = 'a_valider' returning id`)
+await expectErr('the accountant cannot cancel an invoice', 'comptable', `select public.annuler_facture($1, 'x')`, [FSG])
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))
   const counts = Object.fromEntries(res.at(-1).rows.map((r) => [r.element, Number(r.nombre)]))
   ok('reset keeps 6 cash boxes and accounts, empties data',
-    counts['caisses (6 par ferme)'] % 6 === 0 && counts['caisses (6 par ferme)'] > 0 && counts['écritures'] === 0 && counts['bandes'] === 0 && counts['ventes'] === 0 && counts['comptes conservés'] === 5,
+    counts['caisses (6 par ferme)'] % 6 === 0 && counts['caisses (6 par ferme)'] > 0 && counts['écritures'] === 0 && counts['bandes'] === 0 && counts['ventes'] === 0 && counts['comptes conservés'] === 6,
     JSON.stringify(counts))
   ok('cash balances back to 0', (await as('ali', `select sum(solde)::int s from public.soldes_caisses`)).rows[0].s === 0)
   ok('vaccination programme kept', (await as('kenfack', `select * from public.modeles_taches`)).rows.length === 5)

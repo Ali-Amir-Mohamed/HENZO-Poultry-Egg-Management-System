@@ -134,7 +134,7 @@ export default function App() {
     <Routes>
       <Route element={<Layout />}>
         {/* a seller lands directly on his shop */}
-        <Route index element={role === 'vendeur' ? <Navigate to="/boutique" replace /> : estNegoce(profile) ? <AccueilNegoce /> : <Dashboard />} />
+        <Route index element={role === 'vendeur' ? <Navigate to="/boutique" replace /> : role === 'comptable' ? <Navigate to="/compta" replace /> : estNegoce(profile) ? <AccueilNegoce /> : <Dashboard />} />
         <Route path="boutique" element={<Guard section="boutique"><Boutique /></Guard>} />
         <Route path="recu-boutique/:id" element={<RecuBoutique />} />
         <Route path="saisie" element={<Guard section="saisie"><Saisie /></Guard>} />

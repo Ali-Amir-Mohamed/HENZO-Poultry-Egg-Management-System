@@ -111,6 +111,7 @@ export default function Comptes() {
           )}
         </div>
         {form.role === 'vendeur' && <p className="note"><Icon name="cart" size={16} />{t('comptes.sellerHint')}</p>}
+        {form.role === 'comptable' && <p className="note"><Icon name="chart" size={16} />{t('comptes.accountantHint')}</p>}
         <p className="note"><Icon name="clock" size={16} />{t('comptes.hint')}</p>
       </FormCard>
 

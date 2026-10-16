@@ -24,7 +24,8 @@
     "exploitation": "Operations",
     "finance": "Finance",
     "employe": "Employee",
-    "vendeur": "Seller"
+    "vendeur": "Seller",
+    "comptable": "Accountant"
   },
   "auth": {
     "title": "Sign in",
@@ -839,7 +840,8 @@
     "chooseShop": "Choose this seller’s shop.",
     "shopTitle": "Shop of {{nom}}",
     "changeShop": "Change shop",
-    "sellerHint": "This seller will only see his shop: sell, stock, receptions, cash. Nothing else of the farm."
+    "sellerHint": "This seller will only see his shop: sell, stock, receptions, cash. Nothing else of the farm.",
+    "accountantHint": "The accountant sees the accounts, taxes and payroll totals of the whole company, and corrects the rates. They make no payment."
   },
   "journal": {
     "title": "Activity log",
@@ -1623,7 +1625,8 @@
       "factures": "Invoices",
       "impots": "Taxes",
       "societe": "Company",
-      "livres": "Accounting"
+      "livres": "Accounting",
+      "paie": "Payroll"
     },
     "regimes": {
       "reel": "Real regime",
@@ -1830,7 +1833,14 @@
       "cnps_accidents": "CNPS work accidents",
       "cfc_patronal": "Housing fund (CFC)",
       "fne": "National employment fund (FNE)"
-    }
+    },
+    "totalsTitle": "Payroll of the whole company",
+    "totalsHint": "Monthly totals: gross salaries, to pay over to the CNPS and the tax office, already paid. Individual salaries are not shown here.",
+    "noTotals": "No payslip yet.",
+    "paidCnps": "CNPS paid",
+    "paidTaxes": "Taxes paid",
+    "paidAmount": "paid {{n}}",
+    "leftToPay": "{{n}} left"
   },
   "livres": {
     "title": "Accounting (SYSCOHADA)",

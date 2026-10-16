@@ -90,7 +90,7 @@ const depuisTexte = (txt, cle) => txt.split('\n').map((l) => l.trim()).filter(Bo
 export function ParametresPaie() {
   const { t } = useTranslation()
   const { role } = useAuth()
-  const edit = can(role, 'salaires')
+  const edit = can(role, 'compta.paie')
   const [ouvert, setOuvert] = useState(false)
   const q = useQuery(async () => (ouvert ? must(await supabase.from('parametres_paie').select('*').maybeSingle()) : null), [ouvert])
   const [form, setForm] = useState(null)
