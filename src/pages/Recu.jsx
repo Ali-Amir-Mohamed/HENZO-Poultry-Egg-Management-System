@@ -6,6 +6,7 @@ import { db } from '../lib/offlineQueue'
 import { readCachedReference } from '../lib/referenceData'
 import Icon, { Logo } from '../components/Icon'
 import { day, Loading, money } from '../components/ui'
+import BoutonFacture from '../components/BoutonFacture'
 
 // Sale receipt: printable (or saved as PDF from the print window) and shareable on WhatsApp
 export default function Recu() {
@@ -99,10 +100,13 @@ export default function Recu() {
       </article>
 
       {!v.annulee && (
+        <>
+        <BoutonFacture vente={v.id} enAttente={q.data.pending} big />
         <div className="row no-print">
           <button className="btn primary" onClick={() => window.print()}><Icon name="download" size={16} />{t('recu.print')}</button>
           <a className="btn ghost" href={whatsapp} target="_blank" rel="noreferrer"><Icon name="users" size={16} />{t('recu.whatsapp')}</a>
         </div>
+        </>
       )}
     </div>
   )

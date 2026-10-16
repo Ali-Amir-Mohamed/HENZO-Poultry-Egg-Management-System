@@ -22,14 +22,9 @@ export default function Facture() {
   const ask = useAsk()
   const run = useRun()
   const q = useQuery(async () => {
-    const f = must(await supabase.from('factures').select('*').eq('id', id).maybeSingle())
-    if (!f) throw new Error(t('compta.fact.notFound'))
-    const [lignes, societe, situation] = await Promise.all([
-      supabase.from('facture_lignes').select('*').eq('facture_id', id).order('ordre'),
-      supabase.rpc('fiche_societe', { p_ferme: f.ferme_id }),
-      supabase.from('factures_situation').select('reste').eq('id', id).maybeSingle()
-    ])
-    return { f, lignes: must(lignes), s: must(societe) ?? {}, reste: Number(must(situation)?.reste ?? 0) }
+    const r = must(await supabase.rpc('facture_complete', { p_facture: id }))
+    if (!r) throw new Error(t('compta.fact.notFound'))
+    return { f: r.facture, lignes: r.lignes, s: r.societe ?? {}, reste: Number(r.reste ?? 0) }
   }, [id])
 
   const annuler = async () => {

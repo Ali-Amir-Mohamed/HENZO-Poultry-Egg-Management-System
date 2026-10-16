@@ -6,6 +6,7 @@ import { db } from '../../lib/offlineQueue'
 import Icon, { Logo } from '../../components/Icon'
 import { day, Loading, money } from '../../components/ui'
 import { readRefBoutique } from './data'
+import BoutonFacture from '../../components/BoutonFacture'
 
 // Receipt of a shop sale (printable, WhatsApp); also works for a sale not sent yet (offline)
 export default function RecuBoutique() {
@@ -61,10 +62,13 @@ export default function RecuBoutique() {
         <p className="muted small center">{t('recu.thanks')}</p>
       </article>
       {!v.annulee && (
+        <>
+        <BoutonFacture venteBoutique={v.id} enAttente={q.data.pending} big />
         <div className="row no-print">
           <button className="btn primary" onClick={() => window.print()}><Icon name="download" size={16} />{t('recu.print')}</button>
           <a className="btn ghost" href={whatsapp} target="_blank" rel="noreferrer"><Icon name="users" size={16} />{t('recu.whatsapp')}</a>
         </div>
+        </>
       )}
     </div>
   )

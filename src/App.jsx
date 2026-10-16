@@ -148,7 +148,7 @@ export default function App() {
         <Route path="stock" element={<Guard section="stock"><Stock /></Guard>} />
         <Route path="administration" element={<Guard section="administration"><Administration /></Guard>} />
         <Route path="compta" element={<Guard section="compta"><Compta /></Guard>} />
-        <Route path="facture/:id" element={<Guard section={['argent', 'compta']}><Facture /></Guard>} />
+        <Route path="facture/:id" element={<Facture />} />
         <Route path="bulletin/:id" element={<Guard section="argent"><Bulletin /></Guard>} />
         <Route path="reglages" element={<Guard section="reglages"><Reglages /></Guard>} />
         <Route path="reglages/tiers/:id" element={<Guard section="reglages"><FicheTiers /></Guard>} />

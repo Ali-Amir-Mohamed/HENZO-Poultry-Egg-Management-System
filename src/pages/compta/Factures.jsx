@@ -75,7 +75,7 @@ export default function Factures() {
   return (
     <>
       {can(role, 'facture.create') && (
-        <FormCard title={t('compta.fact.new')} icon="receipt" onSubmit={creer} submitLabel={t('compta.fact.create')}>
+        <FormCard title={t('compta.fact.group')} icon="receipt" onSubmit={creer} submitLabel={t('compta.fact.create')}>
           <div className="grid-2">
             <Field label={t('recu.client')}>
               <input required list="clients-facture" value={nom} placeholder={t('compta.fact.clientPh')} autoComplete="off"

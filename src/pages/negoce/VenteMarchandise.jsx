@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../../lib/supabase'
 import { must, useQuery } from '../../hooks'
@@ -7,6 +6,7 @@ import { MODES_PAIEMENT, TABLES } from '../../config'
 import { localDate } from '../../lib/stats'
 import Icon from '../../components/Icon'
 import { Field, Loading, money } from '../../components/ui'
+import BoutonFacture from '../../components/BoutonFacture'
 
 // HENZO AGRO: sell goods from stock (chicks, feed, medicines) to a farmer or to a group company.
 // A sale to a group company is always on credit: it becomes a delivery to receive there, and is paid from there.
@@ -91,7 +91,7 @@ export default function VenteMarchandise({ onVendu }) {
       {etat?.error && <div className="alert danger"><Icon name="alert" size={18} />{etat.error}</div>}
       {etat?.ok && (
         <div className="alert success"><Icon name="check" size={18} />{etat.groupe ? t('negoce.soldGroup', { n: money(etat.total, lang) }) : t('negoce.sold', { n: money(etat.total, lang) })}
-          <Link to={`/recu/${etat.ok}`} className="btn ghost sm" style={{ marginLeft: 'auto' }}><Icon name="receipt" size={14} />{t('recu.open')}</Link>
+          <span style={{ marginLeft: 'auto' }}><BoutonFacture vente={etat.ok} /></span>
         </div>
       )}
       <button type="submit" className="btn primary block" disabled={etat?.busy}><Icon name="check" size={18} />{t('negoce.sell')}</button>

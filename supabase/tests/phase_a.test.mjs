@@ -1367,6 +1367,34 @@ const garoua = await as('comptable', `select sum(credit_periode) c from public.s
 ok('the balance of another site, without opening it (Garoua: 70 000)', Number(garoua.rows[0].c) === 70000, JSON.stringify(garoua.rows))
 await expectErr('not the trading company', 'comptable', `select * from public.soldes_comptables('2000-01-01', current_date, false, $1)`, [NEG], 'introuvable')
 
+// ---------- 0045: invoice made at the time of the sale ----------
+try {
+  await db.exec(readFileSync(new URL('0045_facture_a_la_vente.sql', MIG), 'utf8'))
+  ok('migration 0045 runs', true)
+} catch (e) { ok('migration 0045 runs', false, e.message); process.exit(1) }
+const factureDe = async (who, vente) => (await oneP(who, `select public.facture_pour($1) as id`, [vente])).id
+const VA1 = (await oneP('kenfack', `insert into public.ventes (bande_id, client_id, produit, unite, quantite, prix_unitaire, nombre_sujets, mode_paiement) values ($1, $2, 'poulets', 'piece', 3, 3500, 3, 'especes') returning id`, [DOM, CLB])).id
+const FA1 = await factureDe('kenfack', VA1)
+const fa1 = (await oneP('kenfack', `select public.facture_complete($1) as f`, [FA1])).f
+ok('a farm sale gets its invoice at once (Client B, 10 500)', !!FA1 && fa1.facture.client_nom === 'Client B' && Number(fa1.facture.total_ttc) === 10500 && fa1.lignes.length === 1, JSON.stringify(fa1.facture))
+const VA2 = (await oneP('employe', `insert into public.ventes (bande_id, produit, unite, quantite, prix_unitaire, nombre_sujets, mode_paiement, date_vente) values ($1, 'poulets', 'piece', 1, 3500, 1, 'especes', current_date - 3) returning id`, [DOM])).id
+const FA2 = await factureDe('employe', VA2)
+ok('a walk-in sale typed by the employee, even back-dated, gets an invoice to "Client comptant"', !!FA2
+  && (await oneP('employe', `select public.facture_complete($1) as f`, [FA2])).f.facture.client_nom === 'Client comptant')
+await expectErr('the employee cannot open an invoice of somebody else', 'employe', `select public.facture_complete($1)`, [FA1], 'introuvable')
+const VBQ = (await as('vendeur', `insert into public.ventes_boutique (boutique_id, produit, forme, unite, quantite, nombre_sujets, prix_unitaire, mode_paiement, client_nom) values ($1, 'poulet', 'vivant', 'piece', 2, 2, 4000, 'especes', 'Mme Ngo') returning id`, [BQ])).rows[0].id
+const FBQ = (await oneP('vendeur', `select public.facture_pour(null, $1) as id`, [VBQ])).id
+const fbq = (await oneP('vendeur', `select public.facture_complete($1) as f`, [FBQ])).f
+ok('a shop sale gets one invoice to the name typed (Mme Ngo, 8 000), the seller opens it', fbq.facture.client_nom === 'Mme Ngo' && Number(fbq.facture.total_ttc) === 8000 && fbq.societe.raison_sociale === 'HENZO SARL', JSON.stringify(fbq.facture))
+await expectErr('the seller cannot open a farm invoice', 'vendeur', `select public.facture_complete($1)`, [FA1], 'introuvable')
+const numeros = (await as('ali', `select numero from public.factures where id in ($1, $2) order by sequence`, [FA1, FA2])).rows.map((r) => Number(r.numero.slice(-4)))
+ok('automatic invoices keep the company numbering', numeros.length === 2 && numeros[1] === numeros[0] + 1, JSON.stringify(numeros))
+await expectOk('ali cancels a farm sale', 'ali', `update public.ventes set annulee = true, motif_annulation = 'Erreur' where id = $1`, [VA1])
+ok('its invoice is cancelled with it', (await oneP('ali', `select annulee from public.factures where id = $1`, [FA1])).annulee === true)
+await expectOk('ali cancels the shop sale', 'ali', `update public.ventes_boutique set annulee = true, motif_annulation = 'Erreur de prix' where id = $1`, [VBQ])
+ok('the shop invoice is cancelled too', (await oneP('ali', `select annulee from public.factures where id = $1`, [FBQ])).annulee === true)
+ok('the journal stays balanced', (await as('dahirou', `select piece from public.journal_comptable group by piece having sum(debit) <> sum(credit)`)).rows.length === 0)
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))

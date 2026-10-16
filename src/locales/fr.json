@@ -1635,7 +1635,7 @@
     },
     "fact": {
       "title": "Factures",
-      "hint": "Numérotées sans trou. Une vente n’est facturée qu’une fois.",
+      "hint": "Chaque vente reçoit sa facture au moment où elle est enregistrée. Numérotées sans trou.",
       "none": "Aucune facture pour l’instant.",
       "new": "Nouvelle facture",
       "create": "Créer la facture",
@@ -1669,7 +1669,10 @@
       "cancelTitle": "Annuler la facture {{n}}",
       "clientPh": "Écrivez le nom du client",
       "knownClient": "Client enregistré : ses ventes s’affichent.",
-      "newClient": "Nouveau nom : choisissez parmi les ventes faites sans client."
+      "newClient": "Nouveau nom : choisissez parmi les ventes faites sans client.",
+      "pendingSale": "La facture sera numérotée dès que la vente sera envoyée (réseau).",
+      "openInvoice": "Ouvrir la facture",
+      "group": "Regrouper des ventes plus anciennes sur une facture"
     },
     "imp": {
       "title": "Impôts {{annee}}",
