@@ -35,10 +35,11 @@ export default function Livres() {
   const [vue, setVue] = useState('balance')
   const fiche = useQuery(async () => must(await supabase.rpc('fiche_societe')))
   const plusieurs = Number(fiche.data?.nombre_sites ?? 1) > 1
-  const [toute, setToute] = useState(true)   // a company with several sites: one set of accounts by default
-  p.toute = plusieurs && toute
-  p.site = fiche.data ? profile?.ferme_id : null
-  const soldes = useQuery(async () => must(await supabase.rpc('soldes_comptables', { p_debut: p.debut, p_fin: p.fin, p_toute_societe: p.toute })), [p.debut, p.fin, p.toute])
+  // a company with several sites: one set of accounts by default, or any one site (without opening it)
+  const [perimetre, setPerimetre] = useState('societe')
+  p.toute = plusieurs && perimetre === 'societe'
+  p.site = !fiche.data ? null : plusieurs ? (perimetre === 'societe' ? null : perimetre) : profile?.ferme_id
+  const soldes = useQuery(async () => must(await supabase.rpc('soldes_comptables', { p_debut: p.debut, p_fin: p.fin, p_toute_societe: p.toute, p_site: p.toute ? null : p.site })), [p.debut, p.fin, p.toute, p.site])
 
   return (
     <div className="stack">
@@ -57,9 +58,9 @@ export default function Livres() {
           </label>
           {plusieurs && (
             <label className="field compact-field"><span>{t('livres.scope')}</span>
-              <select value={toute ? 'societe' : 'site'} onChange={(e) => setToute(e.target.value === 'societe')}>
+              <select value={perimetre} onChange={(e) => setPerimetre(e.target.value)}>
                 <option value="societe">{t('livres.wholeCompany')}</option>
-                <option value="site">{t('livres.thisSite')} ({fiche.data.site})</option>
+                {(fiche.data.sites ?? []).map((x) => <option key={x.id} value={x.id}>{x.nom}</option>)}
               </select>
             </label>
           )}

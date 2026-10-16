@@ -1356,6 +1356,17 @@ await expectErr('the accountant cannot pay a salary', 'comptable', `select publi
 await expectNoRows('the accountant cannot validate an expense', 'comptable', `update public.depenses set statut = 'validee' where statut = 'a_valider' returning id`)
 await expectErr('the accountant cannot cancel an invoice', 'comptable', `select public.annuler_facture($1, 'x')`, [FSG])
 
+// ---------- 0044: pick any site in the accounts ----------
+try {
+  await db.exec(readFileSync(new URL('0044_perimetre_sites.sql', MIG), 'utf8'))
+  ok('migration 0044 runs', true)
+} catch (e) { ok('migration 0044 runs', false, e.message); process.exit(1) }
+const ficheC = (await one('comptable', `select public.fiche_societe() f`)).f
+ok('the company sheet lists its sites by name', ficheC.sites.map((x) => x.nom).join() === 'Ferme HENZO,Ferme Nord,HENZO Garoua', JSON.stringify(ficheC.sites))
+const garoua = await as('comptable', `select sum(credit_periode) c from public.soldes_comptables('2000-01-01', current_date, false, $1) where cle = 'vente_poulets'`, [SITE])
+ok('the balance of another site, without opening it (Garoua: 70 000)', Number(garoua.rows[0].c) === 70000, JSON.stringify(garoua.rows))
+await expectErr('not the trading company', 'comptable', `select * from public.soldes_comptables('2000-01-01', current_date, false, $1)`, [NEG], 'introuvable')
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))
