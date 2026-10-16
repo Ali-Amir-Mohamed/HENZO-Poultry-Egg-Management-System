@@ -1666,7 +1666,10 @@
       "bank": "Paiement par virement",
       "missingIdentity": "Le comptable doit compléter la fiche société (raison sociale, NIU, RCCM) dans Compta > Société : ces mentions doivent figurer sur les factures.",
       "cancel": "Annuler la facture",
-      "cancelTitle": "Annuler la facture {{n}}"
+      "cancelTitle": "Annuler la facture {{n}}",
+      "clientPh": "Écrivez le nom du client",
+      "knownClient": "Client enregistré : ses ventes s’affichent.",
+      "newClient": "Nouveau nom : choisissez parmi les ventes faites sans client."
     },
     "imp": {
       "title": "Impôts {{annee}}",

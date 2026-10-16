@@ -1666,7 +1666,10 @@
       "bank": "Payment by transfer",
       "missingIdentity": "The accountant must fill in the company sheet (name, NIU, RCCM) in Accounts > Company: they must appear on invoices.",
       "cancel": "Cancel the invoice",
-      "cancelTitle": "Cancel invoice {{n}}"
+      "cancelTitle": "Cancel invoice {{n}}",
+      "clientPh": "Type the customer name",
+      "knownClient": "Registered customer: their sales are shown.",
+      "newClient": "New name: pick among the sales made without a customer."
     },
     "imp": {
       "title": "Taxes {{annee}}",

@@ -27,8 +27,12 @@ export default function Factures() {
     return { factures: must(factures).map((f) => ({ ...f, reste: reste[f.id] ?? 0 })), clients: must(clients) }
   })
 
-  const [client, setClient] = useState('')
-  const [nomPassage, setNomPassage] = useState('')
+  // The customer's name is typed: an existing customer is recognised (its sales, its NIU), otherwise it is a new name
+  // and the sales made without a customer are offered
+  const [nom, setNom] = useState('')
+  const norme = (x) => x.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+  const trouve = nom.trim() ? (q.data?.clients ?? []).find((c) => norme(c.nom) === norme(nom)) : null
+  const client = !nom.trim() ? '' : trouve ? trouve.id : 'passage'
   const [date, setDate] = useState(localDate())
   const [notes, setNotes] = useState('')
   const [choix, setChoix] = useState([])
@@ -45,7 +49,7 @@ export default function Factures() {
   const creer = async () => {
     if (choix.length === 0) throw new Error(t('compta.fact.pickSales'))
     const id = must(await supabase.rpc('creer_facture', {
-      p_ventes: choix, p_date: date, p_client_nom: client === 'passage' ? nomPassage : null, p_notes: notes || null
+      p_ventes: choix, p_date: date, p_client_nom: client === 'passage' ? nom.trim() : null, p_notes: notes || null
     }))
     navigate(`/facture/${id}`)
     return t('compta.fact.created')
@@ -74,13 +78,11 @@ export default function Factures() {
         <FormCard title={t('compta.fact.new')} icon="receipt" onSubmit={creer} submitLabel={t('compta.fact.create')}>
           <div className="grid-2">
             <Field label={t('recu.client')}>
-              <select required value={client} onChange={(e) => { setClient(e.target.value); setChoix([]) }}>
-                <option value="">—</option>
-                {q.data.clients.map((c) => <option key={c.id} value={c.id}>{c.nom}</option>)}
-                <option value="passage">{t('compta.fact.walkIn')}</option>
-              </select>
+              <input required list="clients-facture" value={nom} placeholder={t('compta.fact.clientPh')} autoComplete="off"
+                onChange={(e) => { setNom(e.target.value); setChoix([]) }} />
+              <datalist id="clients-facture">{q.data.clients.map((c) => <option key={c.id} value={c.nom} />)}</datalist>
+              {nom.trim() && <small className="muted">{trouve ? t('compta.fact.knownClient') : t('compta.fact.newClient')}</small>}
             </Field>
-            {client === 'passage' && <Field label={t('compta.fact.clientName')}><input required value={nomPassage} onChange={(e) => setNomPassage(e.target.value)} /></Field>}
             <Field label={t('compta.fact.date')}><input type="date" required value={date} onChange={(e) => setDate(e.target.value)} /></Field>
           </div>
           {client && (
