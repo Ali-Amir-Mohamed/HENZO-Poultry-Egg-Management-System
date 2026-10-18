@@ -1490,6 +1490,69 @@ ok('the main farm still sees the shop and the site shipment', (await as('ali', `
 ok('the journal stays balanced with sites', (await as('dahirou', `select piece from public.journal_comptable group by piece having sum(debit) <> sum(credit)`)).rows.length === 0)
 }
 
+// ---------- 0051: HENZO AGRO chick orders, deposits, commissions ----------
+try {
+  await db.exec(readFileSync(new URL('0051_commandes_poussins.sql', MIG), 'utf8'))
+  ok('migration 0051 runs', true)
+} catch (e) { ok('migration 0051 runs', false, e.message); process.exit(1) }
+{
+for (const who of ['kenfack', 'dahirou', 'ali']) await as(who, `select public.changer_ferme($1)`, [NEG])
+const PCH = (await db.query(`select id from public.articles where ferme_id = $1 and categorie = 'poussins' limit 1`, [NEG])).rows[0].id
+const COUV = (await oneP('kenfack', `insert into public.tiers (type_tiers, nom) values ('fournisseur', 'Couvoir Sud') returning id`)).id
+const ELV = (await oneP('kenfack', `insert into public.tiers (type_tiers, nom, credit_autorise, plafond_credit) values ('client', 'Éleveur Fotso', true, 500000) returning id`)).id
+await as('kenfack', `insert into public.mouvements_stock (article_id, type_mouvement, quantite) values ($1, 'entree', 1000)`, [PCH])
+const stockP = async () => Number((await db.query(`select coalesce(sum(case type_mouvement when 'sortie' then -quantite else quantite end), 0) s from public.mouvements_stock where article_id = $1`, [PCH])).rows[0].s)
+const caisseNeg = async (mode) => Number((await db.query(`select solde from public.soldes_caisses where ferme_id = $1 and mode = $2 and activite = 'chair'`, [NEG, mode])).rows[0].solde)
+const equilibre = async () => (await as('dahirou', `select piece from public.journal_comptable group by piece having sum(debit) <> sum(credit)`)).rows.length === 0
+const CMD = (await oneP('kenfack', `select public.creer_commande_eleveur($1, $2, $3, 'Cobb 500', 500, current_date + 7, 450, 'revente') as id`, [ELV, COUV, PCH])).id
+ok('kenfack takes an order of 500 chicks at 450 F', !!CMD)
+await expectErr('dahirou does not take orders', 'dahirou', `select public.creer_commande_eleveur($1, $2, $3, 'x', 1, current_date, 1, 'revente')`, [ELV, COUV, PCH], 'exploitation')
+const esp0 = await caisseNeg('especes')
+await expectOk('the farmer pays a deposit of 100 000', 'kenfack', `select public.verser_avance_commande($1, 100000, 'especes')`, [CMD])
+ok('the deposit enters the cash box', (await caisseNeg('especes')) === esp0 + 100000)
+await expectErr('a deposit above the order is refused', 'kenfack', `select public.verser_avance_commande($1, 200000, 'especes')`, [CMD], 'dépasse')
+const VC = (await oneP('kenfack', `select public.livrer_commande($1, 480, 'mobile_money', 50000) as id`, [CMD])).id
+const vc = await oneP('kenfack', `select a_credit, montant_encaisse, avance_imputee, montant, public.reste_a_payer_vente(id) reste from public.ventes where id = $1`, [VC])
+ok('delivery of 480: 216 000, deposit 100 000 deducted, 50 000 paid, 66 000 on credit',
+  vc.a_credit === true && Number(vc.montant) === 216000 && Number(vc.avance_imputee) === 100000 && Number(vc.montant_encaisse) === 50000 && Number(vc.reste) === 66000, JSON.stringify(vc))
+ok('480 chicks leave the stock', (await stockP()) === 520)
+ok('the delivery gets its invoice', !!(await oneP('kenfack', `select public.facture_pour($1) as id`, [VC])).id)
+ok('the order is delivered', (await oneP('kenfack', `select statut from public.commandes_eleveurs where id = $1`, [CMD])).statut === 'livree')
+ok('the deposit account is back to zero', Number((await oneP('dahirou', `select coalesce(sum(credit - debit), 0) s from public.journal_comptable where cle = 'clients_avances'`)).s) === 0)
+ok('journal balanced after a delivery with deposit', await equilibre())
+// commission orders
+const CMC = (await oneP('kenfack', `select public.creer_commande_eleveur($1, $2, null, 'Cobb 500', 1000, current_date + 3, 400, 'commission', 'fixe', 25) as id`, [ELV, COUV])).id
+await expectErr('no deposit on a commission order', 'kenfack', `select public.verser_avance_commande($1, 1000, 'especes')`, [CMC], 'couvoir')
+await expectOk('commission order delivered (1 000 chicks)', 'kenfack', `select public.livrer_commande($1, 1000)`, [CMC])
+ok('fixed commission: 1 000 x 25 = 25 000', Number((await oneP('kenfack', `select commission_montant from public.commandes_eleveurs where id = $1`, [CMC])).commission_montant) === 25000)
+const CMP = (await oneP('kenfack', `select public.creer_commande_eleveur($1, $2, null, null, 200, current_date + 3, 400, 'commission', 'pourcentage', 5) as id`, [ELV, COUV])).id
+await expectOk('percentage commission order delivered (200 chicks)', 'kenfack', `select public.livrer_commande($1, 200)`, [CMP])
+ok('percentage commission: 200 x 400 x 5 % = 4 000', Number((await oneP('kenfack', `select commission_montant from public.commandes_eleveurs where id = $1`, [CMP])).commission_montant) === 4000)
+ok('the hatchery owes 29 000', Number((await oneP('dahirou', `select due - recue as r from public.commissions_couvoirs where couvoir_id = $1`, [COUV])).r) === 29000)
+await expectErr('kenfack does not record a commission received', 'kenfack', `select public.recevoir_commission($1, 20000, 'banque')`, [COUV], 'finance')
+await expectOk('dahirou records 20 000 received from the hatchery', 'dahirou', `select public.recevoir_commission($1, 20000, 'banque')`, [COUV])
+ok('9 000 still due by the hatchery', Number((await oneP('dahirou', `select due - recue as r from public.commissions_couvoirs where couvoir_id = $1`, [COUV])).r) === 9000)
+ok('the commission is income in the accounts', Number((await oneP('dahirou', `select coalesce(sum(credit - debit), 0) s from public.journal_comptable where cle = 'commissions'`)).s) === 20000)
+// cancellations
+const CMA = (await oneP('kenfack', `select public.creer_commande_eleveur($1, $2, $3, null, 100, current_date + 10, 450, 'revente') as id`, [ELV, COUV, PCH])).id
+await as('kenfack', `select public.verser_avance_commande($1, 20000, 'especes')`, [CMA])
+await expectOk('kenfack cancels an order and keeps the deposit', 'kenfack', `select public.annuler_commande($1, 'Client parti', false)`, [CMA])
+ok('the kept deposit is recorded', Number((await oneP('kenfack', `select avance_conservee from public.commandes_eleveurs where id = $1`, [CMA])).avance_conservee) === 20000)
+const CMR = (await oneP('kenfack', `select public.creer_commande_eleveur($1, $2, $3, null, 100, current_date + 10, 450, 'revente') as id`, [ELV, COUV, PCH])).id
+await as('kenfack', `select public.verser_avance_commande($1, 10000, 'especes')`, [CMR])
+await expectErr('kenfack does not refund a deposit', 'kenfack', `select public.annuler_commande($1, 'Annulée', true)`, [CMR], 'Dahirou')
+const esp1 = await caisseNeg('especes')
+await expectOk('dahirou cancels and refunds the deposit', 'dahirou', `select public.annuler_commande($1, 'Annulée', true, 'especes')`, [CMR])
+ok('the refund leaves the cash box', (await caisseNeg('especes')) === esp1 - 10000)
+// a delivered sale cancelled: the order is open again
+await expectOk('ali cancels the delivery sale', 'ali', `update public.ventes set annulee = true, motif_annulation = 'Erreur' where id = $1`, [VC])
+ok('the order is open again with its deposit', (await oneP('kenfack', `select statut, avance_disponible from public.commandes_eleveurs_situation where id = $1`, [CMD])).statut === 'en_cours'
+  && Number((await oneP('kenfack', `select avance_disponible from public.commandes_eleveurs_situation where id = $1`, [CMD])).avance_disponible) === 100000)
+ok('the chicks are back in stock', (await stockP()) === 1000)
+ok('journal balanced after commissions and cancellations', await equilibre())
+for (const who of ['kenfack', 'dahirou', 'ali']) await as(who, `select public.changer_ferme($1)`, [fermeAli])
+}
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))

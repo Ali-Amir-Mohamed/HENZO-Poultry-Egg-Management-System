@@ -4,11 +4,12 @@ import { canAccess } from '../config'
 // feed and medicines). The active company of the account decides which one is shown.
 export const estNegoce = (profile) => profile?.ferme?.type_activite === 'negoce'
 
-// Sections that only make sense for a farm
+// Sections that only make sense for a farm, and for the trading company
 export const SECTIONS_ELEVAGE = ['saisie', 'ferme', 'planning', 'analyses', 'boutique']
+export const SECTIONS_NEGOCE = ['commandes']
 
 export const sectionVisible = (section, role, profile) =>
-  canAccess(role, section) && !(estNegoce(profile) && SECTIONS_ELEVAGE.includes(section))
+  canAccess(role, section) && !(estNegoce(profile) && SECTIONS_ELEVAGE.includes(section)) && !(!estNegoce(profile) && SECTIONS_NEGOCE.includes(section))
 
 const lire = (k) => { try { return sessionStorage.getItem(k) } catch { return null } }
 const ecrire = (k, v) => { try { if (v == null) sessionStorage.removeItem(k); else sessionStorage.setItem(k, v) } catch { /* ignore */ } }

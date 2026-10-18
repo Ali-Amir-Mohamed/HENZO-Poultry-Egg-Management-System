@@ -40,6 +40,7 @@ const Compta = lazy(() => import('./pages/Compta'))
 const Facture = lazy(() => import('./pages/Facture'))
 const Bulletin = lazy(() => import('./pages/Bulletin'))
 const AccueilNegoce = lazy(() => import('./pages/negoce/AccueilNegoce'))
+const CommandesEleveurs = lazy(() => import('./pages/negoce/CommandesEleveurs'))
 
 function Guard({ section, children }) {
   const { role } = useAuth()
@@ -141,6 +142,7 @@ export default function App() {
         {/* a seller lands directly on his shop */}
         <Route index element={role === 'vendeur' ? <Navigate to="/boutique" replace /> : role === 'comptable' ? <Navigate to="/compta" replace /> : estNegoce(profile) ? <AccueilNegoce /> : <Dashboard />} />
         <Route path="boutique" element={<Guard section="boutique"><Boutique /></Guard>} />
+        <Route path="commandes" element={<Guard section="commandes"><CommandesEleveurs /></Guard>} />
         <Route path="recu-boutique/:id" element={<RecuBoutique />} />
         <Route path="saisie" element={<Guard section="saisie"><Saisie /></Guard>} />
         <Route path="ferme" element={<Guard section="ferme"><Ferme /></Guard>} />

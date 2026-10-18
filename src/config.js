@@ -45,6 +45,7 @@ export const ACCESS = {
   reglages: [D, X, F],
   boutique: [D, X, F, E, V],
   administration: [D, F, X],      // Ali: everything; Dahirou: land (read) + bank accounts; Kenfack: land (read)
+  commandes: [D, X, F, E],        // HENZO AGRO: chick orders from farmers
   sync: [D, X, F, E, V]
 }
 
@@ -106,6 +107,10 @@ export const PERMISSIONS = {
   'compta.livres': [C],          // accounting books and chart of accounts
   'compta.paie': [C],            // payroll totals (never individual salaries) and payroll settings
   'vente.marchandise': [X, E],   // HENZO AGRO: sell goods from stock
+  'commande.creer': [X, E],      // HENZO AGRO: take a chick order, cash a deposit, deliver
+  'commande.annuler': [X, F],    // cancel an order (the deposit is kept, or refunded by finance)
+  'commande.rembourser': [F],    // refund a deposit
+  'commission.recevoir': [F],    // record a commission paid by a hatchery
   'groupe.receptionner': [X],    // receive a delivery from a group company
   'groupe.refuser': [X, F],      // refuse it
   'groupe.lier': [D, F]          // link a customer / supplier to a group company

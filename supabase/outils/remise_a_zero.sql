@@ -20,6 +20,9 @@
 -- =====================================================================
 
 truncate table
+  public.commissions_recues,
+  public.avances_commandes,
+  public.commandes_eleveurs,
   public.achats_intersocietes,
   public.paiements_impots,
   public.bulletins_paie,
