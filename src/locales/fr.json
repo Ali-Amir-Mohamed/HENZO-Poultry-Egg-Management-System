@@ -1080,7 +1080,9 @@
     "allReceived": "Tout reçu",
     "commissionReceived": "Commission reçue",
     "commissionTitle": "Commission reçue de {{nom}}",
-    "commissionHint": "Reste à recevoir : {{n}}. L’argent entre dans la caisse choisie."
+    "commissionHint": "Reste à recevoir : {{n}}. L’argent entre dans la caisse choisie.",
+    "clientPh": "Nom de l’éleveur",
+    "newClient": "« {{nom}} » est un nouveau client : il sera enregistré avec la commande."
   },
   "dialog": {
     "errorTitle": "Opération impossible",
@@ -2077,7 +2079,10 @@
       "pondeuse": "Caisse secondaire"
     },
     "ordersTitle": "Prochaines livraisons de poussins",
-    "allOrders": "Toutes les commandes"
+    "allOrders": "Toutes les commandes",
+    "clientPh": "Nom du client (vide = client de passage)",
+    "newClientPhone": "Téléphone du nouveau client",
+    "newClient": "« {{nom}} » est un nouveau client : il sera enregistré avec la vente."
   },
   "groupe": {
     "receivedTitle": "Livraisons du groupe à recevoir",

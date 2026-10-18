@@ -8,6 +8,7 @@ import { can, MODES_PAIEMENT } from '../../config'
 import Icon from '../../components/Icon'
 import { day, Empty, Field, FormCard, Loading, money, Panel, Tabs } from '../../components/ui'
 import { useAsk, useRun } from '../../components/Dialog'
+import { clientConnu, idClient } from '../../lib/clients'
 
 // HENZO AGRO – chick orders from farmers, for a delivery date at a hatchery.
 // Resale: HENZO AGRO buys and resells; deposits are deducted on delivery (the rest is paid or on credit) and the invoice is made.
@@ -30,7 +31,7 @@ export default function CommandesEleveurs() {
     ])
     return { commandes: must(cmd), tiers: must(tiers), articles: must(articles), commissions: must(comm) }
   })
-  const vide = { client: '', couvoir: '', type: 'revente', article: '', souche: '', quantite: '', date: '', prix: '', commMode: 'fixe', commValeur: '', notes: '' }
+  const vide = { client: '', telephone: '', couvoir: '', type: 'revente', article: '', souche: '', quantite: '', date: '', prix: '', commMode: 'fixe', commValeur: '', notes: '' }
   const [form, setForm] = useState(vide)
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
 
@@ -41,9 +42,11 @@ export default function CommandesEleveurs() {
   const historique = q.data.commandes.filter((c) => c.statut !== 'en_cours').reverse()
   const parDate = enCours.reduce((m, c) => ({ ...m, [c.date_livraison]: [...(m[c.date_livraison] ?? []), c] }), {})
 
+  const nouveauClient = !!form.client.trim() && !clientConnu(form.client, clients)
   const creer = async () => {
+    const clientId = await idClient(form.client, form.telephone, clients)   // a new farmer is registered on the spot
     must(await supabase.rpc('creer_commande_eleveur', {
-      p_client: form.client, p_couvoir: form.couvoir || null, p_article: form.type === 'revente' ? form.article : null, p_souche: form.souche || null,
+      p_client: clientId, p_couvoir: form.couvoir || null, p_article: form.type === 'revente' ? form.article : null, p_souche: form.souche || null,
       p_quantite: Number(form.quantite), p_date: form.date, p_prix: Number(form.prix) || 0, p_type: form.type,
       p_commission_mode: form.type === 'commission' ? form.commMode : null, p_commission_valeur: form.type === 'commission' ? Number(form.commValeur) || 0 : 0,
       p_notes: form.notes || null
@@ -159,10 +162,10 @@ export default function CommandesEleveurs() {
             <FormCard title={t('commandes.new')} icon="plus" onSubmit={creer}>
               <div className="grid-2">
                 <Field label={t('recu.client')}>
-                  <select required value={form.client} onChange={set('client')}>
-                    <option value="">—</option>{clients.map((c) => <option key={c.id} value={c.id}>{c.nom}</option>)}
-                  </select>
+                  <input required list="clients-commandes" value={form.client} onChange={set('client')} placeholder={t('commandes.clientPh')} autoComplete="off" />
+                  <datalist id="clients-commandes">{clients.map((c) => <option key={c.id} value={c.nom} />)}</datalist>
                 </Field>
+                {nouveauClient && <Field label={t('negoce.newClientPhone')}><input type="tel" value={form.telephone} onChange={set('telephone')} /></Field>}
                 <Field label={t('commandes.hatchery')}>
                   <select required={form.type === 'commission'} value={form.couvoir} onChange={set('couvoir')}>
                     <option value="">—</option>{couvoirs.map((c) => <option key={c.id} value={c.id}>{c.nom}</option>)}
@@ -199,6 +202,7 @@ export default function CommandesEleveurs() {
                 )}
               </div>
               <Field label={t('saisie.notes')}><input value={form.notes} onChange={set('notes')} /></Field>
+              {nouveauClient && <p className="note"><Icon name="users" size={16} />{t('commandes.newClient', { nom: form.client.trim() })}</p>}
               {form.quantite && form.prix && <p className="muted small">{t('commandes.amount', { n: money(Number(form.quantite) * Number(form.prix), lang) })}</p>}
               {q.data.articles.length === 0 && form.type === 'revente' && <p className="note"><Icon name="box" size={16} />{t('commandes.noChickItem')} <Link to="/stock">{t('negoce.manageStock')}</Link></p>}
             </FormCard>

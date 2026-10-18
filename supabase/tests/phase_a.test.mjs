@@ -1553,6 +1553,26 @@ ok('journal balanced after commissions and cancellations', await equilibre())
 for (const who of ['kenfack', 'dahirou', 'ali']) await as(who, `select public.changer_ferme($1)`, [fermeAli])
 }
 
+// ---------- 0052: the client registers himself at the sale ----------
+try {
+  await db.exec(readFileSync(new URL('0052_client_par_nom.sql', MIG), 'utf8'))
+  ok('migration 0052 runs', true)
+} catch (e) { ok('migration 0052 runs', false, e.message); process.exit(1) }
+{
+const nb = async () => (await db.query(`select count(*)::int n from public.tiers where ferme_id = $1`, [fermeAli])).rows[0].n
+const avant = await nb()
+const C1 = (await oneP('kenfack', `select public.client_par_nom('  Restaurant   Le Baobab ', '690 00 00 01') as id`)).id
+ok('a new name typed at the sale creates the client', (await nb()) === avant + 1
+  && (await db.query(`select nom, type_tiers, telephone, credit_autorise from public.tiers where id = $1`, [C1])).rows[0].nom === 'Restaurant Le Baobab')
+const C2 = (await oneP('employe', `select public.client_par_nom('restaurant le baobab') as id`)).id
+ok('the same name with other capitals is the same client', C2 === C1 && (await nb()) === avant + 1)
+const C3 = (await oneP('kenfack', `select public.client_par_nom('Éleveur Ndjock') as id`)).id
+ok('accents do not matter either', (await oneP('kenfack', `select public.client_par_nom('eleveur ndjock') as id`)).id === C3)
+ok('a client created this way has no credit', (await db.query(`select credit_autorise from public.tiers where id = $1`, [C1])).rows[0].credit_autorise === false)
+await expectErr('an empty name is refused', 'kenfack', `select public.client_par_nom('   ')`, [], 'nom du client')
+await expectErr('the seller of a shop does not create farm clients', 'vendeur', `select public.client_par_nom('X')`, [], 'pouvez pas')
+}
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))

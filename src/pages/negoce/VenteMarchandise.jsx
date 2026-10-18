@@ -7,9 +7,11 @@ import { localDate } from '../../lib/stats'
 import Icon from '../../components/Icon'
 import { Field, Loading, money } from '../../components/ui'
 import BoutonFacture from '../../components/BoutonFacture'
+import { clientConnu, idClient } from '../../lib/clients'
 
 // HENZO AGRO: sell goods from stock (chicks, feed, medicines) to a farmer or to a group company.
 // A sale to a group company is always on credit: it becomes a delivery to receive there, and is paid from there.
+// The client is typed by name: a known one is recognised, a new one is registered on the spot.
 export default function VenteMarchandise({ onVendu }) {
   const { t, i18n } = useTranslation()
   const lang = i18n.resolvedLanguage
@@ -20,14 +22,15 @@ export default function VenteMarchandise({ onVendu }) {
     ])
     return { articles: must(articles), clients: must(clients) }
   })
-  const vide = { client_id: '', article_id: '', quantite: '', prix_unitaire: '', paiement: 'especes', acompte: '', date_vente: localDate() }
+  const vide = { client_nom: '', telephone: '', article_id: '', quantite: '', prix_unitaire: '', paiement: 'especes', acompte: '', date_vente: localDate() }
   const [form, setForm] = useState(vide)
   const [etat, setEtat] = useState(null)
   const set = (k) => (e) => { setEtat(null); setForm({ ...form, [k]: e.target.value }) }
 
   if (!ref.data) return <Loading error={ref.error} />
   const article = ref.data.articles.find((a) => a.article_id === form.article_id)
-  const client = ref.data.clients.find((c) => c.id === form.client_id)
+  const client = clientConnu(form.client_nom, ref.data.clients)
+  const nouveau = !!form.client_nom.trim() && !client
   const groupe = !!client?.ferme_liee_id
   const total = Math.round((Number(form.quantite) || 0) * (Number(form.prix_unitaire) || 0))
   const credit = groupe || form.paiement === 'credit'
@@ -35,8 +38,10 @@ export default function VenteMarchandise({ onVendu }) {
   const vendre = async (e) => {
     e.preventDefault()
     setEtat({ busy: true })
+    let clientId
+    try { clientId = await idClient(form.client_nom, form.telephone, ref.data.clients) } catch (err) { return setEtat({ error: err.message }) }
     const row = {
-      client_id: form.client_id || null, produit: 'marchandise', article_id: form.article_id, unite: article?.unite ?? 'piece',
+      client_id: clientId, produit: 'marchandise', article_id: form.article_id, unite: article?.unite ?? 'piece',
       quantite: Number(form.quantite), prix_unitaire: Number(form.prix_unitaire), date_vente: form.date_vente,
       a_credit: credit, mode_paiement: credit ? (Number(form.acompte) > 0 ? 'especes' : null) : form.paiement,
       montant_encaisse: credit ? Number(form.acompte) || 0 : 0
@@ -44,7 +49,7 @@ export default function VenteMarchandise({ onVendu }) {
     const { data, error } = await supabase.from(TABLES.ventes).insert(row).select('id').single()
     if (error) return setEtat({ error: error.message })
     setEtat({ ok: data.id, total, groupe })
-    setForm({ ...vide, client_id: form.client_id, date_vente: form.date_vente })
+    setForm({ ...vide, client_nom: form.client_nom, date_vente: form.date_vente })
     ref.reload()
     onVendu?.()
   }
@@ -57,11 +62,10 @@ export default function VenteMarchandise({ onVendu }) {
       </div>
       <div className="grid-2">
         <Field label={t('recu.client')}>
-          <select value={form.client_id} onChange={set('client_id')}>
-            <option value="">{t('negoce.walkIn')}</option>
-            {ref.data.clients.map((c) => <option key={c.id} value={c.id}>{c.nom}{c.ferme_liee_id ? ` (${t('negoce.group')})` : ''}</option>)}
-          </select>
+          <input list="clients-negoce" value={form.client_nom} onChange={set('client_nom')} placeholder={t('negoce.clientPh')} autoComplete="off" />
+          <datalist id="clients-negoce">{ref.data.clients.map((c) => <option key={c.id} value={c.nom}>{c.ferme_liee_id ? t('negoce.group') : ''}</option>)}</datalist>
         </Field>
+        {nouveau && <Field label={t('negoce.newClientPhone')}><input type="tel" value={form.telephone} onChange={set('telephone')} /></Field>}
         <Field label={t('negoce.product')}>
           <select required value={form.article_id} onChange={set('article_id')}>
             <option value="">—</option>
@@ -87,6 +91,7 @@ export default function VenteMarchandise({ onVendu }) {
         )}
       </div>
       {groupe && <p className="note"><Icon name="users" size={16} />{t('negoce.groupHint', { nom: client.nom })}</p>}
+      {nouveau && <p className="note"><Icon name="users" size={16} />{t('negoce.newClient', { nom: form.client_nom.trim() })}</p>}
       <div className="total-box"><span>{credit ? t('negoce.onCredit') : t('negoce.cash')}</span><strong>{money(total, lang)}</strong></div>
       {etat?.error && <div className="alert danger"><Icon name="alert" size={18} />{etat.error}</div>}
       {etat?.ok && (

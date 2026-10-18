@@ -1080,7 +1080,9 @@
     "allReceived": "All received",
     "commissionReceived": "Commission received",
     "commissionTitle": "Commission received from {{nom}}",
-    "commissionHint": "Left to receive: {{n}}. The money enters the chosen cash box."
+    "commissionHint": "Left to receive: {{n}}. The money enters the chosen cash box.",
+    "clientPh": "Farmer’s name",
+    "newClient": "« {{nom}} » is a new client: they will be registered with the order."
   },
   "dialog": {
     "errorTitle": "Operation not possible",
@@ -2077,7 +2079,10 @@
       "pondeuse": "Second cash box"
     },
     "ordersTitle": "Next chick deliveries",
-    "allOrders": "All orders"
+    "allOrders": "All orders",
+    "clientPh": "Client name (empty = walk-in client)",
+    "newClientPhone": "New client’s phone",
+    "newClient": "« {{nom}} » is a new client: they will be registered with the sale."
   },
   "groupe": {
     "receivedTitle": "Group deliveries to receive",
