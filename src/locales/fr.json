@@ -1045,7 +1045,10 @@
     "type": "Activité",
     "typeNegoce": "Société d’achat et revente (comme HENZO AGRO)",
     "typeSite": "Nouveau site de cette société (même fiche, mêmes factures, même comptabilité)",
-    "switchSite": "Changer de site"
+    "switchSite": "Changer de site",
+    "rename": "Renommer",
+    "renameTitle": "Renommer « {{nom}} »",
+    "renameHint": "Le nouveau nom s’affiche partout dans HENZO. Le nom de l’entreprise sur les factures est la raison sociale de la fiche société (Compta → Société)."
   },
   "filtres": {
     "from": "Du",

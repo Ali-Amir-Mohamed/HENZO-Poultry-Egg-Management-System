@@ -1444,6 +1444,20 @@ await expectErr('nobody moves an employee to the other list', 'dahirou', `update
 const paieB = await expectOk('dahirou pays the office employee by the month', 'dahirou', `select public.payer_salaire($1, date_trunc('month', current_date)::date, 'especes', 0, 0, null)`, [SECB])
 ok('the office pay is recorded', !!paieB && (await as('dahirou', `select 1 from public.paies where employe_id = $1 and not annulee`, [SECB])).rows.length === 1)
 
+// ---------- 0049: rename a farm ----------
+try {
+  await db.exec(readFileSync(new URL('0049_renommer_ferme.sql', MIG), 'utf8'))
+  ok('migration 0049 runs', true)
+} catch (e) { ok('migration 0049 runs', false, e.message); process.exit(1) }
+const nomAvant = (await db.query(`select nom from public.fermes where id = $1`, [fermeAli])).rows[0].nom
+await expectOk('ali renames his farm (extra spaces removed)', 'ali', `select public.renommer_ferme($1, '  Ferme   Site-Obala ')`, [fermeAli])
+ok('the new name is saved', (await db.query(`select nom from public.fermes where id = $1`, [fermeAli])).rows[0].nom === 'Ferme Site-Obala')
+await expectErr('kenfack cannot rename the farm', 'kenfack', `select public.renommer_ferme($1, 'X')`, [fermeAli], 'directeur')
+await expectErr('dahirou cannot rename the farm', 'dahirou', `select public.renommer_ferme($1, 'X')`, [fermeAli], 'directeur')
+await expectErr('an empty name is refused', 'ali', `select public.renommer_ferme($1, '   ')`, [fermeAli], 'nouveau nom')
+await expectErr('the name of another farm is refused', 'ali', `select public.renommer_ferme($1, 'henzo agro')`, [fermeAli], 'déjà ce nom')
+await db.query(`update public.fermes set nom = $2 where id = $1`, [fermeAli, nomAvant])
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))

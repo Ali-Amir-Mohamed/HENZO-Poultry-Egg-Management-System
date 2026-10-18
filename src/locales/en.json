@@ -1045,7 +1045,10 @@
     "type": "Activity",
     "typeNegoce": "Buying and reselling company (like HENZO AGRO)",
     "typeSite": "New site of this company (same sheet, same invoices, same accounts)",
-    "switchSite": "Change site"
+    "switchSite": "Change site",
+    "rename": "Rename",
+    "renameTitle": "Rename « {{nom}} »",
+    "renameHint": "The new name shows everywhere in HENZO. The company name on invoices is the legal name in the company sheet (Accounting → Company)."
   },
   "filtres": {
     "from": "From",

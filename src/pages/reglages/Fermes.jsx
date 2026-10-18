@@ -21,6 +21,17 @@ export default function Fermes() {
     if (pending > 0) return ask.error(t('fermes.pendingFirst', { count: pending }))
     try { await changerFerme(f.ferme_id) } catch (err) { ask.error(err.message) }
   }
+  // Rename a farm or a company (its director); the company name on invoices stays the legal name of the company sheet
+  const renommer = async (f) => {
+    const v = await ask.form({ title: t('fermes.renameTitle', { nom: f.nom }), icon: 'settings', submit: t('dialog.save'), message: t('fermes.renameHint'),
+      fields: [{ name: 'nom', label: t('fermes.name'), value: f.nom, required: true }] })
+    if (!v) return
+    const { error } = await supabase.rpc('renommer_ferme', { p_ferme: f.ferme_id, p_nom: v.nom })
+    if (error) return ask.error(error.message)
+    if (f.active) window.location.reload()   // the open farm: header and caches take the new name
+    else q.reload()
+  }
+
   // A farm created on its own becomes a site of the open company (one sheet, one numbering, common accounts and taxes)
   const rattacher = async (f) => {
     const ouverte = q.data.find((x) => x.active)
@@ -56,6 +67,7 @@ export default function Fermes() {
                 <strong>{f.nom}</strong>
                 <div className="muted small">{t(f.type_activite === 'negoce' ? 'systeme.negoce' : 'systeme.elevage')} · {t(`roles.${f.role}`)}</div>
               </div>
+              {f.role === 'directeur' && <button className="btn ghost sm" onClick={() => renommer(f)}>{t('fermes.rename')}</button>}
               {f.active
                 ? <span className="tag ok">{t('fermes.current')}</span>
                 : <>
