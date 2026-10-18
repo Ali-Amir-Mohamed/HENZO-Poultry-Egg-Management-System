@@ -1043,7 +1043,6 @@
     "current": "Open company",
     "membersHint": "For an account to work in another company: open it, then Settings > Accounts > \"Add an existing account\".",
     "type": "Activity",
-    "typeElevage": "Poultry farm (like HENZO)",
     "typeNegoce": "Buying and reselling company (like HENZO AGRO)",
     "typeSite": "New site of this company (same sheet, same invoices, same accounts)",
     "switchSite": "Change site"

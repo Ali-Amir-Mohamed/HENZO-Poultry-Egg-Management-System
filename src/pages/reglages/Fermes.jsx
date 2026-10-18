@@ -32,7 +32,7 @@ export default function Fermes() {
   }
   const creer = async () => {
     const v = await ask.form({ title: t('fermes.new'), icon: 'plus', submit: t('fermes.create'), fields: [
-      { name: 'type', label: t('fermes.type'), type: 'select', value: estNegoce(profile) ? 'negoce' : 'site', options: [...(estNegoce(profile) ? [] : [{ value: 'site', label: t('fermes.typeSite') }]), { value: 'negoce', label: t('fermes.typeNegoce') }, { value: 'elevage', label: t('fermes.typeElevage') }] },
+      { name: 'type', label: t('fermes.type'), type: 'select', value: estNegoce(profile) ? 'negoce' : 'site', options: [...(estNegoce(profile) ? [] : [{ value: 'site', label: t('fermes.typeSite') }]), { value: 'negoce', label: t('fermes.typeNegoce') }] },
       { name: 'nom', label: t('fermes.name'), required: true, placeholder: 'ex. HENZO AGRO' }
     ], message: t('fermes.newHint') })
     if (!v) return
