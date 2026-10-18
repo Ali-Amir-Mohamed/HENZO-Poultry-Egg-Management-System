@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { usePendingCount } from '../hooks'
 import { useAsk } from './Dialog'
+import Icon from './Icon'
 
 // Accounts kept for the whole device (language, last activity); every other henzo.* cache belongs to a farm
 const KEEP = ['henzo.lastActivity', 'henzo.faceid', 'henzo.faceid.plustard', 'henzo.theme', 'henzo.palette']
@@ -42,9 +43,14 @@ export default function FarmSwitch() {
   return (
     <span className="farm-switch-wrap">
       {memeSysteme.length > 1 && (
-        <select className="farm-switch" value={active.ferme_id} onChange={change} aria-label={t('fermes.switchSite')}>
-          {memeSysteme.map((s) => <option key={s.ferme_id} value={s.ferme_id}>{s.nom}</option>)}
-        </select>
+        // a small label with the real menu laid invisibly on top: on a phone the menu itself must stay at 16px (no zoom on iPhone)
+        <label className="farm-switch">
+          <span>{active.nom}</span>
+          <Icon name="chevron" size={12} className="farm-switch-arrow" />
+          <select value={active.ferme_id} onChange={change} aria-label={t('fermes.switchSite')}>
+            {memeSysteme.map((s) => <option key={s.ferme_id} value={s.ferme_id}>{s.nom}</option>)}
+          </select>
+        </label>
       )}
     </span>
   )
