@@ -7,7 +7,7 @@
 -- À exécuter une fois dans Supabase > SQL Editor, après 0048.
 -- =====================================================================
 
-create function public.renommer_ferme(p_ferme uuid, p_nom text)
+create or replace function public.renommer_ferme(p_ferme uuid, p_nom text)
 returns void
 language plpgsql
 security definer
