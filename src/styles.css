@@ -738,6 +738,41 @@ html, body { overflow-x: clip; }
 @media (max-width: 640px) { .invoice { padding: 14px; } .invoice-title { text-align: left; } .invoice-client { margin-left: 0; } }
 @media print { .invoice { border: none; max-width: none; padding: 0; } }
 
+/* Invoice: simple and elegant */
+.fx { --fx-ink: #1d1b26; --fx-soft: #77748a; --fx-rule: #ebe9f1; --fx-accent: #1f7a34;
+  background: #fff; color: var(--fx-ink); border: 1px solid var(--fx-rule); border-radius: 14px; padding: 32px 28px;
+  max-width: 560px; width: 100%; box-sizing: border-box; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; font-size: .95rem; }
+.fx.cancelled { opacity: .55; }
+.fx-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.fx-brand { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; padding-bottom: 20px; border-bottom: 1px solid var(--fx-rule); }
+.fx-logo { width: 96px; height: auto; display: block; }
+.fx-brand strong { font-size: 1.2rem; letter-spacing: .02em; }
+.fx-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; color: var(--fx-soft); font-size: .85rem; }
+.fx-meta strong { color: var(--fx-ink); font-size: 1rem; white-space: nowrap; }
+.fx-meta span { white-space: nowrap; }
+.fx-label { text-transform: uppercase; letter-spacing: .14em; font-size: .7rem; color: var(--fx-accent); font-weight: 600; }
+.fx-client { display: flex; flex-direction: column; gap: 2px; }
+.fx-client strong { font-size: 1.05rem; }
+.fx-client span:not(.fx-label) { color: var(--fx-soft); font-size: .85rem; }
+.fx-lines { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--fx-rule); }
+.fx-lines li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--fx-rule); }
+.fx-lines li div { display: flex; flex-direction: column; gap: 2px; }
+.fx-lines small { color: var(--fx-soft); font-size: .8rem; }
+.fx-lines b { font-weight: 600; white-space: nowrap; }
+.fx-sub { display: flex; justify-content: flex-end; gap: 16px; color: var(--fx-soft); font-size: .85rem; margin-top: -10px; }
+.fx-total { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 12px; }
+.fx-total span { color: var(--fx-soft); }
+.fx-total strong { white-space: nowrap; font-size: 1.5rem; color: var(--fx-accent); letter-spacing: -.01em; }
+.fx-due, .fx-paid, .fx-notes, .fx-cancel { margin: -12px 0 0; text-align: right; font-size: .85rem; color: var(--fx-soft); }
+.fx-due b { color: #b42318; font-weight: 600; }
+.fx-paid { display: flex; justify-content: flex-end; align-items: center; gap: 4px; color: #1a7f4b; }
+.fx-notes { text-align: left; margin: 0; }
+.fx-cancel { margin: 0; text-align: left; color: #b42318; font-weight: 600; }
+.fx-foot { display: flex; flex-direction: column; gap: 3px; text-align: center; color: var(--fx-soft); padding-top: 14px; border-top: 1px solid var(--fx-rule); }
+.fx-foot small { font-size: .72rem; line-height: 1.4; }
+@media (max-width: 640px) { .fx { padding: 22px 18px; } }
+@media print { .fx { border: none; max-width: none; padding: 0; } }
+
 /* ---------- Payslip ---------- */
 .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 8px; }
 .signatures div { border-top: 1px solid #bbb; padding-top: 6px; min-height: 64px; }

@@ -5,13 +5,13 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../auth/AuthProvider'
 import { must, useQuery } from '../hooks'
 import { can } from '../config'
-import { montantEnLettres } from '../lib/montantEnLettres'
+import { estNegoce } from '../lib/systeme'
 import { envoyerImageWhatsApp } from '../lib/whatsapp'
 import Icon, { Logo } from '../components/Icon'
 import { day, Loading } from '../components/ui'
 import { useAsk, useRun } from '../components/Dialog'
 
-// Official invoice: company identity (NIU, RCCM, capital, seat), client, lines, totals, amount in words.
+// Invoice: simple and clean – company, number and date, client, what was sold, total. Legal details in small print at the bottom.
 // Printable (or saved as PDF from the print window) and shareable on WhatsApp.
 const nombre = (n) => Number(n ?? 0).toLocaleString('fr-FR')
 
@@ -20,7 +20,7 @@ export default function Facture() {
   const navigate = useNavigate()
   const { t, i18n } = useTranslation()
   const lang = i18n.resolvedLanguage
-  const { role } = useAuth()
+  const { role, profile } = useAuth()
   const ask = useAsk()
   const docRef = useRef(null)   // the document, turned into an image for WhatsApp
   const run = useRun()
@@ -60,63 +60,53 @@ export default function Facture() {
       <button className="back no-print" onClick={() => navigate(-1)}><Icon name="chevron" size={16} className="flip" />{t('fiche.back')}</button>
       {manque && <div className="alert warn no-print"><Icon name="alert" size={16} />{t('compta.fact.missingIdentity')}</div>}
 
-      <article ref={docRef} className={`invoice ${f.annulee ? 'cancelled' : ''}`}>
-        <header className="invoice-head">
-          <div className="invoice-company">
-            <Logo size={44} />
-            <div>
-              <strong>{nom}</strong>
-              {identite.map((x) => <small key={x}>{x}</small>)}
-              {contact.length > 0 && <small>{contact.join(' · ')}</small>}
-            </div>
+      <article ref={docRef} className={`fx ${f.annulee ? 'cancelled' : ''}`}>
+        <header className="fx-brand">{estNegoce(profile) ? <Logo size={48} /> : <img src="/logo-societe.png" alt="" className="fx-logo" />}<strong>{nom}</strong></header>
+
+        {f.annulee && <p className="fx-cancel">{t('compta.fact.cancelled')} : {f.motif_annulation}</p>}
+
+        <div className="fx-head">
+          <div className="fx-client">
+            <span className="fx-label">{t('recu.client')}</span>
+            <strong>{f.client_nom}</strong>
+            {f.client_telephone && <span>{f.client_telephone}</span>}
           </div>
-          <div className="invoice-title">
-            <h2>{t('compta.fact.invoice').toUpperCase()}</h2>
-            <div>N° <strong>{f.numero}</strong></div>
-            <div>{t('recu.date')} : {day(f.date_facture, lang)}</div>
+          <div className="fx-meta">
+            <span className="fx-label">{t('compta.fact.invoice')}</span>
+            <strong>{f.numero}</strong>
+            <span>{day(f.date_facture, lang)}</span>
           </div>
-        </header>
+        </div>
 
-        {f.annulee && <div className="alert danger"><Icon name="alert" size={16} />{t('compta.fact.cancelled')} : {f.motif_annulation}</div>}
+        <ul className="fx-lines">
+          {lignes.map((l) => (
+            <li key={l.id}>
+              <div>
+                <span>{l.designation}</span>
+                <small>{nombre(l.quantite)} {l.unite ? t(`unites.${l.unite}`) : ''} × {nombre(l.prix_unitaire)} F</small>
+              </div>
+              <b>{nombre(l.montant)}</b>
+            </li>
+          ))}
+        </ul>
 
-        <section className="invoice-client">
-          <span className="muted small">{t('compta.fact.billedTo')}</span>
-          <strong>{f.client_nom}</strong>
-          {[f.client_niu && `NIU : ${f.client_niu}`, f.client_rccm && `RCCM : ${f.client_rccm}`, f.client_adresse, f.client_telephone].filter(Boolean).map((x) => <small key={x}>{x}</small>)}
-        </section>
+        {f.tva_applicable && (
+          <div className="fx-sub">
+            <span>{t('compta.fact.totalHt')} {nombre(f.total_ht)}</span>
+            <span>{t('compta.fact.vat', { taux: Number(f.taux_tva).toLocaleString('fr-FR') })} {nombre(f.total_tva)}</span>
+          </div>
+        )}
+        <div className="fx-total"><span>{t('compta.fact.totalTtc')}</span><strong>{nombre(f.total_ttc)} FCFA</strong></div>
+        {!f.annulee && (reste > 0
+          ? <p className="fx-due">{paye > 0 && <>{t('recu.paid')} {nombre(paye)} · </>}<b>{t('compta.fact.left')} {nombre(reste)} FCFA</b></p>
+          : <p className="fx-paid"><Icon name="check" size={14} />{t('compta.fact.paid')}</p>)}
+        {f.notes && <p className="fx-notes">{f.notes}</p>}
 
-        <table className="table invoice-lines">
-          <thead><tr><th>{t('compta.fact.designation')}</th><th className="num">{t('recu.qty')}</th><th className="num">{t('compta.fact.unitPrice')}</th><th className="num">{t('recu.amount')}</th></tr></thead>
-          <tbody>
-            {lignes.map((l) => (
-              <tr key={l.id}>
-                <td>{l.designation}</td>
-                <td className="num">{nombre(l.quantite)} {l.unite ? t(`unites.${l.unite}`) : ''}</td>
-                <td className="num">{nombre(l.prix_unitaire)}</td>
-                <td className="num">{nombre(l.montant)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        <dl className="receipt-totals invoice-totals">
-          {f.tva_applicable ? (
-            <>
-              <div><dt>{t('compta.fact.totalHt')}</dt><dd>{nombre(f.total_ht)} FCFA</dd></div>
-              <div><dt>{t('compta.fact.vat', { taux: Number(f.taux_tva).toLocaleString('fr-FR') })}</dt><dd>{nombre(f.total_tva)} FCFA</dd></div>
-            </>
-          ) : <div><dt className="muted">{t('compta.fact.noVat')}</dt><dd /></div>}
-          <div className="main"><dt>{t('compta.fact.totalTtc')}</dt><dd>{nombre(f.total_ttc)} FCFA</dd></div>
-          {!f.annulee && paye > 0 && <div><dt>{t('recu.paid')}</dt><dd>{nombre(paye)} FCFA</dd></div>}
-          {!f.annulee && reste > 0 && <div className="due"><dt>{t('compta.fact.left')}</dt><dd>{nombre(reste)} FCFA</dd></div>}
-        </dl>
-
-        <p className="invoice-words">{t('compta.fact.words', { montant: montantEnLettres(f.total_ttc) })}</p>
-        {f.notes && <p className="small">{f.notes}</p>}
-        <footer className="invoice-foot">
+        <footer className="fx-foot">
+          {[...identite, ...contact].length > 0 && <small>{[...identite, ...contact].join(' · ')}</small>}
           {s.banque_paiement && <small>{t('compta.fact.bank')} : {s.banque_paiement}</small>}
           {s.mentions_facture && <small>{s.mentions_facture}</small>}
-          <small>{nom}{identite.length ? ` – ${identite.join(' – ')}` : ''}</small>
+          {!f.tva_applicable && <small>{t('compta.fact.noVat')}</small>}
         </footer>
       </article>
 
