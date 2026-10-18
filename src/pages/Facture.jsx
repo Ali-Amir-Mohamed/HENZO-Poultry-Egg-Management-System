@@ -16,6 +16,8 @@ import { useAsk, useRun } from '../components/Dialog'
 // net to pay shaded, amount in words, signature. A5 landscape when printed; the same picture goes on WhatsApp.
 // Printable (or saved as PDF from the print window) and shareable on WhatsApp.
 const nombre = (n) => Number(n ?? 0).toLocaleString('fr-FR')
+// "300 pièces", "10 plateaux", but "26,5 kg" (every unit label takes an s in the plural, in French and English, except kg)
+const pluriel = (l, label) => (Number(l.quantite) >= 2 && l.unite !== 'kg' ? `${label}s` : label)
 
 export default function Facture() {
   const { id } = useParams()
@@ -48,6 +50,7 @@ export default function Facture() {
   }
 
   if (!q.data) return <Loading error={q.error} />
+  const uniteDe = (l) => (l.unite ? pluriel(l, t(`unites.${l.unite}`)) : '')
   const { f, lignes, s, reste, paiement, caissier } = q.data
   const nom = s.raison_sociale || s.nom || t('app.name')
   const identite = [
@@ -114,7 +117,7 @@ export default function Facture() {
             {lignes.map((l) => (
               <tr key={l.id}>
                 <td>{l.designation}</td>
-                <td className="num">{nombre(l.quantite)} {l.unite ? t(`unites.${l.unite}`) : ''}</td>
+                <td className="num">{nombre(l.quantite)} {uniteDe(l)}</td>
                 <td className="num">{nombre(l.prix_unitaire)}</td>
                 <td className="num">{nombre(l.montant)}</td>
               </tr>
