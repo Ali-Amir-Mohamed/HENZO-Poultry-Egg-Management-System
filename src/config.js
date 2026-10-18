@@ -70,8 +70,7 @@ export const PERMISSIONS = {
   'capital.allocate': [D, X, F], // investors' capital placed in each flock
   'salaires': [D, F],            // see employees and pay (confidential)
   'salaires.payer': [F],         // pay advances and salaries (Dahirou only)
-  'equipe': [X],                 // add an employee, change his job, without salaries (Kenfack)
-  'equipe.voir': [D, X, F],      // see the team (Ali and Dahirou read only)
+  'equipe': [X, D, F],           // add an employee, change his job, without salaries (Kenfack; Ali and Dahirou for office staff)
   'admin.complet': [D],          // documents, deadlines, editing land
   'admin.terrains': [D, F, X],   // see the land
   'admin.banques': [D, F],       // bank accounts

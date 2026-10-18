@@ -5,18 +5,15 @@ import { must, useQuery } from '../../hooks'
 import Icon from '../../components/Icon'
 import { day, Empty, Field, FormCard, Loading, Panel } from '../../components/ui'
 import { useAsk, useRun } from '../../components/Dialog'
-import { useAuth } from '../../auth/AuthProvider'
-import { can } from '../../config'
 
 // Team (exploitation): add an employee, change his job, mark a departure. Salaries are never shown here:
-// finance (Dahirou) is notified to set or check the salary. Ali and Dahirou see the team read only.
+// finance (Dahirou) is notified to set or check the salary. Ali and Dahirou can add staff too (office staff such as
+// the accountant is not Kenfack's domain); whoever did not make the change is notified.
 export default function Equipe() {
   const { t, i18n } = useTranslation()
   const lang = i18n.resolvedLanguage
   const ask = useAsk()
   const run = useRun()
-  const { role } = useAuth()
-  const gere = can(role, 'equipe')
   const q = useQuery(async () => must(await supabase.from('equipe').select('*').order('actif', { ascending: false }).order('nom')))
   const vide = { nom: '', telephone: '', poste: '', date_embauche: '' }
   const [form, setForm] = useState(vide)
@@ -49,24 +46,23 @@ export default function Equipe() {
                 <div className="grow">
                   <strong>{e.nom}</strong>{e.poste ? <span className="muted"> · {e.poste}</span> : null}
                   <div className="muted small">{[e.telephone, e.date_embauche && t('equipe.since', { d: day(e.date_embauche, lang) }), !e.actif && t('salaires.left')].filter(Boolean).join(' · ') || '—'}</div>
-                  {gere && <div className="row-actions"><button className="btn ghost sm" onClick={() => modifier(e)}>{t('common.edit')}</button></div>}
+                  <div className="row-actions"><button className="btn ghost sm" onClick={() => modifier(e)}>{t('common.edit')}</button></div>
                 </div>
               </li>
             ))}
           </ul>
         )}
-        {gere ? <p className="note"><Icon name="wallet" size={16} />{t('equipe.salaryHint')}</p>
-          : <p className="note"><Icon name="note" size={16} />{t('equipe.readOnly')}</p>}
+        <p className="note"><Icon name="wallet" size={16} />{t('equipe.salaryHint')}</p>
       </Panel>
 
-      {gere && <FormCard title={t('salaires.new')} icon="users" onSubmit={creer}>
+      <FormCard title={t('salaires.new')} icon="users" onSubmit={creer}>
         <div className="grid-2">
           <Field label={t('reglages.name')}><input required value={form.nom} onChange={set('nom')} /></Field>
           <Field label={t('salaires.job')}><input value={form.poste} onChange={set('poste')} placeholder={t('salaires.jobPh')} /></Field>
           <Field label={t('reglages.phone')}><input type="tel" value={form.telephone} onChange={set('telephone')} /></Field>
           <Field label={t('salaires.hired')}><input type="date" value={form.date_embauche} onChange={set('date_embauche')} /></Field>
         </div>
-      </FormCard>}
+      </FormCard>
     </>
   )
 }

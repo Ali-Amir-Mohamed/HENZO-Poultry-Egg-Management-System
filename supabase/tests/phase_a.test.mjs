@@ -1406,6 +1406,22 @@ const VA3 = (await oneP('kenfack', `insert into public.ventes (bande_id, client_
 const fa3 = (await oneP('kenfack', `select public.facture_complete(public.facture_pour($1)) as f`, [VA3])).f
 ok('a credit sale with a Mobile Money deposit shows both modes', fa3.paiement.includes('credit') && fa3.paiement.includes('mobile_money') && fa3.paiement.length === 2, JSON.stringify(fa3.paiement))
 
+// ---------- 0047: Ali and Dahirou add employees too ----------
+try {
+  await db.exec(readFileSync(new URL('0047_equipe_associes.sql', MIG), 'utf8'))
+  ok('migration 0047 runs', true)
+} catch (e) { ok('migration 0047 runs', false, e.message); process.exit(1) }
+await db.exec(`delete from public.notifications`)
+const CPT = (await oneP('dahirou', `select public.ajouter_employe($1, $2, $3) as id`, ['Mme Comptable', '691000000', 'Comptable'])).id
+ok('dahirou adds the accountant to the team, with no salary yet', Number((await oneP('dahirou', `select salaire_mensuel from public.employes where id = $1`, [CPT])).salaire_mensuel) === 0)
+const avis = async () => (await db.query(`select role_destinataire::text r from public.notifications where type_notification = 'nouvel_employe' order by created_at`)).rows.map((x) => x.r)
+ok('kenfack is told, dahirou is not told about his own addition', JSON.stringify(await avis()) === '["exploitation"]', JSON.stringify(await avis()))
+const SEC = (await oneP('ali', `select public.ajouter_employe($1) as id`, ['Secrétaire'])).id
+ok('ali adds an employee: dahirou (salary) and kenfack are told', !!SEC && (await avis()).filter((r) => r === 'finance').length === 1 && (await avis()).filter((r) => r === 'exploitation').length === 2, JSON.stringify(await avis()))
+await expectOk('ali marks a departure', 'ali', `select public.modifier_employe($1, 'Secrétaire', null, null, false)`, [SEC])
+await expectErr('the employee still cannot add anyone', 'employe', `select public.ajouter_employe('x')`, [], 'pouvez pas')
+await expectErr('the accountant still cannot add anyone', 'comptable', `select public.ajouter_employe('x')`, [], 'pouvez pas')
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))
