@@ -1,6 +1,6 @@
 import { lazy, useEffect, useState } from 'react'
 import ChoixSysteme from './pages/ChoixSysteme'
-import { choixFait, ecrireRefus, ecrireVise, ecrireViseSite, estNegoce, lireVise, lireViseSite, marquerChoix } from './lib/systeme'
+import { choixFait, ecrireRefus, ecrireVise, ecrireViseSite, estNegoce, lireVise, lireViseSite, marquerChoix, oublierChoix } from './lib/systeme'
 import { changerFerme } from './components/FarmSwitch'
 import Portail from './components/Portail'
 import LanguageSwitch from './components/LanguageSwitch'
@@ -71,6 +71,7 @@ export default function App() {
       const cible = site ? liste.find((s) => s.ferme_id === site.id) : cibles[0]
       ecrireVise(null)
       ecrireViseSite(null)
+      setVise(null)   // after signing out, the portal is shown again (not the sign-in page of this system)
       if (!site && cibles.length > 1) { setTypeInitial(v); return setSocietes(liste) }
       marquerChoix()
       setChoisi(true)
@@ -78,7 +79,11 @@ export default function App() {
       else if (!cible.active) changerFerme(cible.ferme_id).catch(() => {})
     }, () => setSocietes([]))
   }, [session, profile, choisi])
+  // A card picked on the portal always wins over the choice made earlier in this browser session
+  // (otherwise, after signing out of the farm, picking HENZO AGRO would open the farm again)
+  const nouveauChoix = () => { oublierChoix(); setChoisi(false); setSocietes(null); setTypeInitial(null) }
   const choisirAvantConnexion = async (c) => {
+    nouveauChoix()
     // farming: which site? (only the site names are readable before signing in)
     if (c.type === 'elevage' && navigator.onLine) {
       const { data } = await supabase.rpc('portail_sites')
@@ -86,7 +91,7 @@ export default function App() {
     }
     ecrireVise(c.type); setVise(c.type)
   }
-  const choisirSiteAvantConnexion = (c) => { ecrireViseSite({ id: c.cle, nom: c.nom }); ecrireVise('elevage'); setVise('elevage') }
+  const choisirSiteAvantConnexion = (c) => { nouveauChoix(); ecrireViseSite({ id: c.cle, nom: c.nom }); ecrireVise('elevage'); setVise('elevage') }
   const retourPortail = () => { ecrireVise(null); ecrireViseSite(null); setSitesPortail(null); setVise(null) }
 
   if (loading) {
