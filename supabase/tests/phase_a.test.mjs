@@ -1395,6 +1395,17 @@ await expectOk('ali cancels the shop sale', 'ali', `update public.ventes_boutiqu
 ok('the shop invoice is cancelled too', (await oneP('ali', `select annulee from public.factures where id = $1`, [FBQ])).annulee === true)
 ok('the journal stays balanced', (await as('dahirou', `select piece from public.journal_comptable group by piece having sum(debit) <> sum(credit)`)).rows.length === 0)
 
+// ---------- 0046: payment mode and cashier on the invoice ----------
+try {
+  await db.exec(readFileSync(new URL('0046_facture_paiement_caissier.sql', MIG), 'utf8'))
+  ok('migration 0046 runs', true)
+} catch (e) { ok('migration 0046 runs', false, e.message); process.exit(1) }
+const fb2 = (await oneP('vendeur', `select public.facture_complete($1) as f`, [FBQ])).f
+ok('the shop invoice shows cash and the seller as cashier', JSON.stringify(fb2.paiement) === '["especes"]' && fb2.caissier === 'Vendeur Test', JSON.stringify([fb2.paiement, fb2.caissier]))
+const VA3 = (await oneP('kenfack', `insert into public.ventes (bande_id, client_id, produit, unite, quantite, prix_unitaire, nombre_sujets, a_credit, montant_encaisse, mode_paiement) values ($1, (select id from public.tiers where nom = 'Client A' and ferme_id = public.ferme_actuelle()), 'poulets', 'piece', 2, 3500, 2, true, 2000, 'mobile_money') returning id`, [DOM])).id
+const fa3 = (await oneP('kenfack', `select public.facture_complete(public.facture_pour($1)) as f`, [VA3])).f
+ok('a credit sale with a Mobile Money deposit shows both modes', fa3.paiement.includes('credit') && fa3.paiement.includes('mobile_money') && fa3.paiement.length === 2, JSON.stringify(fa3.paiement))
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))

@@ -1672,7 +1672,11 @@
       "newClient": "Nouveau nom : choisissez parmi les ventes faites sans client.",
       "pendingSale": "La facture sera numérotée dès que la vente sera envoyée (réseau).",
       "openInvoice": "Ouvrir la facture",
-      "group": "Regrouper des ventes plus anciennes sur une facture"
+      "group": "Regrouper des ventes plus anciennes sur une facture",
+      "cancelledStamp": "ANNULÉE",
+      "for": "Pour {{nom}}",
+      "signature": "Signature et cachet",
+      "noVatShort": "Non applicable"
     },
     "imp": {
       "title": "Impôts {{annee}}",

@@ -1672,7 +1672,11 @@
       "newClient": "New name: pick among the sales made without a customer.",
       "pendingSale": "The invoice will be numbered as soon as the sale is sent (network).",
       "openInvoice": "Open the invoice",
-      "group": "Group older sales on one invoice"
+      "group": "Group older sales on one invoice",
+      "cancelledStamp": "CANCELLED",
+      "for": "For {{nom}}",
+      "signature": "Signature and stamp",
+      "noVatShort": "Not applicable"
     },
     "imp": {
       "title": "Taxes {{annee}}",
