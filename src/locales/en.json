@@ -1618,7 +1618,8 @@
     "created": "Employee added. Dahirou is notified to set the salary.",
     "editHint": "Salaries are handled by Dahirou: he is notified if the job changes or the employee leaves.",
     "since": "since {{d}}",
-    "salaryHint": "Salaries are not shown here: Dahirou sets and pays them."
+    "salaryHint": "Salaries are not shown here: Dahirou sets and pays them.",
+    "readOnly": "Read only: Kenfack adds employees and changes their job. Salaries are in Money → Salaries."
   },
   "compta": {
     "tabs": {

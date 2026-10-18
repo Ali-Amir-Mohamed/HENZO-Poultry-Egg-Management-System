@@ -71,6 +71,7 @@ export const PERMISSIONS = {
   'salaires': [D, F],            // see employees and pay (confidential)
   'salaires.payer': [F],         // pay advances and salaries (Dahirou only)
   'equipe': [X],                 // add an employee, change his job, without salaries (Kenfack)
+  'equipe.voir': [D, X, F],      // see the team (Ali and Dahirou read only)
   'admin.complet': [D],          // documents, deadlines, editing land
   'admin.terrains': [D, F, X],   // see the land
   'admin.banques': [D, F],       // bank accounts

@@ -1618,7 +1618,8 @@
     "created": "Employé ajouté. Dahirou est prévenu pour fixer son salaire.",
     "editHint": "Le salaire est géré par Dahirou : il est prévenu si le poste change ou si l’employé part.",
     "since": "depuis le {{d}}",
-    "salaryHint": "Les salaires ne s’affichent pas ici : Dahirou les fixe et les paie."
+    "salaryHint": "Les salaires ne s’affichent pas ici : Dahirou les fixe et les paie.",
+    "readOnly": "Lecture seule : c’est Kenfack qui ajoute les employés et change leur poste. Les salaires sont dans Argent → Salaires."
   },
   "compta": {
     "tabs": {
