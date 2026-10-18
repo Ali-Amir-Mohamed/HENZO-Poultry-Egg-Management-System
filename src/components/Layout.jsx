@@ -18,6 +18,7 @@ export const SECTIONS = [
   { to: '/saisie', key: 'saisie', icon: 'plus' },
   { to: '/ferme', key: 'ferme', icon: 'hen' },
   { to: '/commandes', key: 'commandes', icon: 'calendar' },
+  { to: '/benefices', key: 'benefices', icon: 'chart' },
   { to: '/argent', key: 'argent', icon: 'wallet' },
   { to: '/compta', key: 'compta', icon: 'receipt' },
   { to: '/planning', key: 'planning', icon: 'calendar' },

@@ -10,8 +10,11 @@ import BoutonFacture from '../../components/BoutonFacture'
 import { clientConnu, idClient } from '../../lib/clients'
 
 // HENZO AGRO: sell goods from stock (chicks, feed, medicines) to a farmer or to a group company.
+// Several products in one sale, plus a delivery fee when the goods are taken to the farmer: one invoice for the whole sale.
 // A sale to a group company is always on credit: it becomes a delivery to receive there, and is paid from there.
 // The client is typed by name: a known one is recognised, a new one is registered on the spot.
+const ligneVide = () => ({ article_id: '', quantite: '', prix: '' })
+
 export default function VenteMarchandise({ onVendu }) {
   const { t, i18n } = useTranslation()
   const lang = i18n.resolvedLanguage
@@ -22,34 +25,38 @@ export default function VenteMarchandise({ onVendu }) {
     ])
     return { articles: must(articles), clients: must(clients) }
   })
-  const vide = { client_nom: '', telephone: '', article_id: '', quantite: '', prix_unitaire: '', paiement: 'especes', acompte: '', date_vente: localDate() }
+  const vide = { client_nom: '', telephone: '', paiement: 'especes', acompte: '', livrer: false, frais: '', date_vente: localDate() }
   const [form, setForm] = useState(vide)
+  const [lignes, setLignes] = useState([ligneVide()])
   const [etat, setEtat] = useState(null)
-  const set = (k) => (e) => { setEtat(null); setForm({ ...form, [k]: e.target.value }) }
+  const set = (k) => (e) => { setEtat(null); setForm({ ...form, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }) }
+  const setLigne = (i, k) => (e) => { setEtat(null); setLignes(lignes.map((l, j) => (j === i ? { ...l, [k]: e.target.value } : l))) }
 
   if (!ref.data) return <Loading error={ref.error} />
-  const article = ref.data.articles.find((a) => a.article_id === form.article_id)
   const client = clientConnu(form.client_nom, ref.data.clients)
   const nouveau = !!form.client_nom.trim() && !client
   const groupe = !!client?.ferme_liee_id
-  const total = Math.round((Number(form.quantite) || 0) * (Number(form.prix_unitaire) || 0))
   const credit = groupe || form.paiement === 'credit'
+  const frais = !groupe && form.livrer ? Number(form.frais) || 0 : 0
+  const sousTotal = lignes.reduce((s, l) => s + Math.round((Number(l.quantite) || 0) * (Number(l.prix) || 0)), 0)
+  const total = sousTotal + frais
+  const article = (id) => ref.data.articles.find((a) => a.article_id === id)
 
   const vendre = async (e) => {
     e.preventDefault()
     setEtat({ busy: true })
     let clientId
     try { clientId = await idClient(form.client_nom, form.telephone, ref.data.clients) } catch (err) { return setEtat({ error: err.message }) }
-    const row = {
-      client_id: clientId, produit: 'marchandise', article_id: form.article_id, unite: article?.unite ?? 'piece',
-      quantite: Number(form.quantite), prix_unitaire: Number(form.prix_unitaire), date_vente: form.date_vente,
-      a_credit: credit, mode_paiement: credit ? (Number(form.acompte) > 0 ? 'especes' : null) : form.paiement,
-      montant_encaisse: credit ? Number(form.acompte) || 0 : 0
-    }
-    const { data, error } = await supabase.from(TABLES.ventes).insert(row).select('id').single()
+    const { data, error } = await supabase.rpc('vendre_marchandises', {
+      p_client: clientId,
+      p_lignes: lignes.filter((l) => l.article_id).map((l) => ({ article_id: l.article_id, quantite: Number(l.quantite), prix: Number(l.prix) })),
+      p_livraison: frais, p_mode: credit ? (form.paiement === 'credit' ? 'especes' : form.paiement) : form.paiement,
+      p_a_credit: credit, p_acompte: credit && !groupe ? Number(form.acompte) || 0 : 0, p_date: form.date_vente
+    })
     if (error) return setEtat({ error: error.message })
-    setEtat({ ok: data.id, total, groupe })
+    setEtat({ ok: data, total, groupe })
     setForm({ ...vide, client_nom: form.client_nom, date_vente: form.date_vente })
+    setLignes([ligneVide()])
     ref.reload()
     onVendu?.()
   }
@@ -65,19 +72,44 @@ export default function VenteMarchandise({ onVendu }) {
           <input list="clients-negoce" value={form.client_nom} onChange={set('client_nom')} placeholder={t('negoce.clientPh')} autoComplete="off" />
           <datalist id="clients-negoce">{ref.data.clients.map((c) => <option key={c.id} value={c.nom}>{c.ferme_liee_id ? t('negoce.group') : ''}</option>)}</datalist>
         </Field>
-        {nouveau && <Field label={t('negoce.newClientPhone')}><input type="tel" value={form.telephone} onChange={set('telephone')} /></Field>}
-        <Field label={t('negoce.product')}>
-          <select required value={form.article_id} onChange={set('article_id')}>
-            <option value="">—</option>
-            {ref.data.articles.map((a) => <option key={a.article_id} value={a.article_id} disabled={Number(a.stock) <= 0}>
-              {a.nom} ({Number(a.stock).toLocaleString(lang)} {t(`unites.${a.unite}`)})</option>)}
-          </select>
-        </Field>
-        <Field label={article ? t('negoce.qtyIn', { unite: t(`unites.${article.unite}`) }) : t('recu.qty')}>
-          <input type="number" inputMode="decimal" min="0.01" step="0.01" max={article ? Number(article.stock) : undefined} required value={form.quantite} onChange={set('quantite')} />
-        </Field>
-        <Field label={t('compta.fact.unitPrice')}><input type="number" inputMode="numeric" min="0" required value={form.prix_unitaire} onChange={set('prix_unitaire')} /></Field>
-        <Field label={t('saisie.date')}><input type="date" required value={form.date_vente} onChange={set('date_vente')} /></Field>
+        {nouveau ? <Field label={t('negoce.newClientPhone')}><input type="tel" value={form.telephone} onChange={set('telephone')} /></Field>
+          : <Field label={t('saisie.date')}><input type="date" required value={form.date_vente} onChange={set('date_vente')} /></Field>}
+      </div>
+
+      {lignes.map((l, i) => {
+        const a = article(l.article_id)
+        return (
+          <div key={i} className="vente-ligne">
+            <Field label={i === 0 ? t('negoce.product') : ''}>
+              <select required value={l.article_id} onChange={setLigne(i, 'article_id')}>
+                <option value="">—</option>
+                {ref.data.articles.map((x) => <option key={x.article_id} value={x.article_id} disabled={Number(x.stock) <= 0}>
+                  {x.nom} ({Number(x.stock).toLocaleString(lang)} {t(`unites.${x.unite}`)})</option>)}
+              </select>
+            </Field>
+            <Field label={i === 0 ? t('recu.qty') : ''}>
+              <input type="number" inputMode="decimal" min="0.01" step="0.01" max={a ? Number(a.stock) : undefined} required value={l.quantite} onChange={setLigne(i, 'quantite')}
+                placeholder={a ? t(`unites.${a.unite}`) : ''} />
+            </Field>
+            <Field label={i === 0 ? t('compta.fact.unitPrice') : ''}>
+              <input type="number" inputMode="numeric" min="0" required value={l.prix} onChange={setLigne(i, 'prix')} />
+            </Field>
+            {lignes.length > 1
+              ? <button type="button" className="icon-btn dark" onClick={() => setLignes(lignes.filter((_, j) => j !== i))} aria-label={t('stock.remove')}><Icon name="trash" size={16} /></button>
+              : <span />}
+          </div>
+        )
+      })}
+      <button type="button" className="btn ghost sm" onClick={() => setLignes([...lignes, ligneVide()])}><Icon name="plus" size={14} />{t('negoce.addProduct')}</button>
+
+      <div className="grid-2">
+        {nouveau && <Field label={t('saisie.date')}><input type="date" required value={form.date_vente} onChange={set('date_vente')} /></Field>}
+        {!groupe && (
+          <label className="check-line"><input type="checkbox" checked={form.livrer} onChange={set('livrer')} /><span>{t('negoce.deliver')}</span></label>
+        )}
+        {!groupe && form.livrer && (
+          <Field label={t('negoce.deliveryFee')}><input type="number" inputMode="numeric" min="0" required value={form.frais} onChange={set('frais')} /></Field>
+        )}
         {!groupe && (
           <Field label={t('saisie.paiement')}>
             <select value={form.paiement} onChange={set('paiement')}>
@@ -92,6 +124,7 @@ export default function VenteMarchandise({ onVendu }) {
       </div>
       {groupe && <p className="note"><Icon name="users" size={16} />{t('negoce.groupHint', { nom: client.nom })}</p>}
       {nouveau && <p className="note"><Icon name="users" size={16} />{t('negoce.newClient', { nom: form.client_nom.trim() })}</p>}
+      {frais > 0 && <p className="muted small">{t('negoce.subtotal', { produits: money(sousTotal, lang), frais: money(frais, lang) })}</p>}
       <div className="total-box"><span>{credit ? t('negoce.onCredit') : t('negoce.cash')}</span><strong>{money(total, lang)}</strong></div>
       {etat?.error && <div className="alert danger"><Icon name="alert" size={18} />{etat.error}</div>}
       {etat?.ok && (

@@ -46,6 +46,7 @@ export const ACCESS = {
   boutique: [D, X, F, E, V],
   administration: [D, F, X],      // Ali: everything; Dahirou: land (read) + bank accounts; Kenfack: land (read)
   commandes: [D, X, F, E],        // HENZO AGRO: chick orders from farmers
+  benefices: [D, X, F],           // HENZO AGRO: profits by period and by item
   sync: [D, X, F, E, V]
 }
 

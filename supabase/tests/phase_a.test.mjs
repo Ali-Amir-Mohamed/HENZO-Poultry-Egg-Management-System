@@ -1573,6 +1573,43 @@ await expectErr('an empty name is refused', 'kenfack', `select public.client_par
 await expectErr('the seller of a shop does not create farm clients', 'vendeur', `select public.client_par_nom('X')`, [], 'pouvez pas')
 }
 
+// ---------- 0053: several products in one sale, delivery fee, profits ----------
+try {
+  await db.exec(readFileSync(new URL('0053_vente_multiple_benefices.sql', MIG), 'utf8'))
+  ok('migration 0053 runs', true)
+} catch (e) { ok('migration 0053 runs', false, e.message); process.exit(1) }
+{
+for (const who of ['kenfack', 'dahirou', 'ali']) await as(who, `select public.changer_ferme($1)`, [NEG])
+const art = async (cat) => (await db.query(`select id from public.articles where ferme_id = $1 and categorie = $2 order by created_at limit 1`, [NEG, cat])).rows[0].id
+const ALI = await art('aliment'), POU = await art('poussins')
+await expectOk('kenfack buys 8 bags at 12 000 (cost known)', 'kenfack', `insert into public.depenses (portee, activite, categorie, libelle, montant, mode_paiement, article_id, quantite) values ('ferme', 'chair', 'aliment', '8 sacs démarrage', 96000, 'especes', $1, 8)`, [ALI])
+const caisse = async () => Number((await db.query(`select solde from public.soldes_caisses where ferme_id = $1 and mode = 'especes' and activite = 'chair'`, [NEG])).rows[0].solde)
+const c0 = await caisse()
+const V1 = (await oneP('kenfack', `select public.vendre_marchandises(null, $1::jsonb, 5000, 'especes') as id`,
+  [JSON.stringify([{ article_id: ALI, quantite: 2, prix: 16200 }, { article_id: POU, quantite: 50, prix: 450 }])])).id
+const fa = (await oneP('kenfack', `select public.facture_pour($1) as id`, [V1])).id
+const lignesF = (await db.query(`select designation, montant from public.facture_lignes where facture_id = $1 order by ordre`, [fa])).rows
+ok('one sale of two products + delivery = one invoice with 3 lines', lignesF.length === 3 && lignesF.some((l) => l.designation === 'Frais de livraison' && Number(l.montant) === 5000), JSON.stringify(lignesF))
+ok('the cash box receives 59 900', (await caisse()) === c0 + 59900)
+const CR = (await oneP('kenfack', `select public.client_par_nom('Éleveur Ngo Bell') as id`)).id
+await as('kenfack', `update public.tiers set credit_autorise = true, plafond_credit = 300000 where id = $1`, [CR])
+const V2 = (await oneP('kenfack', `select public.vendre_marchandises($1, $2::jsonb, 2000, 'mobile_money', true, 10000) as id`, [CR, JSON.stringify([{ article_id: ALI, quantite: 1, prix: 16200 }])])).id
+ok('credit sale 18 200 with a deposit of 10 000: 8 200 owed', Number((await db.query(`select public.encours_client($1) as e`, [CR])).rows[0].e) === 8200)
+await expectErr('a deposit above the total is refused', 'kenfack', `select public.vendre_marchandises($1, $2::jsonb, 0, 'especes', true, 99999)`, [CR, JSON.stringify([{ article_id: ALI, quantite: 1, prix: 16200 }])], 'acompte')
+const GRP = (await db.query(`select id from public.tiers where ferme_id = $1 and ferme_liee_id is not null limit 1`, [NEG])).rows[0].id
+await expectErr('no delivery fee to a group company', 'kenfack', `select public.vendre_marchandises($1, $2::jsonb, 3000)`, [GRP, JSON.stringify([{ article_id: ALI, quantite: 1, prix: 16200 }])], 'groupe')
+await expectErr('dahirou does not sell goods', 'dahirou', `select public.vendre_marchandises(null, $1::jsonb)`, [JSON.stringify([{ article_id: ALI, quantite: 1, prix: 16200 }])], 'exploitation')
+const ba = (await as('dahirou', `select * from public.benefices_articles(current_date - 30, current_date)`)).rows
+const al = ba.find((r) => r.article_id === ALI)
+ok('profit by article: feed margin = sales − quantity x 12 000', !!al && al.cout_connu === true && Number(al.marge) === Number(al.ventes) - Math.round(Number(al.quantite) * 12000), JSON.stringify(al))
+const rb = (await oneP('dahirou', `select public.resume_benefices(current_date - 30, current_date) as r`)).r
+ok('profit summary adds up', Number(rb.benefice) === Number(rb.ventes) - Number(rb.cout) + Number(rb.livraisons) + Number(rb.commissions) - Number(rb.charges) && Number(rb.livraisons) >= 7000, JSON.stringify(rb))
+ok('delivery fees are income in the accounts (7071)', Number((await oneP('dahirou', `select coalesce(sum(credit - debit), 0) s from public.journal_comptable where cle = 'frais_livraison'`)).s) === Number(rb.livraisons))
+await expectErr('the employee does not see the profits', 'employe', `select public.resume_benefices(current_date - 30, current_date)`, [], '')
+ok('journal balanced after multi-product sales', (await as('dahirou', `select piece from public.journal_comptable group by piece having sum(debit) <> sum(credit)`)).rows.length === 0)
+for (const who of ['kenfack', 'dahirou', 'ali']) await as(who, `select public.changer_ferme($1)`, [fermeAli])
+}
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))

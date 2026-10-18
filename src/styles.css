@@ -548,6 +548,19 @@ details[open] summary { margin-bottom: .6rem; }
 .farm-switch select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:0;padding:0}
 .farm-switch option{color:#111}
 .salaires-groupe + .salaires-groupe{margin-top:14px}
+/* HENZO AGRO: several products in one sale */
+.vente-ligne{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) 36px;gap:8px;align-items:end}
+.vente-ligne .icon-btn{margin-bottom:6px}
+.check-line{display:flex;align-items:center;gap:8px;font-weight:600;font-size:.9rem;align-self:center}
+.check-line input{width:20px;height:20px}
+@media (max-width:640px){.vente-ligne{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 36px}.vente-ligne > :first-child{grid-column:1 / -1}}
+/* HENZO AGRO: profits */
+.benef-periodes{flex-wrap:wrap;gap:6px}
+.benef-calcul{display:flex;flex-direction:column;gap:4px;max-width:460px}
+.benef-ligne{display:flex;justify-content:space-between;gap:12px;padding:4px 0}
+.benef-ligne.fort{border-top:1px solid var(--border);padding-top:8px;font-size:1.05rem}
+.kpi-value.neg{color:var(--rose)}
+.kpi-value.pos{color:var(--green-700)}
 .salaires-groupe-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:6px 2px;border-bottom:1px solid var(--border);margin-bottom:6px}
 .salaires-groupe-head span{color:var(--muted);font-size:.85rem;font-weight:600}
 

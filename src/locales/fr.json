@@ -18,7 +18,8 @@
     "boutique": "Boutique",
     "administration": "Administration",
     "compta": "Compta",
-    "commandes": "Commandes"
+    "commandes": "Commandes",
+    "benefices": "Bénéfices"
   },
   "roles": {
     "directeur": "Directeur",
@@ -2057,7 +2058,7 @@
   },
   "negoce": {
     "sellTitle": "Nouvelle vente",
-    "sellHint": "Poussins, aliment, médicaments : sortis du stock automatiquement.",
+    "sellHint": "Plusieurs produits dans une même vente, avec livraison si besoin : une seule facture.",
     "walkIn": "Client de passage",
     "group": "groupe",
     "product": "Produit",
@@ -2082,7 +2083,11 @@
     "allOrders": "Toutes les commandes",
     "clientPh": "Nom du client (vide = client de passage)",
     "newClientPhone": "Téléphone du nouveau client",
-    "newClient": "« {{nom}} » est un nouveau client : il sera enregistré avec la vente."
+    "newClient": "« {{nom}} » est un nouveau client : il sera enregistré avec la vente.",
+    "addProduct": "Ajouter un produit",
+    "deliver": "Livrer chez le client",
+    "deliveryFee": "Frais de livraison (FCFA)",
+    "subtotal": "Produits : {{produits}} + livraison : {{frais}}"
   },
   "groupe": {
     "receivedTitle": "Livraisons du groupe à recevoir",
@@ -2145,5 +2150,34 @@
     "jobPh": "Comptable, secrétaire, gérant…",
     "created": "Employé de bureau ajouté. Fixez son salaire dans Argent → Salaires.",
     "salaryHint": "Les salaires se fixent et se paient chaque mois dans Argent → Salaires, avec ceux de la ferme. Le personnel de la ferme est géré par Kenfack dans Ferme → Équipe."
+  },
+  "benefices": {
+    "title": "Bénéfices",
+    "subtitle": "Ce que HENZO AGRO a gagné sur la période choisie.",
+    "periods": {
+      "mois": "Ce mois",
+      "moisDernier": "Mois dernier",
+      "annee": "Cette année",
+      "autre": "Autres dates"
+    },
+    "from": "Du",
+    "to": "Au",
+    "sales": "Ventes",
+    "grossMargin": "Marge sur les produits",
+    "profit": "Bénéfice",
+    "detailTitle": "Le calcul",
+    "goodsSales": "Ventes de marchandises",
+    "purchaseCost": "Prix d’achat",
+    "deliveries": "Frais de livraison",
+    "commissions": "Commissions des couvoirs",
+    "charges": "Charges (transport, salaires, loyer, impôts…)",
+    "byItem": "Par produit",
+    "sold": "Vendu",
+    "margin": "Marge",
+    "noSale": "Aucune vente sur cette période.",
+    "noCost": "prix d’achat inconnu",
+    "unknownCost_one": "{{count}} produit n’a pas de prix d’achat : il a été mis en stock sans achat. Sa marge est comptée comme si l’achat était gratuit.",
+    "unknownCost_other": "{{count}} produits n’ont pas de prix d’achat : ils ont été mis en stock sans achat. Leur marge est comptée comme si l’achat était gratuit.",
+    "howTo": "Le prix d’achat est le prix moyen payé pour chaque produit (achats enregistrés dans le stock). Les retraits des associés ne sont pas des charges."
   }
 }

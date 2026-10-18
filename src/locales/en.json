@@ -18,7 +18,8 @@
     "boutique": "Shop",
     "administration": "Administration",
     "compta": "Accounts",
-    "commandes": "Orders"
+    "commandes": "Orders",
+    "benefices": "Profits"
   },
   "roles": {
     "directeur": "Director",
@@ -2057,7 +2058,7 @@
   },
   "negoce": {
     "sellTitle": "New sale",
-    "sellHint": "Chicks, feed, medicines: taken out of stock automatically.",
+    "sellHint": "Several products in one sale, with delivery if needed: one invoice.",
     "walkIn": "Walk-in customer",
     "group": "group",
     "product": "Product",
@@ -2082,7 +2083,11 @@
     "allOrders": "All orders",
     "clientPh": "Client name (empty = walk-in client)",
     "newClientPhone": "New client’s phone",
-    "newClient": "« {{nom}} » is a new client: they will be registered with the sale."
+    "newClient": "« {{nom}} » is a new client: they will be registered with the sale.",
+    "addProduct": "Add a product",
+    "deliver": "Deliver to the client",
+    "deliveryFee": "Delivery fee (FCFA)",
+    "subtotal": "Products: {{produits}} + delivery: {{frais}}"
   },
   "groupe": {
     "receivedTitle": "Group deliveries to receive",
@@ -2145,5 +2150,34 @@
     "jobPh": "Accountant, secretary, manager…",
     "created": "Office employee added. Set the salary in Money → Salaries.",
     "salaryHint": "Salaries are set and paid every month in Money → Salaries, together with the farm staff. Farm staff is managed by Kenfack in Farm → Team."
+  },
+  "benefices": {
+    "title": "Profits",
+    "subtitle": "What HENZO AGRO earned over the chosen period.",
+    "periods": {
+      "mois": "This month",
+      "moisDernier": "Last month",
+      "annee": "This year",
+      "autre": "Other dates"
+    },
+    "from": "From",
+    "to": "To",
+    "sales": "Sales",
+    "grossMargin": "Margin on products",
+    "profit": "Profit",
+    "detailTitle": "The calculation",
+    "goodsSales": "Goods sales",
+    "purchaseCost": "Purchase cost",
+    "deliveries": "Delivery fees",
+    "commissions": "Hatchery commissions",
+    "charges": "Charges (transport, salaries, rent, taxes…)",
+    "byItem": "By product",
+    "sold": "Sold",
+    "margin": "Margin",
+    "noSale": "No sale over this period.",
+    "noCost": "purchase cost unknown",
+    "unknownCost_one": "{{count}} product has no purchase cost: it was put in stock without a purchase. Its margin counts as if it were free.",
+    "unknownCost_other": "{{count}} products have no purchase cost: they were put in stock without a purchase. Their margin counts as if they were free.",
+    "howTo": "The purchase cost is the average price paid for each product (purchases recorded in the stock). Partners’ withdrawals are not charges."
   }
 }
