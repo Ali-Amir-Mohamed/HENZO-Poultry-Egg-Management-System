@@ -298,7 +298,8 @@
       "prets": "Loans",
       "verification": "Cash check",
       "demarrage": "Start-up",
-      "salaires": "Salaries"
+      "salaires": "Salaries",
+      "employes": "Employees"
     },
     "caisse": {
       "chair": "Broiler cash",
@@ -1340,8 +1341,13 @@
     "onlyFinance": "Only Dahirou (finance) pays salaries and advances.",
     "editHint": "Name, job and departure are handled by Kenfack (Farm > Team).",
     "editSalary": "Change salary",
-    "addedByKenfack": "New employees are added by Kenfack in Farm > Team. You are notified to set their salary.",
-    "zeroSalary": "Salary to set"
+    "zeroSalary": "Salary to set",
+    "group": {
+      "ferme": "Farm staff",
+      "bureau": "Office staff"
+    },
+    "groupTotal": "{{n}} / month",
+    "addedBy": "Everybody is paid by the month. Farm staff is added by Kenfack (Farm → Team), office staff by Ali or Dahirou (Money → Employees). Dahirou is told to set the salary."
   },
   "compte": {
     "title": "My account",
@@ -1618,7 +1624,8 @@
     "created": "Employee added. Dahirou is notified to set the salary.",
     "editHint": "Salaries are handled by Dahirou: he is notified if the job changes or the employee leaves.",
     "since": "since {{d}}",
-    "salaryHint": "Salaries are not shown here: Dahirou sets and pays them."
+    "salaryHint": "Salaries are not shown here: Dahirou sets and pays them.",
+    "readOnly": "Read only: Kenfack manages the farm staff. Office staff is in Money → Employees."
   },
   "compta": {
     "tabs": {
@@ -2053,5 +2060,15 @@
     "imageReady": "Image ready",
     "imageCopied": "The image is copied: in the WhatsApp conversation press Ctrl+V (or right-click > Paste), then Send. It is also in your downloads.",
     "imageDownloaded": "The image is in your downloads: in the WhatsApp conversation, attach it with the paperclip, then Send."
+  },
+  "bureau": {
+    "title": "Office staff",
+    "subtitle_one": "{{count}} active employee",
+    "subtitle_other": "{{count}} active employees",
+    "none": "No office employee yet.",
+    "new": "New office employee",
+    "jobPh": "Accountant, secretary, manager…",
+    "created": "Office employee added. Set the salary in Money → Salaries.",
+    "salaryHint": "Salaries are set and paid every month in Money → Salaries, together with the farm staff. Farm staff is managed by Kenfack in Farm → Team."
   }
 }

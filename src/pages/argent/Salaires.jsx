@@ -9,8 +9,8 @@ import { day, Empty, Loading, money, Panel } from '../../components/ui'
 import { useAsk, useRun } from '../../components/Dialog'
 import { ChargesAReverser, ParametresPaie } from './Paie'
 
-// Employees and salaries (director, finance; only finance pays and sets salaries; employees are added by
-// operations in Ferme > Équipe). An employee declared to the CNPS gets a payslip: CNPS, IRPP, CAC, CFC, RAV, TDL
+// Employees and salaries (director, finance; only finance pays and sets salaries). Everybody is paid by the month,
+// shown in two groups: farm staff (added by Kenfack in Ferme > Équipe) and office staff (Ali, Dahirou: Argent > Employés). An employee declared to the CNPS gets a payslip: CNPS, IRPP, CAC, CFC, RAV, TDL
 // are withheld and paid over each month; the cash box pays only the net (salary + bonus − withholdings − deductions − advances).
 // Every payment is a « salaires » expense; cancelling it (director) cancels the pay and its payslip too.
 const moisCourant = () => new Date().toLocaleDateString('en-CA').slice(0, 7)
@@ -24,7 +24,7 @@ export default function Salaires() {
   const run = useRun()
   const q = useQuery(async () => {
     const [emp, av, paies, bulletins] = await Promise.all([
-      supabase.from('employes').select('*').order('actif', { ascending: false }).order('nom'),
+      supabase.from('employes').select('*').order('categorie', { ascending: false }).order('actif', { ascending: false }).order('nom'),
       supabase.from('avances_salaire').select('*').eq('annulee', false).order('date_avance', { ascending: false }),
       supabase.from('paies').select('*, employe:employes(nom)').eq('annulee', false).order('mois', { ascending: false }).order('created_at', { ascending: false }).limit(50),
       supabase.from('bulletins_paie').select('paie_id').order('created_at', { ascending: false }).limit(200)
@@ -100,41 +100,49 @@ export default function Salaires() {
   return (
     <>
       <Panel icon="users" tone="green" title={t('salaires.title')} subtitle={t('salaires.total', { count: actifs.length, n: money(masse, lang) })}>
-        {q.data.employes.length === 0 ? <Empty icon="users" text={t('salaires.none')} /> : (
-          <ul className="list">
-            {q.data.employes.map((e) => {
-              const av = aDeduire(e)
-              return (
-                <li key={e.id} className={e.actif ? '' : 'read'}>
-                  <div className="grow">
-                    <strong>{e.nom}</strong>{e.poste ? <span className="muted"> · {e.poste}</span> : null}
-                    <div className="muted small">
-                      {money(e.salaire_mensuel, lang)} {t('paie.grossPerMonth')} · {t(`argent.caisse.${e.activite}`)}
-                      {e.declare_cnps ? (e.numero_cnps ? ` · CNPS ${e.numero_cnps}` : ` · ${t('paie.noCnpsNumber')}`) : ` · ${t('paie.notDeclaredShort')}`}
-                      {Number(e.salaire_mensuel) === 0 && <> · <span className="warn-text">{t('salaires.zeroSalary')}</span></>}
-                      {av > 0 && <> · <span className="warn-text">{t('salaires.toDeduct', { n: money(av, lang) })}</span></>}
-                      {!e.actif && ` · ${t('salaires.left')}`}
-                    </div>
-                    {e.actif && (
-                      <div className="row-actions">
-                        {payeCeMois(e)
-                          ? <span className="tag ok"><Icon name="check" size={12} /> {t('salaires.paidThisMonth')}</span>
-                          : payeur ? <button className="btn primary sm" onClick={() => payer(e)}><Icon name="wallet" size={14} />{t('salaires.pay')}</button>
-                            : <span className="tag warn">{t('salaires.notPaidYet')}</span>}
-                        {payeur && <button className="btn ghost sm" onClick={() => avance(e)}>{t('salaires.advance')}</button>}
-                        {payeur && <button className="btn ghost sm" onClick={() => modifier(e)}>{t('salaires.editSalary')}</button>}
+        {q.data.employes.length === 0 ? <Empty icon="users" text={t('salaires.none')} /> : ['ferme', 'bureau'].map((cat) => {
+          const liste = q.data.employes.filter((e) => (e.categorie ?? 'ferme') === cat)
+          if (liste.length === 0) return null
+          const sousTotal = liste.filter((e) => e.actif).reduce((s, e) => s + Number(e.salaire_mensuel), 0)
+          return (
+            <div key={cat} className="salaires-groupe">
+              <div className="salaires-groupe-head"><strong>{t(`salaires.group.${cat}`)}</strong><span>{t('salaires.groupTotal', { n: money(sousTotal, lang) })}</span></div>
+              <ul className="list">
+                {liste.map((e) => {
+                  const av = aDeduire(e)
+                  return (
+                    <li key={e.id} className={e.actif ? '' : 'read'}>
+                      <div className="grow">
+                        <strong>{e.nom}</strong>{e.poste ? <span className="muted"> · {e.poste}</span> : null}
+                        <div className="muted small">
+                          {money(e.salaire_mensuel, lang)} {t('paie.grossPerMonth')} · {t(`argent.caisse.${e.activite}`)}
+                          {e.declare_cnps ? (e.numero_cnps ? ` · CNPS ${e.numero_cnps}` : ` · ${t('paie.noCnpsNumber')}`) : ` · ${t('paie.notDeclaredShort')}`}
+                          {Number(e.salaire_mensuel) === 0 && <> · <span className="warn-text">{t('salaires.zeroSalary')}</span></>}
+                          {av > 0 && <> · <span className="warn-text">{t('salaires.toDeduct', { n: money(av, lang) })}</span></>}
+                          {!e.actif && ` · ${t('salaires.left')}`}
+                        </div>
+                        {e.actif && (
+                          <div className="row-actions">
+                            {payeCeMois(e)
+                              ? <span className="tag ok"><Icon name="check" size={12} /> {t('salaires.paidThisMonth')}</span>
+                              : payeur ? <button className="btn primary sm" onClick={() => payer(e)}><Icon name="wallet" size={14} />{t('salaires.pay')}</button>
+                                : <span className="tag warn">{t('salaires.notPaidYet')}</span>}
+                            {payeur && <button className="btn ghost sm" onClick={() => avance(e)}>{t('salaires.advance')}</button>}
+                            {payeur && <button className="btn ghost sm" onClick={() => modifier(e)}>{t('salaires.editSalary')}</button>}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                </li>
-              )
-            })}
-          </ul>
-        )}
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
+          )
+        })}
         {!payeur && <p className="note"><Icon name="wallet" size={16} />{t('salaires.onlyFinance')}</p>}
       </Panel>
 
-      <p className="note"><Icon name="users" size={16} />{t('salaires.addedByKenfack')}</p>
+      <p className="note"><Icon name="users" size={16} />{t('salaires.addedBy')}</p>
 
       <ChargesAReverser />
 

@@ -17,6 +17,7 @@ import Prets from './argent/Prets'
 import Verification from './argent/Verification'
 import Demarrage from './reglages/Demarrage'
 import Salaires from './argent/Salaires'
+import EmployesBureau from './argent/EmployesBureau'
 import CaissesSites from './argent/CaissesSites'
 import Factures from './compta/Factures'
 import Impots from './compta/Impots'
@@ -42,6 +43,7 @@ export default function Argent() {
         { id: 'investisseurs', label: 'argent.tabs.investisseurs', icon: 'users' },
         { id: 'prets', label: 'argent.tabs.prets', icon: 'receipt' },
         { id: 'verification', label: 'argent.tabs.verification', icon: 'check' },
+        ...(can(role, 'employes.bureau') ? [{ id: 'employes', label: 'argent.tabs.employes', icon: 'users' }] : []),
         ...(can(role, 'salaires') ? [{ id: 'salaires', label: 'argent.tabs.salaires', icon: 'users' }] : []),
         ...(can(role, 'facture.create') ? [{ id: 'factures', label: 'compta.tabs.factures', icon: 'receipt' }] : []),
         ...(can(role, 'impots.payer') ? [{ id: 'impots', label: 'compta.tabs.impots', icon: 'wallet' }] : []),
@@ -55,6 +57,7 @@ export default function Argent() {
       {tab === 'investisseurs' && <Investisseurs />}
       {tab === 'prets' && <Prets />}
       {tab === 'verification' && <Verification />}
+      {tab === 'employes' && <EmployesBureau />}
       {tab === 'salaires' && <Salaires />}
       {tab === 'factures' && <Factures />}
       {tab === 'impots' && <Impots />}

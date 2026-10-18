@@ -298,7 +298,8 @@
       "prets": "Prêts",
       "verification": "Vérif. caisse",
       "demarrage": "Démarrage",
-      "salaires": "Salaires"
+      "salaires": "Salaires",
+      "employes": "Employés"
     },
     "caisse": {
       "chair": "Caisse chair",
@@ -1340,8 +1341,13 @@
     "onlyFinance": "Seul Dahirou (finance) paie les salaires et les avances.",
     "editHint": "Le nom, le poste et le départ sont gérés par Kenfack (Ferme > Équipe).",
     "editSalary": "Changer le salaire",
-    "addedByKenfack": "Les nouveaux employés sont ajoutés par Kenfack dans Ferme > Équipe. Vous êtes prévenu pour fixer leur salaire.",
-    "zeroSalary": "Salaire à fixer"
+    "zeroSalary": "Salaire à fixer",
+    "group": {
+      "ferme": "Personnel de la ferme",
+      "bureau": "Personnel de bureau"
+    },
+    "groupTotal": "{{n}} / mois",
+    "addedBy": "Tout le monde est payé au mois. Le personnel de la ferme est ajouté par Kenfack (Ferme → Équipe), le personnel de bureau par Ali ou Dahirou (Argent → Employés). Dahirou est prévenu pour fixer le salaire."
   },
   "compte": {
     "title": "Mon compte",
@@ -1618,7 +1624,8 @@
     "created": "Employé ajouté. Dahirou est prévenu pour fixer son salaire.",
     "editHint": "Le salaire est géré par Dahirou : il est prévenu si le poste change ou si l’employé part.",
     "since": "depuis le {{d}}",
-    "salaryHint": "Les salaires ne s’affichent pas ici : Dahirou les fixe et les paie."
+    "salaryHint": "Les salaires ne s’affichent pas ici : Dahirou les fixe et les paie.",
+    "readOnly": "Lecture seule : c’est Kenfack qui gère le personnel de la ferme. Le personnel de bureau est dans Argent → Employés."
   },
   "compta": {
     "tabs": {
@@ -2053,5 +2060,15 @@
     "imageReady": "Image prête",
     "imageCopied": "L’image est copiée : dans la conversation WhatsApp, faites Ctrl+V (ou clic droit > Coller), puis Envoyer. Elle est aussi dans vos téléchargements.",
     "imageDownloaded": "L’image est dans vos téléchargements : dans la conversation WhatsApp, joignez-la avec le trombone, puis Envoyer."
+  },
+  "bureau": {
+    "title": "Personnel de bureau",
+    "subtitle_one": "{{count}} employé actif",
+    "subtitle_other": "{{count}} employés actifs",
+    "none": "Aucun employé de bureau pour l’instant.",
+    "new": "Nouvel employé de bureau",
+    "jobPh": "Comptable, secrétaire, gérant…",
+    "created": "Employé de bureau ajouté. Fixez son salaire dans Argent → Salaires.",
+    "salaryHint": "Les salaires se fixent et se paient chaque mois dans Argent → Salaires, avec ceux de la ferme. Le personnel de la ferme est géré par Kenfack dans Ferme → Équipe."
   }
 }

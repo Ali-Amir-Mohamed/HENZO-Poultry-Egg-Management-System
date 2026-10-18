@@ -27,7 +27,7 @@ export default function Ferme() {
           { id: 'pondeuse', label: 'types.pondeuse_pl', icon: 'egg' },
           { id: 'batiments', label: 'batiments.tab', icon: 'barn' },
           { id: 'saisies', label: 'saisies.tab', icon: 'note' },
-          ...(can(role, 'equipe') ? [{ id: 'equipe', label: 'equipe.tab', icon: 'users' }] : [])
+          ...(can(role, 'equipe.voir') ? [{ id: 'equipe', label: 'equipe.tab', icon: 'users' }] : [])
         ]} />
       {(tab === 'chair' || tab === 'pondeuse') && <ActivitySummary activite={tab} />}
       {tab === 'chair' && <Bandes />}

@@ -1422,6 +1422,28 @@ await expectOk('ali marks a departure', 'ali', `select public.modifier_employe($
 await expectErr('the employee still cannot add anyone', 'employe', `select public.ajouter_employe('x')`, [], 'pouvez pas')
 await expectErr('the accountant still cannot add anyone', 'comptable', `select public.ajouter_employe('x')`, [], 'pouvez pas')
 
+// ---------- 0048: farm staff (Kenfack) and office staff (Ali, Dahirou) ----------
+try {
+  await db.exec(readFileSync(new URL('0048_employes_bureau.sql', MIG), 'utf8'))
+  ok('migration 0048 runs', true)
+} catch (e) { ok('migration 0048 runs', false, e.message); process.exit(1) }
+ok('the accountant added in 0047 moves to the office list', (await oneP('dahirou', `select categorie from public.employes where id = $1`, [CPT])).categorie === 'bureau')
+ok('the farm team no longer shows the accountant', (await as('kenfack', `select 1 from public.equipe where id = $1`, [CPT])).rows.length === 0)
+await expectErr('dahirou no longer adds to the farm team', 'dahirou', `select public.ajouter_employe('x')`, [], 'Kenfack')
+await expectErr('ali no longer adds to the farm team', 'ali', `select public.ajouter_employe('x')`, [], 'Kenfack')
+await expectOk('kenfack still adds farm staff', 'kenfack', `select public.ajouter_employe('Ouvrier 48', null, 'Ouvrier')`)
+const SECB = (await oneP('ali', `select public.ajouter_employe_bureau($1, null, $2) as id`, ['Mme Secrétaire', 'Secrétaire'])).id
+ok('ali adds an office employee', (await oneP('ali', `select categorie, salaire_mensuel from public.employes where id = $1`, [SECB])).categorie === 'bureau')
+await expectErr('kenfack cannot add office staff', 'kenfack', `select public.ajouter_employe_bureau('x')`, [], 'Ali et Dahirou')
+await expectErr('the employee cannot add office staff', 'employe', `select public.ajouter_employe_bureau('x')`, [], 'Ali et Dahirou')
+await expectOk('dahirou renames and changes the job of an office employee', 'dahirou', `select public.modifier_employe_bureau($1, 'Mme Secrétaire', '690', 'Assistante', true)`, [SECB])
+await expectOk('dahirou sets the office salary', 'dahirou', `update public.employes set salaire_mensuel = 120000 where id = $1`, [SECB])
+await expectErr('dahirou still cannot rename a farm employee', 'dahirou', `update public.employes set nom = 'X' where id = $1`, [NEW], 'Kenfack')
+await expectErr('kenfack cannot touch an office employee', 'kenfack', `select public.modifier_employe($1, 'X', null, null, true)`, [SECB], 'introuvable')
+await expectErr('nobody moves an employee to the other list', 'dahirou', `update public.employes set categorie = 'ferme' where id = $1`, [SECB], 'liste')
+const paieB = await expectOk('dahirou pays the office employee by the month', 'dahirou', `select public.payer_salaire($1, date_trunc('month', current_date)::date, 'especes', 0, 0, null)`, [SECB])
+ok('the office pay is recorded', !!paieB && (await as('dahirou', `select 1 from public.paies where employe_id = $1 and not annulee`, [SECB])).rows.length === 1)
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))
