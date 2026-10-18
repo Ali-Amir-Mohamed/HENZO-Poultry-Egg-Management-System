@@ -1477,7 +1477,7 @@
     "validate": "Validate (money received)",
     "refuse": "Refuse",
     "refuseTitle": "Refuse the deposit",
-    "validateConfirm": "Confirm receipt of {{n}} ({{mode}})? The money moves to the farm cash boxes.",
+    "validateConfirm": "Confirm receipt of {{n}} ({{mode}})? The money goes into the cash boxes of {{site}}.",
     "depositStatus": {
       "en_attente": "To validate",
       "valide": "Received",

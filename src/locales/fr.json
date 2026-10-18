@@ -1477,7 +1477,7 @@
     "validate": "Valider (argent reçu)",
     "refuse": "Refuser",
     "refuseTitle": "Refuser le versement",
-    "validateConfirm": "Confirmer la réception de {{n}} ({{mode}}) ? L’argent passe dans les caisses de la ferme.",
+    "validateConfirm": "Confirmer la réception de {{n}} ({{mode}}) ? L’argent entre dans les caisses de {{site}}.",
     "depositStatus": {
       "en_attente": "À valider",
       "valide": "Reçu",

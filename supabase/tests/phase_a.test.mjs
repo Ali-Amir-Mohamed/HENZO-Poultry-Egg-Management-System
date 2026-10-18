@@ -1458,6 +1458,38 @@ await expectErr('an empty name is refused', 'ali', `select public.renommer_ferme
 await expectErr('the name of another farm is refused', 'ali', `select public.renommer_ferme($1, 'henzo agro')`, [fermeAli], 'déjà ce nom')
 await db.query(`update public.fermes set nom = $2 where id = $1`, [fermeAli, nomAvant])
 
+// ---------- 0050: company shops, supplied by every site ----------
+try {
+  await db.exec(readFileSync(new URL('0050_boutiques_societe.sql', MIG), 'utf8'))
+  ok('migration 0050 runs', true)
+} catch (e) { ok('migration 0050 runs', false, e.message); process.exit(1) }
+{
+for (const who of ['kenfack', 'dahirou', 'ali']) await as(who, `select public.changer_ferme($1)`, [SITE])
+ok('the shop of the company is seen from the site', (await as('kenfack', `select 1 from public.boutiques where id = $1`, [BQ])).rows.length === 1)
+const GS = (await oneP('kenfack', `insert into public.bandes (code, date_arrivee, nombre_initial) values ('GS1', current_date - 40, 60) returning id`)).id
+const ENVS = (await oneP('kenfack', `select public.creer_envoi($1, $2::jsonb) as id`, [BQ, JSON.stringify([{ produit: 'poulet', bande_id: GS, quantite: 10 }])])).id
+ok('the site ships its own birds to the company shop', (await db.query(`select ferme_id from public.envois_boutique where id = $1`, [ENVS])).rows[0].ferme_id === SITE)
+await expectOk('the seller receives the shipment from the site', 'vendeur', `select public.recevoir_envoi($1)`, [ENVS])
+const stockQ = (await oneP('vendeur', `select stock from public.stock_boutiques where boutique_id = $1 and produit = 'poulet'`, [BQ])).stock
+ok('the shop keeps one stock for all sites', stockQ >= 10, String(stockQ))
+const VBS = (await as('vendeur', `insert into public.ventes_boutique (boutique_id, produit, forme, unite, quantite, nombre_sujets, prix_unitaire, mode_paiement, client_nom) values ($1, 'poulet', 'vivant', 'piece', $2, $3, 4000, 'especes', 'Restaurant Test') returning id`, [BQ, stockQ, stockQ])).rows[0].id
+const mir = (await db.query(`select ferme_id, bande_id, nombre_sujets from public.ventes where vente_boutique_id = $1`, [VBS])).rows
+ok('the sale counts in the site and flock the birds come from', mir.some((r) => r.ferme_id === SITE && r.bande_id === GS && Number(r.nombre_sujets) === 10), JSON.stringify(mir))
+ok('the shop sale of birds from two sites gets one invoice', !!(await oneP('vendeur', `select public.facture_pour(null, $1) as id`, [VBS])).id)
+ok('the flock of the site counts the birds sold in the shop', (await oneP('kenfack', `select restants from public.effectif_bandes where code = 'GS1'`)).restants === 50)
+const VERS = (await oneP('vendeur', `select public.demander_versement($1, 'especes', 1000, 0) as id`, [BQ])).id
+const avantV = Number((await db.query(`select coalesce(sum(montant), 0) s from public.ecritures where ferme_id = $1 and nature = 'versement_boutique'`, [SITE])).rows[0].s)
+await expectOk('dahirou validates the deposit from the site', 'dahirou', `select public.valider_versement($1, true)`, [VERS])
+ok('the deposit goes into the cash boxes of the site', Number((await db.query(`select coalesce(sum(montant), 0) s from public.ecritures where ferme_id = $1 and nature = 'versement_boutique'`, [SITE])).rows[0].s) === avantV + 1000)
+await expectOk('kenfack sets a shop price from the site', 'kenfack', `insert into public.prix_boutique (produit, forme, unite, prix_min, prix_max) values ('poulet', 'abattu', 'piece', 4000, 5500)`)
+ok('the shop price belongs to the company', (await db.query(`select ferme_id from public.prix_boutique where forme = 'abattu' order by created_at desc limit 1`)).rows[0].ferme_id === fermeAli)
+const BQ2 = (await oneP('ali', `insert into public.boutiques (nom) values ('Boutique Centre') returning id`)).id
+ok('a shop created from the site belongs to the company', (await db.query(`select ferme_id from public.boutiques where id = $1`, [BQ2])).rows[0].ferme_id === fermeAli)
+for (const who of ['kenfack', 'dahirou', 'ali']) await as(who, `select public.changer_ferme($1)`, [fermeAli])
+ok('the main farm still sees the shop and the site shipment', (await as('ali', `select 1 from public.envois_boutique where id = $1`, [ENVS])).rows.length === 1)
+ok('the journal stays balanced with sites', (await as('dahirou', `select piece from public.journal_comptable group by piece having sum(debit) <> sum(credit)`)).rows.length === 0)
+}
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))

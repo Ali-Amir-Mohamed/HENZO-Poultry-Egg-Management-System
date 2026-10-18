@@ -7,10 +7,11 @@ import Icon from '../../components/Icon'
 import { day, Loading, money, Panel } from '../../components/ui'
 import { useAsk, useRun } from '../../components/Dialog'
 
-// Shop cash: balances, evening closing (gap reported), deposits to the farm validated by finance
+// Shop cash: balances, evening closing (gap reported), deposits validated by finance into the cash boxes of the site
+// where they are received (a shop belongs to the company and may be supplied by several sites)
 export default function CaisseBoutique({ boutique }) {
   const { t, i18n } = useTranslation()
-  const { role } = useAuth()
+  const { role, profile } = useAuth()
   const lang = i18n.resolvedLanguage
   const ask = useAsk()
   const run = useRun()
@@ -61,7 +62,7 @@ export default function CaisseBoutique({ boutique }) {
 
   const decider = async (v, ok) => {
     if (ok) {
-      if (!(await ask.confirm(t('boutique.validateConfirm', { n: money(Number(v.montant_chair) + Number(v.montant_pondeuse), lang), mode: t(`modes.${v.mode}`) }), { title: t('boutique.validate'), icon: 'check' }))) return
+      if (!(await ask.confirm(t('boutique.validateConfirm', { n: money(Number(v.montant_chair) + Number(v.montant_pondeuse), lang), mode: t(`modes.${v.mode}`), site: profile?.ferme?.nom ?? '' }), { title: t('boutique.validate'), icon: 'check' }))) return
       await run(supabase.rpc('valider_versement', { p_versement: v.id, p_accepter: true }), q.reload)
     } else {
       const motif = await ask.reason(t('boutique.refuseTitle'))
