@@ -85,7 +85,8 @@
     "poules_reformees": "Culled hens",
     "fientes": "Manure",
     "autre": "Other",
-    "marchandise": "Goods"
+    "marchandise": "Goods",
+    "livraison": "Delivery fee"
   },
   "categories": {
     "poussins": "Chicks",
@@ -2232,5 +2233,21 @@
     "cancel": "Cancel",
     "cancelTitle": "Cancel this production",
     "perBag": "{{n}} / bag"
+  },
+  "relances": {
+    "summary": "To collect: {{total}} · of which over 30 days: {{anciens}}",
+    "sales_one": "{{count}} unpaid sale",
+    "sales_other": "{{count}} unpaid sales",
+    "since_one": "for {{count}} day ({{d}})",
+    "since_other": "for {{count}} days ({{d}})",
+    "last_one": "reminded on {{d}}",
+    "last_other": "reminded {{count}} times, last on {{d}}",
+    "never": "never reminded",
+    "remind": "WhatsApp reminder",
+    "detail": "See the sales",
+    "hide": "Hide",
+    "old_one": "{{count}} day",
+    "old_other": "{{count}} days",
+    "message": "Hello {{nom}},\n\nThis is a reminder that {{total}} is still due for your purchases:\n{{lignes}}\n\nPlease settle it as soon as possible (cash, Mobile Money or transfer).\n\nKind regards,\n{{societe}}"
   }
 }

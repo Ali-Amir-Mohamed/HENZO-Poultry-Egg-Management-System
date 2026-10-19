@@ -85,7 +85,8 @@
     "poules_reformees": "Poules réformées",
     "fientes": "Fientes",
     "autre": "Autre",
-    "marchandise": "Marchandise"
+    "marchandise": "Marchandise",
+    "livraison": "Frais de livraison"
   },
   "categories": {
     "poussins": "Poussins",
@@ -2232,5 +2233,21 @@
     "cancel": "Annuler",
     "cancelTitle": "Annuler cette fabrication",
     "perBag": "{{n}} / sac"
+  },
+  "relances": {
+    "summary": "À recevoir : {{total}} · dont plus de 30 jours : {{anciens}}",
+    "sales_one": "{{count}} vente impayée",
+    "sales_other": "{{count}} ventes impayées",
+    "since_one": "depuis {{count}} jour ({{d}})",
+    "since_other": "depuis {{count}} jours ({{d}})",
+    "last_one": "relancé le {{d}}",
+    "last_other": "relancé {{count}} fois, dernière le {{d}}",
+    "never": "jamais relancé",
+    "remind": "Rappel WhatsApp",
+    "detail": "Voir les ventes",
+    "hide": "Masquer",
+    "old_one": "{{count}} jour",
+    "old_other": "{{count}} jours",
+    "message": "Bonjour {{nom}},\n\nNous vous rappelons qu’il reste {{total}} à régler pour vos achats :\n{{lignes}}\n\nMerci de bien vouloir passer régler dès que possible (espèces, Mobile Money ou virement).\n\nCordialement,\n{{societe}}"
   }
 }

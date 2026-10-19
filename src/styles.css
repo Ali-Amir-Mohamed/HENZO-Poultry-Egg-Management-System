@@ -553,6 +553,8 @@ details[open] summary { margin-bottom: .6rem; }
 .vente-ligne .icon-btn{margin-bottom:6px}
 .formule-ligne{grid-template-columns:minmax(0,2fr) minmax(0,1fr) 36px}
 @media (max-width:640px){.formule-ligne > :first-child{grid-column:auto}}
+.list.sub{margin-top:8px;border-left:3px solid var(--border);padding-left:10px}
+.list.sub li{padding:6px 0;gap:8px;align-items:center}
 .check-line{display:flex;align-items:center;gap:8px;font-weight:600;font-size:.9rem;align-self:center}
 .check-line input{width:20px;height:20px}
 @media (max-width:640px){.vente-ligne{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 36px}.vente-ligne > :first-child{grid-column:1 / -1}}

@@ -1650,6 +1650,24 @@ ok('journal still balanced', (await as('dahirou', `select piece from public.jour
 for (const who of ['kenfack', 'dahirou', 'ali']) await as(who, `select public.changer_ferme($1)`, [fermeAli])
 }
 
+// ---------- 0055: chasing clients' debts ----------
+try {
+  await db.exec(readFileSync(new URL('0055_relances.sql', MIG), 'utf8'))
+  ok('migration 0055 runs', true)
+} catch (e) { ok('migration 0055 runs', false, e.message); process.exit(1) }
+{
+for (const who of ['kenfack', 'dahirou', 'ali']) await as(who, `select public.changer_ferme($1)`, [NEG])
+const rows = (await as('dahirou', `select * from public.creances_par_client order by reste desc`)).rows
+const detail = Number((await as('dahirou', `select coalesce(sum(reste), 0) s from public.creances_clients`)).rows[0].s)
+ok('debts grouped by client add up to the detail', rows.length > 0 && rows.reduce((s, r) => s + Number(r.reste), 0) === detail, JSON.stringify(rows.map((r) => [r.client, r.reste, r.ventes, r.jours])))
+const cl = rows.find((r) => !r.societe_groupe)
+await expectOk('kenfack notes a WhatsApp reminder', 'kenfack', `select public.noter_relance($1, $2)`, [cl.client_id, cl.reste])
+const apres = (await as('dahirou', `select relances, derniere_relance from public.creances_par_client where client_id = $1`, [cl.client_id])).rows[0]
+ok('the reminder shows on the client', Number(apres.relances) === 1 && !!apres.derniere_relance)
+await expectErr('the employee does not chase clients', 'employe', `select public.noter_relance($1, 1)`, [cl.client_id], 'pouvez pas')
+for (const who of ['kenfack', 'dahirou', 'ali']) await as(who, `select public.changer_ferme($1)`, [fermeAli])
+}
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))

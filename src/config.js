@@ -113,6 +113,7 @@ export const PERMISSIONS = {
   'commande.annuler': [X, F],    // cancel an order (the deposit is kept, or refunded by finance)
   'commande.rembourser': [F],    // refund a deposit
   'commission.recevoir': [F],    // record a commission paid by a hatchery
+  'creances.relancer': [D, X, F], // send a WhatsApp reminder to a client who owes money
   'provenderie.formule': [X, D], // write or retire a feed formula
   'provenderie.fabriquer': [X, E], // record a production of feed
   'provenderie.annuler': [X, D], // cancel a production

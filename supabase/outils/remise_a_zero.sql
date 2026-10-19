@@ -20,6 +20,7 @@
 -- =====================================================================
 
 truncate table
+  public.relances_clients,
   public.fabrications,
   public.formules_lignes,
   public.formules_aliment,

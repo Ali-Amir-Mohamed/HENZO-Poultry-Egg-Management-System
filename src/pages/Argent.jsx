@@ -21,6 +21,7 @@ import EmployesBureau from './argent/EmployesBureau'
 import CaissesSites from './argent/CaissesSites'
 import Factures from './compta/Factures'
 import Impots from './compta/Impots'
+import Creances from './argent/Creances'
 
 // Money: cash boxes, sales, expenses, receivables and payables.
 // Financial records are never edited: only validated, rejected or cancelled (database rules).
@@ -587,14 +588,13 @@ function Ventes({ onAsked }) {
   )
 }
 
-// ---------- Receivables & payables ----------
+// ---------- Receivables (by client, with reminders: argent/Creances) & payables ----------
 function Credits() {
   const { t, i18n } = useTranslation()
   const { role } = useAuth()
   const lang = i18n.resolvedLanguage
   const ask = useAsk()
   const run = useRun()
-  const creances = useQuery(async () => must(await supabase.from('creances_clients').select('*').order('date_echeance', { nullsFirst: false })))
   const dettes = useQuery(async () => must(await supabase.from('dettes_fournisseurs').select('*').order('date_echeance', { nullsFirst: false })))
 
   const payer = async (table, idField, row, reload, title) => {
@@ -639,7 +639,7 @@ function Credits() {
 
   return (
     <>
-      <Panel icon="users" tone="sky" title={t('argent.receivables')}>{renderList(creances, 'creances')}</Panel>
+      <Creances />
       <Panel icon="receipt" tone="rose" title={t('argent.payables')}>{renderList(dettes, 'dettes')}</Panel>
     </>
   )

@@ -28,10 +28,11 @@ async function demanderNumero(ask, t, telephone, message) {
   return numero
 }
 
-// Text only (fallback)
+// Text only (fallback, reminders); true when WhatsApp was opened
 export async function envoyerWhatsApp(ask, t, { telephone, texte }) {
   const numero = await demanderNumero(ask, t, telephone, t('whatsapp.hint'))
   if (numero) ouvrir(`https://wa.me/${numero}?text=${encodeURIComponent(texte)}`)
+  return !!numero
 }
 
 async function image(element, nom) {
