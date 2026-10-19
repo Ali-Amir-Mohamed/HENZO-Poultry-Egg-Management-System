@@ -1668,6 +1668,26 @@ await expectErr('the employee does not chase clients', 'employe', `select public
 for (const who of ['kenfack', 'dahirou', 'ali']) await as(who, `select public.changer_ferme($1)`, [fermeAli])
 }
 
+// ---------- 0056: partners' dashboard ----------
+try {
+  await db.exec(readFileSync(new URL('0056_tableau_associes.sql', MIG), 'utf8'))
+  ok('migration 0056 runs', true)
+} catch (e) { ok('migration 0056 runs', false, e.message); process.exit(1) }
+{
+const tb = (await oneP('dahirou', `select public.tableau_associes() as t`)).t
+const agro = tb.find((x) => x.id === NEG)
+const ferme = tb.find((x) => x.type === 'elevage' && x.id === fermeAli)
+ok('dahirou sees both companies on one page', !!agro && !!ferme, JSON.stringify(tb.map((x) => [x.nom, x.type, x.sites])))
+ok('the farm groups all its sites', Array.isArray(ferme.sites) && ferme.sites.length >= 2, JSON.stringify(ferme.sites))
+const caisseAgro = Number((await db.query(`select coalesce(sum(solde), 0) s from public.soldes_caisses where ferme_id = $1`, [NEG])).rows[0].s)
+ok('the trading company cash matches its cash boxes', Number(agro.caisse) === caisseAgro, `${agro.caisse} vs ${caisseAgro}`)
+const recv = Number((await db.query(`select coalesce(sum(public.reste_a_payer_vente(id)), 0) s from public.ventes where ferme_id = $1 and a_credit and not annulee`, [NEG])).rows[0].s)
+ok('to collect matches the unpaid sales', Number(agro.a_recevoir) === recv && Number(agro.groupe_a_recevoir) > 0, JSON.stringify([agro.a_recevoir, recv, agro.groupe_a_recevoir]))
+ok('the farm shows its flocks and birds', Number(ferme.bandes) >= 1 && Number(ferme.poulets) >= 0)
+await expectErr('the employee does not see the partners dashboard', 'employe', `select public.tableau_associes()`, [], 'associés')
+await expectErr('the seller does not see it either', 'vendeur', `select public.tableau_associes()`, [], 'associés')
+}
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))

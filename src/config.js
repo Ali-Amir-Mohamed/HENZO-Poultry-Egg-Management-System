@@ -35,6 +35,7 @@ const { DIRECTEUR: D, EXPLOITATION: X, FINANCE: F, EMPLOYE: E, VENDEUR: V, COMPT
 // Which roles can open each section of the app (the database enforces the same rules)
 export const ACCESS = {
   dashboard: [D, X, F, E],
+  associes: [D, X, F],             // partners' dashboard: both companies side by side
   saisie: [X, E],                 // field entries: operations (the director only reads)
   ferme: [D, X, F],
   planning: [D, X, F],

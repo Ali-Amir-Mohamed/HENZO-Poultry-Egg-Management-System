@@ -564,6 +564,11 @@ details[open] summary { margin-bottom: .6rem; }
 .benef-ligne{display:flex;justify-content:space-between;gap:12px;padding:4px 0}
 .benef-ligne.fort{border-top:1px solid var(--border);padding-top:8px;font-size:1.05rem}
 .kpi-value.neg{color:var(--rose)}
+.evol{font-size:.78rem;font-weight:600}
+.evol.pos{color:var(--green-700)}
+.evol.neg{color:var(--rose)}
+.associes-alertes{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:4px}
+.associes-alertes li{display:flex;align-items:center;gap:6px;font-size:.85rem;color:var(--warn-text, #b45309)}
 .kpi-value.pos{color:var(--green-700)}
 .salaires-groupe-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:6px 2px;border-bottom:1px solid var(--border);margin-bottom:6px}
 .salaires-groupe-head span{color:var(--muted);font-size:.85rem;font-weight:600}

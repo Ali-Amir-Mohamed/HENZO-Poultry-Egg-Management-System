@@ -20,7 +20,8 @@
     "compta": "Accounts",
     "commandes": "Orders",
     "benefices": "Profits",
-    "provenderie": "Feed mill"
+    "provenderie": "Feed mill",
+    "associes": "Partners"
   },
   "roles": {
     "directeur": "Director",
@@ -2249,5 +2250,41 @@
     "old_one": "{{count}} day",
     "old_other": "{{count}} days",
     "message": "Hello {{nom}},\n\nThis is a reminder that {{total}} is still due for your purchases:\n{{lignes}}\n\nPlease settle it as soon as possible (cash, Mobile Money or transfer).\n\nKind regards,\n{{societe}}"
+  },
+  "associes": {
+    "title": "Partners’ dashboard",
+    "subtitle_one": "{{count}} company",
+    "subtitle_other": "{{count}} companies",
+    "groupTitle": "The whole group",
+    "internalHint": "Including {{n}} your companies owe each other (not money to collect from outside).",
+    "cash": "Money available",
+    "result": "Result of the month",
+    "toCollect": "To collect",
+    "toPay": "To pay",
+    "outsideGroup": "excluding sales between your companies",
+    "salesMonth": "Sales this month",
+    "vsLastMonth": "vs last month",
+    "inShops": "of which {{n}} in the shops",
+    "ofGroup": "of which {{n}} from your companies",
+    "resultHintFarm": "sales − expenses of the month",
+    "resultHintTrade": "sales − purchase cost − charges",
+    "birds": "Birds being raised",
+    "birdsDetail": "{{poulets}} broilers ({{bandes}} flocks) · {{pondeuses}} layers",
+    "ordersWeek": "Chick deliveries (7 days)",
+    "sites": "sites: {{list}}",
+    "nothingWaiting": "Nothing waiting.",
+    "alerts": {
+      "expenses_one": "{{count}} expense to validate",
+      "expenses_other": "{{count}} expenses to validate",
+      "deposits_one": "{{count}} shop deposit to validate",
+      "deposits_other": "{{count}} shop deposits to validate",
+      "deliveries_one": "{{count}} group delivery to receive",
+      "deliveries_other": "{{count}} group deliveries to receive",
+      "lowStock_one": "{{count}} item low in stock",
+      "lowStock_other": "{{count}} items low in stock",
+      "orders_one": "{{count}} chick order to deliver this week",
+      "orders_other": "{{count}} chick orders to deliver this week"
+    },
+    "howTo": "These figures are read without switching company. For the details, open the company with the menu at the top. Partners’ withdrawals are not counted in the result."
   }
 }

@@ -20,7 +20,8 @@
     "compta": "Compta",
     "commandes": "Commandes",
     "benefices": "Bénéfices",
-    "provenderie": "Provenderie"
+    "provenderie": "Provenderie",
+    "associes": "Associés"
   },
   "roles": {
     "directeur": "Directeur",
@@ -2249,5 +2250,41 @@
     "old_one": "{{count}} jour",
     "old_other": "{{count}} jours",
     "message": "Bonjour {{nom}},\n\nNous vous rappelons qu’il reste {{total}} à régler pour vos achats :\n{{lignes}}\n\nMerci de bien vouloir passer régler dès que possible (espèces, Mobile Money ou virement).\n\nCordialement,\n{{societe}}"
+  },
+  "associes": {
+    "title": "Tableau de bord des associés",
+    "subtitle_one": "{{count}} société",
+    "subtitle_other": "{{count}} sociétés",
+    "groupTitle": "Tout le groupe",
+    "internalHint": "Dont {{n}} que vos sociétés se doivent entre elles (ce n’est pas de l’argent à recevoir de l’extérieur).",
+    "cash": "Argent disponible",
+    "result": "Résultat du mois",
+    "toCollect": "À recevoir",
+    "toPay": "À payer",
+    "outsideGroup": "hors ventes entre vos sociétés",
+    "salesMonth": "Ventes du mois",
+    "vsLastMonth": "vs mois dernier",
+    "inShops": "dont {{n}} dans les boutiques",
+    "ofGroup": "dont {{n}} de vos sociétés",
+    "resultHintFarm": "ventes − dépenses du mois",
+    "resultHintTrade": "ventes − prix d’achat − charges",
+    "birds": "Volailles en élevage",
+    "birdsDetail": "{{poulets}} poulets ({{bandes}} bandes) · {{pondeuses}} pondeuses",
+    "ordersWeek": "Livraisons de poussins (7 jours)",
+    "sites": "sites : {{list}}",
+    "nothingWaiting": "Rien en attente.",
+    "alerts": {
+      "expenses_one": "{{count}} dépense à valider",
+      "expenses_other": "{{count}} dépenses à valider",
+      "deposits_one": "{{count}} versement de boutique à valider",
+      "deposits_other": "{{count}} versements de boutique à valider",
+      "deliveries_one": "{{count}} livraison du groupe à réceptionner",
+      "deliveries_other": "{{count}} livraisons du groupe à réceptionner",
+      "lowStock_one": "{{count}} article en stock bas",
+      "lowStock_other": "{{count}} articles en stock bas",
+      "orders_one": "{{count}} commande de poussins à livrer cette semaine",
+      "orders_other": "{{count}} commandes de poussins à livrer cette semaine"
+    },
+    "howTo": "Ces chiffres se lisent sans changer de société. Pour le détail, ouvrez la société avec le menu en haut. Les retraits des associés ne sont pas comptés dans le résultat."
   }
 }
