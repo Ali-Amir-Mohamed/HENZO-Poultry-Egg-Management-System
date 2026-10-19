@@ -2286,5 +2286,18 @@
       "orders_other": "{{count}} chick orders to deliver this week"
     },
     "howTo": "These figures are read without switching company. For the details, open the company with the menu at the top. Partners’ withdrawals are not counted in the result."
+  },
+  "prix": {
+    "title": "Purchase prices",
+    "subtitle": "The price paid for each item, and the cheapest supplier.",
+    "all": "All items",
+    "none": "No purchase recorded with a stock item.",
+    "last": "last: {{prix}} / {{unite}} on {{d}}",
+    "average": "3-month average: {{prix}}",
+    "cheapest": "Cheapest over 3 months: {{nom}} ({{prix}})",
+    "history_one": "See the purchase",
+    "history_other": "See the {{count}} purchases",
+    "noSupplier": "no supplier",
+    "alertHint": "When a purchase costs 10 % more than the recent ones, Ali, Kenfack and Dahirou get an alert."
   }
 }

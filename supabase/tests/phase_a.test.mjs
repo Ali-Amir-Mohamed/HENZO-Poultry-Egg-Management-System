@@ -1688,6 +1688,29 @@ await expectErr('the employee does not see the partners dashboard', 'employe', `
 await expectErr('the seller does not see it either', 'vendeur', `select public.tableau_associes()`, [], 'associés')
 }
 
+// ---------- 0057: purchase prices and price rise alert ----------
+try {
+  await db.exec(readFileSync(new URL('0057_prix_achats.sql', MIG), 'utf8'))
+  ok('migration 0057 runs', true)
+} catch (e) { ok('migration 0057 runs', false, e.message); process.exit(1) }
+{
+for (const who of ['kenfack', 'dahirou', 'ali']) await as(who, `select public.changer_ferme($1)`, [NEG])
+const MA = (await db.query(`select id from public.articles where ferme_id = $1 and nom = 'Maïs'`, [NEG])).rows[0].id
+const F1 = (await oneP('kenfack', `insert into public.tiers (type_tiers, nom) values ('fournisseur', 'Grossiste Mokolo') returning id`)).id
+const F2 = (await oneP('kenfack', `insert into public.tiers (type_tiers, nom) values ('fournisseur', 'Coopérative Obala') returning id`)).id
+const achat = (q, m, four) => as('kenfack', `insert into public.depenses (portee, activite, categorie, libelle, montant, mode_paiement, article_id, quantite, fournisseur_id) values ('ferme', 'chair', 'aliment', 'Maïs', $2, 'especes', $1, $3, $4)`, [MA, m, q, four])
+await db.exec(`delete from public.notifications where type_notification = 'hausse_prix'`)
+await achat(100, 21000, F2)                          // 210 F/kg, close to the 200 F/kg before
+ok('a normal price raises no alert', (await db.query(`select count(*)::int n from public.notifications where type_notification = 'hausse_prix'`)).rows[0].n === 0)
+await achat(100, 25000, F1)                          // 250 F/kg: about +22 % on the last purchases
+const al = (await db.query(`select role_destinataire::text r, message from public.notifications where type_notification = 'hausse_prix'`)).rows
+ok('a price 10 % higher alerts ali, kenfack and dahirou', al.length === 3 && al[0].message.includes('Maïs') && al[0].message.includes('Grossiste Mokolo'), JSON.stringify(al[0]))
+const hist = (await as('kenfack', `select fournisseur, prix_unitaire from public.prix_achats where article_id = $1 order by date_depense, depense_id`, [MA])).rows
+ok('the price history keeps each purchase with its supplier and unit price', hist.length === 3 && hist.some((h) => h.fournisseur === 'Coopérative Obala' && Number(h.prix_unitaire) === 210), JSON.stringify(hist))
+ok('the employee does not see purchase prices', (await as('employe', `select * from public.prix_achats`)).rows.length === 0)
+for (const who of ['kenfack', 'dahirou', 'ali']) await as(who, `select public.changer_ferme($1)`, [fermeAli])
+}
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))

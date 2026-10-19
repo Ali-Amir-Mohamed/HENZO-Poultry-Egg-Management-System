@@ -2286,5 +2286,18 @@
       "orders_other": "{{count}} commandes de poussins à livrer cette semaine"
     },
     "howTo": "Ces chiffres se lisent sans changer de société. Pour le détail, ouvrez la société avec le menu en haut. Les retraits des associés ne sont pas comptés dans le résultat."
+  },
+  "prix": {
+    "title": "Prix d’achat",
+    "subtitle": "Le prix payé pour chaque article, et le fournisseur le moins cher.",
+    "all": "Tous les articles",
+    "none": "Aucun achat enregistré avec un article du stock.",
+    "last": "dernier : {{prix}} / {{unite}} le {{d}}",
+    "average": "moyenne 3 mois : {{prix}}",
+    "cheapest": "Le moins cher sur 3 mois : {{nom}} ({{prix}})",
+    "history_one": "Voir l’achat",
+    "history_other": "Voir les {{count}} achats",
+    "noSupplier": "sans fournisseur",
+    "alertHint": "Quand un achat coûte 10 % de plus que les derniers, Ali, Kenfack et Dahirou reçoivent une alerte."
   }
 }

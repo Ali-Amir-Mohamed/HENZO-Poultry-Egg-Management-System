@@ -9,8 +9,9 @@ import Icon from '../components/Icon'
 import { day, Empty, Field, FormCard, Loading, Panel } from '../components/ui'
 import { useAsk, useRun } from '../components/Dialog'
 import LivraisonsGroupe from './stock/LivraisonsGroupe'
+import PrixAchats from './stock/PrixAchats'
 
-// Stock: entries come from purchases (expenses), consumption from field entries.
+// Stock: entries come from purchases (expenses), consumption from field entries; purchase prices at the bottom.
 export default function Stock() {
   const { t, i18n } = useTranslation()
   const { role } = useAuth()
@@ -184,6 +185,8 @@ export default function Stock() {
           </ul>
         )}
       </Panel>
+
+      <PrixAchats />
     </div>
   )
 }
