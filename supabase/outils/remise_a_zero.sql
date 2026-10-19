@@ -20,6 +20,9 @@
 -- =====================================================================
 
 truncate table
+  public.fabrications,
+  public.formules_lignes,
+  public.formules_aliment,
   public.commissions_recues,
   public.avances_commandes,
   public.commandes_eleveurs,

@@ -47,6 +47,7 @@ export const ACCESS = {
   administration: [D, F, X],      // Ali: everything; Dahirou: land (read) + bank accounts; Kenfack: land (read)
   commandes: [D, X, F, E],        // HENZO AGRO: chick orders from farmers
   benefices: [D, X, F],           // HENZO AGRO: profits by period and by item
+  provenderie: [D, X, F, E],      // HENZO AGRO: feed mill (formulas, productions, cost price)
   sync: [D, X, F, E, V]
 }
 
@@ -112,6 +113,9 @@ export const PERMISSIONS = {
   'commande.annuler': [X, F],    // cancel an order (the deposit is kept, or refunded by finance)
   'commande.rembourser': [F],    // refund a deposit
   'commission.recevoir': [F],    // record a commission paid by a hatchery
+  'provenderie.formule': [X, D], // write or retire a feed formula
+  'provenderie.fabriquer': [X, E], // record a production of feed
+  'provenderie.annuler': [X, D], // cancel a production
   'groupe.receptionner': [X],    // receive a delivery from a group company
   'groupe.refuser': [X, F],      // refuse it
   'groupe.lier': [D, F]          // link a customer / supplier to a group company
@@ -153,5 +157,5 @@ export const PRODUITS = {
     { produit: 'fientes', unites: ['piece', 'kg'] }
   ]
 }
-export const ARTICLE_CATEGORIES = ['aliment', 'medicament', 'poussins', 'autre']
+export const ARTICLE_CATEGORIES = ['aliment', 'medicament', 'poussins', 'matiere_premiere', 'emballage', 'autre']
 export const ARTICLE_UNITES = ['kg', 'sac', 'litre', 'dose', 'flacon', 'piece']

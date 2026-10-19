@@ -19,7 +19,8 @@
     "administration": "Administration",
     "compta": "Compta",
     "commandes": "Commandes",
-    "benefices": "Bénéfices"
+    "benefices": "Bénéfices",
+    "provenderie": "Provenderie"
   },
   "roles": {
     "directeur": "Directeur",
@@ -130,7 +131,9 @@
     "aliment": "Aliment",
     "medicament": "Médicament",
     "autre": "Autre",
-    "poussins": "Poussins"
+    "poussins": "Poussins",
+    "matiere_premiere": "Matière première",
+    "emballage": "Emballage (sacs vides)"
   },
   "tiersTypes": {
     "client": "Client",
@@ -2179,5 +2182,55 @@
     "unknownCost_one": "{{count}} produit n’a pas de prix d’achat : il a été mis en stock sans achat. Sa marge est comptée comme si l’achat était gratuit.",
     "unknownCost_other": "{{count}} produits n’ont pas de prix d’achat : ils ont été mis en stock sans achat. Leur marge est comptée comme si l’achat était gratuit.",
     "howTo": "Le prix d’achat est le prix moyen payé pour chaque produit (achats enregistrés dans le stock). Les retraits des associés ne sont pas des charges."
+  },
+  "provenderie": {
+    "title": "Provenderie",
+    "tabs": {
+      "make": "Fabriquer",
+      "formulas": "Formules",
+      "history": "Historique"
+    },
+    "newProduction": "Nouvelle fabrication",
+    "formula": "Formule",
+    "kgToMake": "Quantité à fabriquer (kg)",
+    "bagsObtained": "Sacs obtenus ({{kg}} kg)",
+    "bagsObtainedShort": "Sacs obtenus",
+    "material": "Matière première",
+    "needed": "Il faut",
+    "inStock": "En stock",
+    "cost": "Coût",
+    "noPrice": "prix d’achat inconnu",
+    "runningCosts": "Frais de fabrication",
+    "costPerBag": "Prix de revient d’un sac",
+    "made": "{{n}} sacs de {{nom}} entrés en stock.",
+    "howTo": "Les matières premières et les sacs vides s’achètent comme les autres articles, dans Stock. Le prix de revient vient de leurs prix d’achat.",
+    "noFormula": "Aucune formule : créez d’abord une formule dans l’onglet Formules.",
+    "formulasTitle": "Formules (pour 1 tonne)",
+    "formulasHint": "Les kg de chaque matière pour fabriquer 1 tonne d’aliment.",
+    "totalKg": "total {{n}} kg",
+    "costsPerTonne": "frais {{n}} / tonne",
+    "disable": "Retirer",
+    "disableConfirm": "Retirer la formule « {{nom}} » ? Les fabrications passées restent.",
+    "newFormula": "Nouvelle formule",
+    "formulaName": "Nom de la formule",
+    "formulaNamePh": "Démarrage, croissance, finition, ponte…",
+    "product": "Aliment fabriqué",
+    "emptyBag": "Sac vide utilisé",
+    "runningCostsPerTonne": "Frais de fabrication par tonne (FCFA)",
+    "linesHint": "Pour 1 tonne (1 000 kg) d’aliment :",
+    "kgPerTonne": "kg pour 1 tonne",
+    "addMaterial": "Ajouter une matière",
+    "formulaTotal": "Total : {{n}} kg (une formule fait normalement 1 000 kg)",
+    "formulaSaved": "Formule enregistrée.",
+    "createItems": "Créez d’abord dans Stock vos matières premières (en kg, catégorie « Matière première ») et l’aliment fabriqué (au sac, avec le poids du sac).",
+    "noProduction": "Aucune fabrication pour l’instant.",
+    "oldFormula": "formule retirée",
+    "bags": "sacs",
+    "detail": "matières {{m}} · sacs {{s}} · frais {{f}}",
+    "incomplete": "une matière sans prix d’achat",
+    "cancelled": "Annulée",
+    "cancel": "Annuler",
+    "cancelTitle": "Annuler cette fabrication",
+    "perBag": "{{n}} / sac"
   }
 }

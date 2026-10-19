@@ -551,6 +551,8 @@ details[open] summary { margin-bottom: .6rem; }
 /* HENZO AGRO: several products in one sale */
 .vente-ligne{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) 36px;gap:8px;align-items:end}
 .vente-ligne .icon-btn{margin-bottom:6px}
+.formule-ligne{grid-template-columns:minmax(0,2fr) minmax(0,1fr) 36px}
+@media (max-width:640px){.formule-ligne > :first-child{grid-column:auto}}
 .check-line{display:flex;align-items:center;gap:8px;font-weight:600;font-size:.9rem;align-self:center}
 .check-line input{width:20px;height:20px}
 @media (max-width:640px){.vente-ligne{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 36px}.vente-ligne > :first-child{grid-column:1 / -1}}

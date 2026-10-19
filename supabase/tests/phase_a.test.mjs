@@ -1610,6 +1610,46 @@ ok('journal balanced after multi-product sales', (await as('dahirou', `select pi
 for (const who of ['kenfack', 'dahirou', 'ali']) await as(who, `select public.changer_ferme($1)`, [fermeAli])
 }
 
+// ---------- 0054: feed mill (formulas, production, cost price) ----------
+try {
+  await db.exec(readFileSync(new URL('0054_provenderie.sql', MIG), 'utf8'))
+  ok('migration 0054 runs', true)
+} catch (e) { ok('migration 0054 runs', false, e.message); process.exit(1) }
+{
+for (const who of ['kenfack', 'dahirou', 'ali']) await as(who, `select public.changer_ferme($1)`, [NEG])
+const article = async (nom, cat, unite, poids) => (await oneP('kenfack', `insert into public.articles (nom, categorie, unite, poids_unitaire_kg) values ($1, $2, $3, $4) returning id`, [nom, cat, unite, poids ?? null])).id
+const MAIS = await article('Maïs', 'matiere_premiere', 'kg')
+const SOJA = await article('Tourteau de soja', 'matiere_premiere', 'kg')
+const SAC = await article('Sac vide 50 kg', 'emballage', 'piece')
+const FIN = await article('Aliment finition maison', 'aliment', 'sac', 50)
+const achat = (art, q, m, lib) => as('kenfack', `insert into public.depenses (portee, activite, categorie, libelle, montant, mode_paiement, article_id, quantite) values ('ferme', 'chair', 'aliment', $4, $3, 'especes', $1, $2)`, [art, q, m, lib])
+await achat(MAIS, 400, 80000, '400 kg maïs')      // 200 F / kg
+await achat(SOJA, 200, 60000, '200 kg soja')      // 300 F / kg
+await achat(SAC, 40, 8000, '40 sacs vides')       // 200 F / sac
+await expectErr('the product must be feed sold by the bag, with its weight', 'kenfack', `select public.creer_formule('X', $1, null, 0, $2::jsonb)`, [MAIS, JSON.stringify([{ article_id: MAIS, quantite_kg: 1000 }])], 'poids du sac')
+const FORM = (await oneP('kenfack', `select public.creer_formule('Finition 1 t', $1, $2, 10000, $3::jsonb) as id`,
+  [FIN, SAC, JSON.stringify([{ article_id: MAIS, quantite_kg: 650 }, { article_id: SOJA, quantite_kg: 350 }])])).id
+ok('kenfack writes a formula for 1 tonne', !!FORM)
+await expectErr('dahirou does not produce feed', 'dahirou', `select public.fabriquer($1, 500, 10)`, [FORM], 'exploitation')
+const FAB = (await oneP('kenfack', `select public.fabriquer($1, 500, 10) as id`, [FORM])).id
+const fb = (await db.query(`select cout_matieres, cout_sacs, cout_frais, prix_revient_sac, cout_incomplet from public.fabrications where id = $1`, [FAB])).rows[0]
+ok('500 kg made into 10 bags: raw materials 117 500 + bags 2 000 + running costs 5 000 = 12 450 per bag',
+  Number(fb.cout_matieres) === 117500 && Number(fb.cout_sacs) === 2000 && Number(fb.cout_frais) === 5000 && Number(fb.prix_revient_sac) === 12450 && fb.cout_incomplet === false, JSON.stringify(fb))
+const st = async (a) => Number((await db.query(`select public.stock_article($1) s`, [a])).rows[0].s)
+ok('raw materials and empty bags leave the stock, bags of feed enter it', (await st(MAIS)) === 75 && (await st(SOJA)) === 25 && (await st(SAC)) === 30 && (await st(FIN)) === 10)
+await expectErr('not enough maize for another 500 kg', 'kenfack', `select public.fabriquer($1, 500, 10)`, [FORM], 'Pas assez de Maïs')
+await as('kenfack', `select public.vendre_marchandises(null, $1::jsonb)`, [JSON.stringify([{ article_id: FIN, quantite: 4, prix: 16000 }])])
+const bf = (await as('dahirou', `select * from public.benefices_articles(current_date - 1, current_date)`)).rows.find((r) => r.article_id === FIN)
+ok('profit counts raw materials and bags in the cost of the feed sold (4 x 11 950)', !!bf && Number(bf.cout) === 47800 && Number(bf.marge) === 64000 - 47800, JSON.stringify(bf))
+await expectErr('a production partly sold cannot be cancelled', 'kenfack', `select public.annuler_fabrication($1, 'Erreur')`, [FAB], 'déjà vendue')
+const FAB2 = (await oneP('kenfack', `select public.fabriquer($1, 60, 1) as id`, [FORM])).id
+ok('a small production uses 39 kg maize and 21 kg soya', (await st(MAIS)) === 36 && (await st(SOJA)) === 4)
+await expectOk('kenfack cancels it', 'kenfack', `select public.annuler_fabrication($1, 'Mauvais mélange')`, [FAB2])
+ok('the raw materials come back', (await st(MAIS)) === 75 && (await st(SOJA)) === 25 && (await st(FIN)) === 6)
+ok('journal still balanced', (await as('dahirou', `select piece from public.journal_comptable group by piece having sum(debit) <> sum(credit)`)).rows.length === 0)
+for (const who of ['kenfack', 'dahirou', 'ali']) await as(who, `select public.changer_ferme($1)`, [fermeAli])
+}
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))

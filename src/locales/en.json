@@ -19,7 +19,8 @@
     "administration": "Administration",
     "compta": "Accounts",
     "commandes": "Orders",
-    "benefices": "Profits"
+    "benefices": "Profits",
+    "provenderie": "Feed mill"
   },
   "roles": {
     "directeur": "Director",
@@ -130,7 +131,9 @@
     "aliment": "Feed",
     "medicament": "Medicine",
     "autre": "Other",
-    "poussins": "Chicks"
+    "poussins": "Chicks",
+    "matiere_premiere": "Raw material",
+    "emballage": "Packaging (empty bags)"
   },
   "tiersTypes": {
     "client": "Customer",
@@ -2179,5 +2182,55 @@
     "unknownCost_one": "{{count}} product has no purchase cost: it was put in stock without a purchase. Its margin counts as if it were free.",
     "unknownCost_other": "{{count}} products have no purchase cost: they were put in stock without a purchase. Their margin counts as if they were free.",
     "howTo": "The purchase cost is the average price paid for each product (purchases recorded in the stock). Partners’ withdrawals are not charges."
+  },
+  "provenderie": {
+    "title": "Feed mill",
+    "tabs": {
+      "make": "Produce",
+      "formulas": "Formulas",
+      "history": "History"
+    },
+    "newProduction": "New production",
+    "formula": "Formula",
+    "kgToMake": "Quantity to produce (kg)",
+    "bagsObtained": "Bags obtained ({{kg}} kg)",
+    "bagsObtainedShort": "Bags obtained",
+    "material": "Raw material",
+    "needed": "Needed",
+    "inStock": "In stock",
+    "cost": "Cost",
+    "noPrice": "purchase price unknown",
+    "runningCosts": "Running costs",
+    "costPerBag": "Cost price of a bag",
+    "made": "{{n}} bags of {{nom}} added to the stock.",
+    "howTo": "Raw materials and empty bags are bought like other items, in Stock. The cost price comes from their purchase prices.",
+    "noFormula": "No formula: first create one in the Formulas tab.",
+    "formulasTitle": "Formulas (for 1 tonne)",
+    "formulasHint": "The kg of each raw material to make 1 tonne of feed.",
+    "totalKg": "total {{n}} kg",
+    "costsPerTonne": "costs {{n}} / tonne",
+    "disable": "Retire",
+    "disableConfirm": "Retire the formula « {{nom}} »? Past productions stay.",
+    "newFormula": "New formula",
+    "formulaName": "Formula name",
+    "formulaNamePh": "Starter, grower, finisher, layer…",
+    "product": "Feed produced",
+    "emptyBag": "Empty bag used",
+    "runningCostsPerTonne": "Running costs per tonne (FCFA)",
+    "linesHint": "For 1 tonne (1,000 kg) of feed:",
+    "kgPerTonne": "kg for 1 tonne",
+    "addMaterial": "Add a raw material",
+    "formulaTotal": "Total: {{n}} kg (a formula normally makes 1,000 kg)",
+    "formulaSaved": "Formula saved.",
+    "createItems": "First create in Stock your raw materials (in kg, category « Raw material ») and the feed produced (by the bag, with the bag weight).",
+    "noProduction": "No production yet.",
+    "oldFormula": "retired formula",
+    "bags": "bags",
+    "detail": "raw materials {{m}} · bags {{s}} · costs {{f}}",
+    "incomplete": "a raw material without purchase price",
+    "cancelled": "Cancelled",
+    "cancel": "Cancel",
+    "cancelTitle": "Cancel this production",
+    "perBag": "{{n}} / bag"
   }
 }

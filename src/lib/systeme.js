@@ -6,7 +6,7 @@ export const estNegoce = (profile) => profile?.ferme?.type_activite === 'negoce'
 
 // Sections that only make sense for a farm, and for the trading company
 export const SECTIONS_ELEVAGE = ['saisie', 'ferme', 'planning', 'analyses', 'boutique']
-export const SECTIONS_NEGOCE = ['commandes', 'benefices']
+export const SECTIONS_NEGOCE = ['commandes', 'provenderie', 'benefices']
 
 export const sectionVisible = (section, role, profile) =>
   canAccess(role, section) && !(estNegoce(profile) && SECTIONS_ELEVAGE.includes(section)) && !(!estNegoce(profile) && SECTIONS_NEGOCE.includes(section))
