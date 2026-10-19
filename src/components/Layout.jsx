@@ -16,6 +16,7 @@ import Icon, { Logo } from './Icon'
 export const SECTIONS = [
   { to: '/', key: 'dashboard', icon: 'home' },
   { to: '/associes', key: 'associes', icon: 'users' },
+  { to: '/rapport', key: 'rapport', icon: 'note' },
   { to: '/saisie', key: 'saisie', icon: 'plus' },
   { to: '/ferme', key: 'ferme', icon: 'hen' },
   { to: '/commandes', key: 'commandes', icon: 'calendar' },

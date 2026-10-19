@@ -21,7 +21,8 @@
     "commandes": "Commandes",
     "benefices": "Bénéfices",
     "provenderie": "Provenderie",
-    "associes": "Associés"
+    "associes": "Associés",
+    "rapport": "Rapport"
   },
   "roles": {
     "directeur": "Directeur",
@@ -2328,5 +2329,32 @@
       "D": "{{nom}} est un client risqué (dettes de plus de 60 jours) : le crédit est déconseillé."
     },
     "noCredit": "pas de crédit conseillé (comptant seulement)"
+  },
+  "rapportG": {
+    "title": "Rapport du groupe – {{mois}}",
+    "made": "établi le {{d}}",
+    "overview": "Vue d’ensemble",
+    "sales": "Ventes",
+    "result": "Résultat",
+    "money": "Argent fin de mois",
+    "toCollect": "À recevoir",
+    "toPay": "À payer",
+    "total": "Total du groupe",
+    "overviewNote": "Le résultat d’une ferme = ventes − dépenses du mois ; celui de HENZO AGRO = ventes − prix d’achat − charges. Les retraits des associés ne sont pas comptés. Les ventes entre vos sociétés comptent dans chacune.",
+    "resultTitle": "Le résultat",
+    "charges": "Charges",
+    "chargesTitle": "Les charges",
+    "production": "Production",
+    "birdsSold": "Poulets vendus",
+    "eggs": "Œufs ramassés",
+    "deaths": "Mortalité",
+    "flocksClosed": "Bandes terminées",
+    "topProducts": "Meilleurs produits",
+    "topClients": "Meilleurs clients",
+    "newClients_one": "{{count}} nouveau client ce mois",
+    "newClients_other": "{{count}} nouveaux clients ce mois",
+    "footer": "Rapport établi par HENZO à partir des ventes, dépenses et caisses enregistrées.",
+    "farmDetail": "Le rapport détaillé d’une ferme (production, aliment, bandes) reste dans",
+    "shareText": "Rapport du groupe – {{mois}} : ventes {{ventes}}, résultat {{resultat}}."
   }
 }

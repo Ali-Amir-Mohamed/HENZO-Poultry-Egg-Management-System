@@ -1739,6 +1739,30 @@ ok('group companies are not rated', (await as('kenfack', `select 1 from public.c
 for (const who of ['kenfack', 'dahirou', 'ali']) await as(who, `select public.changer_ferme($1)`, [fermeAli])
 }
 
+// ---------- 0059: monthly report ----------
+try {
+  await db.exec(readFileSync(new URL('0059_rapport_mensuel.sql', MIG), 'utf8'))
+  await db.exec(readFileSync(new URL('0059_rapport_mensuel.sql', MIG), 'utf8'))
+  ok('migration 0059 runs (twice without error)', true)
+} catch (e) { ok('migration 0059 runs (twice without error)', false, e.message); process.exit(1) }
+{
+const rp = (await oneP('dahirou', `select public.rapport_mois(current_date) as r`)).r
+const agro = rp.societes.find((s) => s.id === NEG), ferme = rp.societes.find((s) => s.id === fermeAli)
+ok('the report covers the month for both companies', !!agro && !!ferme && rp.debut.endsWith('-01'), JSON.stringify([rp.debut, rp.fin, rp.societes.length]))
+const caisseAgro = Number((await db.query(`select coalesce(sum(solde), 0) s from public.soldes_caisses where ferme_id = $1`, [NEG])).rows[0].s)
+ok('money at the end of the current month = cash today', Number(agro.argent_fin) === caisseAgro, `${agro.argent_fin} vs ${caisseAgro}`)
+const recv = Number((await db.query(`select coalesce(sum(public.reste_a_payer_vente(id)), 0) s from public.ventes where ferme_id = $1 and a_credit and not annulee`, [NEG])).rows[0].s)
+ok('to collect at the end of the current month = unpaid today', Number(agro.a_recevoir_fin) === recv, `${agro.a_recevoir_fin} vs ${recv}`)
+ok('best clients and products are listed', agro.top_clients.length > 0 && agro.top_produits.length > 0)
+ok('the farm shows its production', Number(ferme.mortalite) >= 0 && 'oeufs' in ferme && 'poulets_vendus' in ferme)
+const vieux = (await oneP('dahirou', `select public.rapport_mois((current_date - interval '13 months')::date) as r`)).r
+ok('an old month without activity shows zero sales', vieux.societes.every((s) => Number(s.ventes) === 0))
+await expectErr('the employee cannot read the report', 'employe', `select public.rapport_mois(current_date)`, [], 'associés')
+await db.exec(`delete from public.notifications where type_notification = 'rapport_mensuel'`)
+await db.exec(`select public.rappel_rapport_mensuel(); select public.rappel_rapport_mensuel();`)
+ok('the 1st of the month the partners are told, once', (await db.query(`select count(*)::int n from public.notifications where type_notification = 'rapport_mensuel' and ferme_id = $1`, [fermeAli])).rows[0].n === 3)
+}
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))

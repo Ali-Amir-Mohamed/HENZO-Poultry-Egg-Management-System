@@ -21,7 +21,8 @@
     "commandes": "Orders",
     "benefices": "Profits",
     "provenderie": "Feed mill",
-    "associes": "Partners"
+    "associes": "Partners",
+    "rapport": "Report"
   },
   "roles": {
     "directeur": "Director",
@@ -2328,5 +2329,32 @@
       "D": "{{nom}} is a risky client (debts over 60 days): credit is not advised."
     },
     "noCredit": "no credit advised (cash only)"
+  },
+  "rapportG": {
+    "title": "Group report – {{mois}}",
+    "made": "made on {{d}}",
+    "overview": "Overview",
+    "sales": "Sales",
+    "result": "Result",
+    "money": "Money at month end",
+    "toCollect": "To collect",
+    "toPay": "To pay",
+    "total": "Group total",
+    "overviewNote": "A farm’s result = sales − expenses of the month; HENZO AGRO’s = sales − purchase cost − charges. Partners’ withdrawals are not counted. Sales between your companies count in each.",
+    "resultTitle": "The result",
+    "charges": "Charges",
+    "chargesTitle": "The charges",
+    "production": "Production",
+    "birdsSold": "Broilers sold",
+    "eggs": "Eggs collected",
+    "deaths": "Deaths",
+    "flocksClosed": "Flocks finished",
+    "topProducts": "Best products",
+    "topClients": "Best clients",
+    "newClients_one": "{{count}} new client this month",
+    "newClients_other": "{{count}} new clients this month",
+    "footer": "Report made by HENZO from the recorded sales, expenses and cash boxes.",
+    "farmDetail": "The detailed report of a farm (production, feed, flocks) stays in",
+    "shareText": "Group report – {{mois}}: sales {{ventes}}, result {{resultat}}."
   }
 }

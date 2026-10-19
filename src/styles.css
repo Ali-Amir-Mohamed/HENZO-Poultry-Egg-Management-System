@@ -565,6 +565,20 @@ details[open] summary { margin-bottom: .6rem; }
 .benef-ligne.fort{border-top:1px solid var(--border);padding-top:8px;font-size:1.05rem}
 .kpi-value.neg{color:var(--rose)}
 .evol{font-size:.78rem;font-weight:600}
+/* Group monthly report (A4) */
+.rapport-groupe{background:#fff;color:#1d1b26;border:1px solid var(--border);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:22px}
+.rapport-groupe h2{font-size:1.05rem;margin:0 0 10px;border-bottom:2px solid #1f7a34;padding-bottom:4px;color:#1f7a34}
+.rapport-groupe h3{font-size:.85rem;margin:12px 0 6px;text-transform:uppercase;letter-spacing:.05em;color:#4d6354}
+.rapport-groupe .muted{color:#5d6b61}
+.rg-head{display:flex;align-items:center;gap:12px}
+.rg-head h1{margin:0;font-size:1.3rem}
+.rg-head p{margin:2px 0 0}
+.rg-table th{background:#f1f5f2;color:#1d1b26}
+.rg-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.rg-liste{list-style:none;margin:0;padding:0}
+.rg-liste li{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid #eef1ec;font-size:.9rem}
+@media (max-width:640px){.rg-grid{grid-template-columns:1fr}.rapport-groupe{padding:14px}}
+@media print{.rapport-groupe{border:none;padding:0;border-radius:0}.rg-societe{break-inside:avoid}}
 .ok-text{color:var(--ok);display:flex;align-items:center;gap:4px;margin-top:2px}
 .select-sm{padding:4px 8px;font-size:.85rem;border-radius:8px}
 .evol.pos{color:var(--green-700)}

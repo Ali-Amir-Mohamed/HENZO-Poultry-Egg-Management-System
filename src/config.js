@@ -36,6 +36,7 @@ const { DIRECTEUR: D, EXPLOITATION: X, FINANCE: F, EMPLOYE: E, VENDEUR: V, COMPT
 export const ACCESS = {
   dashboard: [D, X, F, E],
   associes: [D, X, F],             // partners' dashboard: both companies side by side
+  rapport: [D, X, F],              // the group's monthly report (both companies), printable and shareable
   saisie: [X, E],                 // field entries: operations (the director only reads)
   ferme: [D, X, F],
   planning: [D, X, F],
