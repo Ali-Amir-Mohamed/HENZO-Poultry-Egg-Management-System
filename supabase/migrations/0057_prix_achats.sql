@@ -6,10 +6,10 @@
 --   * Alerte quand un prix monte : un achat plus cher de 10 % ou plus que
 --     la moyenne des 3 derniers achats du même article prévient Ali,
 --     Kenfack et Dahirou.
--- À exécuter une fois dans Supabase > SQL Editor, après 0056.
+-- À exécuter dans Supabase > SQL Editor, après 0056 (peut être relancée sans erreur).
 -- =====================================================================
 
-create view public.prix_achats with (security_invoker = true) as
+create or replace view public.prix_achats with (security_invoker = true) as
 select d.id as depense_id, d.ferme_id, d.article_id, a.nom as article, a.categorie, a.unite, d.date_depense,
        d.fournisseur_id, t.nom as fournisseur, d.quantite, d.montant, round(d.montant / d.quantite, 2) as prix_unitaire
 from public.depenses d
@@ -17,7 +17,7 @@ join public.articles a on a.id = d.article_id
 left join public.tiers t on t.id = d.fournisseur_id
 where d.article_id is not null and d.quantite > 0 and not d.annulee and d.statut <> 'rejetee';
 
-create function public.alerte_hausse_prix()
+create or replace function public.alerte_hausse_prix()
 returns trigger
 language plpgsql
 security definer
@@ -49,6 +49,7 @@ begin
   return null;
 end;
 $$;
+drop trigger if exists alerte_hausse_prix on public.depenses;
 create trigger alerte_hausse_prix after insert on public.depenses
   for each row execute function public.alerte_hausse_prix();
 
