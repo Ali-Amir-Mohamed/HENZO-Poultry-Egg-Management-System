@@ -19,11 +19,12 @@ export default function VenteMarchandise({ onVendu }) {
   const { t, i18n } = useTranslation()
   const lang = i18n.resolvedLanguage
   const ref = useQuery(async () => {
-    const [articles, clients] = await Promise.all([
+    const [articles, clients, notes] = await Promise.all([
       supabase.from('stock_articles').select('article_id, nom, categorie, unite, stock').eq('actif', true).order('nom'),
-      supabase.from(TABLES.tiers).select('id, nom, ferme_liee_id, credit_autorise').neq('type_tiers', 'fournisseur').order('nom')
+      supabase.from(TABLES.tiers).select('id, nom, ferme_liee_id, credit_autorise').neq('type_tiers', 'fournisseur').order('nom'),
+      supabase.from('confiance_clients').select('client_id, note, delai_moyen')
     ])
-    return { articles: must(articles), clients: must(clients) }
+    return { articles: must(articles), clients: must(clients), notes: Object.fromEntries((notes.data ?? []).map((n) => [n.client_id, n])) }
   })
   const vide = { client_nom: '', telephone: '', paiement: 'especes', acompte: '', livrer: false, frais: '', date_vente: localDate() }
   const [form, setForm] = useState(vide)
@@ -124,6 +125,9 @@ export default function VenteMarchandise({ onVendu }) {
       </div>
       {groupe && <p className="note"><Icon name="users" size={16} />{t('negoce.groupHint', { nom: client.nom })}</p>}
       {nouveau && <p className="note"><Icon name="users" size={16} />{t('negoce.newClient', { nom: form.client_nom.trim() })}</p>}
+      {client && form.paiement === 'credit' && ['C', 'D'].includes(ref.data.notes[client.id]?.note) && (
+        <div className={`alert ${ref.data.notes[client.id].note === 'D' ? 'danger' : 'warn'}`}><Icon name="alert" size={16} />{t(`confiance.saleWarn.${ref.data.notes[client.id].note}`, { nom: client.nom })}</div>
+      )}
       {frais > 0 && <p className="muted small">{t('negoce.subtotal', { produits: money(sousTotal, lang), frais: money(frais, lang) })}</p>}
       <div className="total-box"><span>{credit ? t('negoce.onCredit') : t('negoce.cash')}</span><strong>{money(total, lang)}</strong></div>
       {etat?.error && <div className="alert danger"><Icon name="alert" size={18} />{etat.error}</div>}

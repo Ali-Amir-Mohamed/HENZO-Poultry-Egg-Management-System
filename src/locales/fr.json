@@ -2299,5 +2299,34 @@
     "history_other": "Voir les {{count}} achats",
     "noSupplier": "sans fournisseur",
     "alertHint": "Quand un achat coûte 10 % de plus que les derniers, Ali, Kenfack et Dahirou reçoivent une alerte."
+  },
+  "confiance": {
+    "label": {
+      "A": "très bon payeur",
+      "B": "bon payeur",
+      "C": "à surveiller",
+      "D": "risqué",
+      "nouveau": "nouveau client"
+    },
+    "hint": {
+      "A": "Paie en 15 jours ou moins",
+      "B": "Paie en 30 jours ou moins",
+      "C": "Paie en plus de 30 jours, ou a une dette de plus de 30 jours",
+      "D": "Paie en plus de 60 jours, ou a une dette de plus de 60 jours",
+      "nouveau": "Pas encore d’achat à crédit"
+    },
+    "delay_one": "paie en {{count}} jour en moyenne",
+    "delay_other": "paie en {{count}} jours en moyenne",
+    "oldest_one": "dette la plus vieille : {{count}} jour",
+    "oldest_other": "dette la plus vieille : {{count}} jours",
+    "advised": "plafond conseillé : {{n}}",
+    "apply": "Appliquer le plafond conseillé",
+    "applyConfirm": "Fixer le plafond de crédit de {{nom}} à {{n}} ?",
+    "applyNone": "Supprimer le crédit de {{nom}} (paiement comptant seulement) ?",
+    "saleWarn": {
+      "C": "{{nom}} paie souvent en retard : soyez prudent avec le crédit.",
+      "D": "{{nom}} est un client risqué (dettes de plus de 60 jours) : le crédit est déconseillé."
+    },
+    "noCredit": "pas de crédit conseillé (comptant seulement)"
   }
 }

@@ -1711,6 +1711,34 @@ ok('the employee does not see purchase prices', (await as('employe', `select * f
 for (const who of ['kenfack', 'dahirou', 'ali']) await as(who, `select public.changer_ferme($1)`, [fermeAli])
 }
 
+// ---------- 0058: client trust score ----------
+try {
+  await db.exec(readFileSync(new URL('0058_confiance_clients.sql', MIG), 'utf8'))
+  await db.exec(readFileSync(new URL('0058_confiance_clients.sql', MIG), 'utf8'))
+  ok('migration 0058 runs (twice without error)', true)
+} catch (e) { ok('migration 0058 runs (twice without error)', false, e.message); process.exit(1) }
+{
+for (const who of ['kenfack', 'dahirou', 'ali']) await as(who, `select public.changer_ferme($1)`, [NEG])
+const ALI2 = (await db.query(`select id from public.articles where ferme_id = $1 and categorie = 'aliment' order by created_at limit 1`, [NEG])).rows[0].id
+await as('kenfack', `insert into public.mouvements_stock (article_id, type_mouvement, quantite) values ($1, 'entree', 50)`, [ALI2])
+const client = async (nom) => { const id = (await oneP('kenfack', `select public.client_par_nom($1) as id`, [nom])).id; await as('kenfack', `update public.tiers set credit_autorise = true, plafond_credit = 1000000 where id = $1`, [id]); return id }
+const vente = async (cl, jours) => (await oneP('kenfack', `insert into public.ventes (client_id, produit, article_id, unite, quantite, prix_unitaire, a_credit, montant_encaisse, mode_paiement, date_vente) values ($1, 'marchandise', $2, 'sac', 2, 16000, true, 0, null, current_date - $3::int) returning id`, [cl, ALI2, jours])).id
+const payer = (v, jours) => as('dahirou', `insert into public.paiements_clients (vente_id, montant, mode_paiement, date_paiement) values ($1, 32000, 'especes', current_date - $2::int)`, [v, jours])
+const BON = await client('Bon Payeur Test'); await payer(await vente(BON, 40), 30); await payer(await vente(BON, 20), 12)   // paid in 10 and 8 days
+const LENT = await client('Lent Payeur Test'); await payer(await vente(LENT, 80), 30)                                        // paid in 50 days
+const MAUVAIS = await client('Mauvais Payeur Test'); await vente(MAUVAIS, 75)                                                // unpaid for 75 days
+const NOUVEAU = (await oneP('kenfack', `select public.client_par_nom('Nouveau Test') as id`)).id
+const note = async (id) => (await as('kenfack', `select note, delai_moyen, plafond_conseille, achat_mensuel from public.confiance_clients where client_id = $1`, [id])).rows[0]
+const nb = await note(BON), nl = await note(LENT), nm = await note(MAUVAIS), nn = await note(NOUVEAU)
+ok('a client who pays in about 9 days is rated A', nb.note === 'A' && Number(nb.delai_moyen) === 9, JSON.stringify(nb))
+ok('a client who paid in 50 days is rated C', nl.note === 'C', JSON.stringify(nl))
+ok('a client with a debt of 75 days is rated D, no credit advised', nm.note === 'D' && Number(nm.plafond_conseille) === 0, JSON.stringify(nm))
+ok('a client without credit history is « nouveau »', nn.note === 'nouveau' && nn.plafond_conseille === null, JSON.stringify(nn))
+ok('advised ceiling for A = 2 months of purchases', Number(nb.plafond_conseille) === Math.round((2 * Number(nb.achat_mensuel)) / 5000) * 5000, JSON.stringify(nb))
+ok('group companies are not rated', (await as('kenfack', `select 1 from public.confiance_clients c join public.tiers t on t.id = c.client_id where t.ferme_liee_id is not null`)).rows.length === 0)
+for (const who of ['kenfack', 'dahirou', 'ali']) await as(who, `select public.changer_ferme($1)`, [fermeAli])
+}
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))

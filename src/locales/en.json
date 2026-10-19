@@ -2299,5 +2299,34 @@
     "history_other": "See the {{count}} purchases",
     "noSupplier": "no supplier",
     "alertHint": "When a purchase costs 10 % more than the recent ones, Ali, Kenfack and Dahirou get an alert."
+  },
+  "confiance": {
+    "label": {
+      "A": "very good payer",
+      "B": "good payer",
+      "C": "to watch",
+      "D": "risky",
+      "nouveau": "new client"
+    },
+    "hint": {
+      "A": "Pays within 15 days",
+      "B": "Pays within 30 days",
+      "C": "Pays after more than 30 days, or has a debt over 30 days",
+      "D": "Pays after more than 60 days, or has a debt over 60 days",
+      "nouveau": "No credit purchase yet"
+    },
+    "delay_one": "pays in {{count}} day on average",
+    "delay_other": "pays in {{count}} days on average",
+    "oldest_one": "oldest debt: {{count}} day",
+    "oldest_other": "oldest debt: {{count}} days",
+    "advised": "advised ceiling: {{n}}",
+    "apply": "Apply the advised ceiling",
+    "applyConfirm": "Set the credit ceiling of {{nom}} to {{n}}?",
+    "applyNone": "Remove the credit of {{nom}} (cash only)?",
+    "saleWarn": {
+      "C": "{{nom}} often pays late: be careful with credit.",
+      "D": "{{nom}} is a risky client (debts over 60 days): credit is not advised."
+    },
+    "noCredit": "no credit advised (cash only)"
   }
 }

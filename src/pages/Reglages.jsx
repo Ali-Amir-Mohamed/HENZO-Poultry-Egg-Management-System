@@ -13,6 +13,7 @@ import Comptes from './reglages/Comptes'
 import Journal from './reglages/Journal'
 import Connexions from './reglages/Connexions'
 import Fermes from './reglages/Fermes'
+import NoteConfiance from '../components/NoteConfiance'
 import Sauvegarde from './reglages/Sauvegarde'
 import { Link, useSearchParams } from 'react-router-dom'
 
@@ -51,6 +52,7 @@ function Tiers() {
   const lang = i18n.resolvedLanguage
   const list = useQuery(async () => must(await supabase.from(TABLES.tiers).select('*').order('nom')))
   const societes = useQuery(async () => (await supabase.rpc('mes_societes')).data ?? [])
+  const confiance = useQuery(async () => { const { data } = await supabase.from('confiance_clients').select('*'); return Object.fromEntries((data ?? []).map((c) => [c.client_id, c])) })
   const [form, setForm] = useState({ type_tiers: 'client', nom: '', telephone: '', adresse: '', niu: '', rccm: '', credit_autorise: false, plafond_credit: '0' })
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value })
   const grant = can(role, 'credit.grant')
@@ -100,6 +102,12 @@ function Tiers() {
     if (v) await run(supabase.rpc('lier_tiers', { p_tiers: c.id, p_ferme: v.ferme || null }), list.reload)
   }
   const nomSociete = (id) => (societes.data ?? []).find((s) => s.ferme_id === id)?.nom ?? t('groupe.company')
+  // Kenfack applies the advised credit ceiling (0 = cash only)
+  const appliquer = async (c, n) => {
+    const plafond = Number(n.plafond_conseille)
+    if (!(await ask.confirm(plafond > 0 ? t('confiance.applyConfirm', { nom: c.nom, n: money(plafond, lang) }) : t('confiance.applyNone', { nom: c.nom }), { title: t('confiance.apply'), icon: 'users' }))) return
+    await run(supabase.from(TABLES.tiers).update({ credit_autorise: plafond > 0, plafond_credit: plafond }).eq('id', c.id), () => { list.reload(); confiance.reload() })
+  }
 
   return (
     <>
@@ -136,13 +144,22 @@ function Tiers() {
                 <div className="grow">
                   <Link to={`/reglages/tiers/${c.id}`} className="card-title">{c.nom}<Icon name="chevron" size={14} /></Link>
                   <div className="muted small">{t(`tiersTypes.${c.type_tiers}`)}{c.telephone ? ` · ${c.telephone}` : ''}{c.adresse ? ` · ${c.adresse}` : ''}{c.niu ? ` · NIU ${c.niu}` : ''}</div>
+                  {confiance.data?.[c.id] && confiance.data[c.id].note !== 'nouveau' && (
+                    <div className="muted small">{[confiance.data[c.id].delai_moyen != null && t('confiance.delay', { count: Number(confiance.data[c.id].delai_moyen) }),
+                      Number(confiance.data[c.id].plus_vieille_dette) > 0 && t('confiance.oldest', { count: Number(confiance.data[c.id].plus_vieille_dette) }),
+                      confiance.data[c.id].plafond_conseille != null && (Number(confiance.data[c.id].plafond_conseille) > 0 ? t('confiance.advised', { n: money(confiance.data[c.id].plafond_conseille, lang) }) : t('confiance.noCredit'))].filter(Boolean).join(' · ')}</div>
+                  )}
                   <div className="row-actions">
                     <Link to={`/reglages/tiers/${c.id}`} className="btn ghost sm">{t('tiers.history')}</Link>
                     {can(role, 'tiers.edit') && <button className="btn ghost sm" onClick={() => editTiers(c)}>{t('common.edit')}</button>}
                     {can(role, 'groupe.lier') && <button className="btn ghost sm" onClick={() => lier(c)}>{t('groupe.link')}</button>}
+                    {grant && confiance.data?.[c.id]?.plafond_conseille != null && Number(confiance.data[c.id].plafond_conseille) !== (c.credit_autorise ? Number(c.plafond_credit) : 0) && (
+                      <button className="btn ghost sm" onClick={() => appliquer(c, confiance.data[c.id])}>{t('confiance.apply')}</button>
+                    )}
                   </div>
                 </div>
                 {c.ferme_liee_id && <span className="tag ok">{t('groupe.tag', { nom: nomSociete(c.ferme_liee_id) })}</span>}
+                <NoteConfiance note={confiance.data?.[c.id]?.note} />
                 {c.credit_autorise && <span className="tag warn">{t('reglages.creditUpTo', { n: money(c.plafond_credit, lang) })}</span>}
               </li>
             ))}

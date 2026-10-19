@@ -8,6 +8,7 @@ import Icon from '../../components/Icon'
 import { day, Loading, money, Panel } from '../../components/ui'
 import { useAsk, useRun } from '../../components/Dialog'
 import { envoyerWhatsApp } from '../../lib/whatsapp'
+import NoteConfiance from '../../components/NoteConfiance'
 
 // Clients' debts, by client: how much, since when, the unpaid sales (each one can be cashed), and a WhatsApp reminder
 // written in advance; every reminder is noted. Group companies pay through their own deliveries: no reminder for them.
@@ -19,11 +20,12 @@ export default function Creances() {
   const run = useRun()
   const [ouvert, setOuvert] = useState(null)
   const q = useQuery(async () => {
-    const [clients, ventes] = await Promise.all([
+    const [clients, ventes, notes] = await Promise.all([
       supabase.from('creances_par_client').select('*').order('reste', { ascending: false }),
-      supabase.from('creances_clients').select('*').order('date_vente')
+      supabase.from('creances_clients').select('*').order('date_vente'),
+      supabase.from('confiance_clients').select('client_id, note')
     ])
-    return { clients: must(clients), ventes: must(ventes) }
+    return { clients: must(clients), ventes: must(ventes), notes: Object.fromEntries((notes.data ?? []).map((n) => [n.client_id, n.note])) }
   })
 
   if (!q.data) return <Panel icon="users" tone="sky" title={t('argent.receivables')}><Loading error={q.error} /></Panel>
@@ -53,7 +55,7 @@ export default function Creances() {
           {q.data.clients.map((c) => (
             <li key={c.client_id} className="creance-client">
               <div className="grow">
-                <strong>{c.client}</strong>{c.societe_groupe && <span className="muted"> · {t('negoce.group')}</span>}
+                <strong>{c.client}</strong>{c.societe_groupe && <span className="muted"> · {t('negoce.group')}</span>} <NoteConfiance note={q.data.notes[c.client_id]} />
                 <div className="muted small">
                   {[t('relances.sales', { count: Number(c.ventes) }), t('relances.since', { count: Number(c.jours), d: day(c.plus_ancienne, lang) }),
                     c.telephone, c.derniere_relance ? t('relances.last', { d: day(c.derniere_relance, lang), count: Number(c.relances) }) : t('relances.never')]
