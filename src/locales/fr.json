@@ -266,7 +266,10 @@
     "eggStockConfirm": "Cette vente dépasse le stock d’œufs enregistré ({{stock}}). Il manque peut-être un ramassage. Enregistrer quand même ?",
     "seeReceipt": "Voir le reçu de cette vente",
     "enMesure": "Nombre de {{mesure}}",
-    "conversion": "= {{q}} {{unite}} retiré(s) du stock"
+    "conversion": "= {{q}} {{unite}} retiré(s) du stock",
+    "addProduct": "Ajouter un autre produit",
+    "savedProducts_one": "{{count}} produit enregistré",
+    "savedProducts_other": "{{count}} produits enregistrés"
   },
   "ferme": {
     "newBande": "Nouvelle bande de poulets de chair",
