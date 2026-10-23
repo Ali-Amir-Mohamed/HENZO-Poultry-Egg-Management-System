@@ -427,7 +427,7 @@
     "measureCountAny": "How many of this measure in 1 {{unite}}",
     "measureFact": "1 {{unite}} = {{n}} {{mesure}}",
     "measureMissing": "Say how many of this measure there are in one unit.",
-    "measureHint": "Guide: 1 teaspoon ≈ 5 ml, i.e. 200 per litre; 1 tablespoon ≈ 15 ml, about 67 per litre. For feed, empty a bag once with the bucket and count the buckets."
+    "measureHint": "Guide: 1 teaspoon ≈ 5 ml, i.e. 200 per litre; 1 tablespoon ≈ 15 ml, about 67 per litre; 1 syringe of 10 ml = 100 per litre. For feed, empty a bag once with the bucket and count the buckets."
   },
   "reglages": {
     "tabs": {
@@ -2372,7 +2372,8 @@
     "cuillere_soupe": "tablespoons",
     "bouchon": "caps",
     "gobelet": "cups",
-    "seau": "buckets"
+    "seau": "buckets",
+    "seringue": "syringes"
   },
   "unitesPl": {
     "kg": "kg",

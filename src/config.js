@@ -163,4 +163,4 @@ export const PRODUITS = {
 export const ARTICLE_CATEGORIES = ['aliment', 'medicament', 'poussins', 'matiere_premiere', 'emballage', 'autre']
 export const ARTICLE_UNITES = ['kg', 'sac', 'litre', 'dose', 'flacon', 'piece']
 // Field measures used on the farm instead of the article's unit (spoons for medicines, buckets for feed)
-export const MESURES = ['cuillere_cafe', 'cuillere_soupe', 'bouchon', 'gobelet', 'seau']
+export const MESURES = ['cuillere_cafe', 'cuillere_soupe', 'seringue', 'bouchon', 'gobelet', 'seau']

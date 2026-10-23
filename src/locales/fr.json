@@ -427,7 +427,7 @@
     "measureCountAny": "Combien de cette mesure dans 1 {{unite}}",
     "measureFact": "1 {{unite}} = {{n}} {{mesure}}",
     "measureMissing": "Indiquez combien de cette mesure il y a dans une unité.",
-    "measureHint": "Repères : 1 cuillère à café ≈ 5 ml, soit 200 par litre ; 1 cuillère à soupe ≈ 15 ml, soit environ 67 par litre. Pour l’aliment, videz un sac une fois avec le seau et comptez les seaux."
+    "measureHint": "Repères : 1 cuillère à café ≈ 5 ml, soit 200 par litre ; 1 cuillère à soupe ≈ 15 ml, soit environ 67 par litre ; 1 seringue de 10 ml = 100 par litre. Pour l’aliment, videz un sac une fois avec le seau et comptez les seaux."
   },
   "reglages": {
     "tabs": {
@@ -2372,7 +2372,8 @@
     "cuillere_soupe": "cuillères à soupe",
     "bouchon": "bouchons",
     "gobelet": "gobelets",
-    "seau": "seaux"
+    "seau": "seaux",
+    "seringue": "seringues"
   },
   "unitesPl": {
     "kg": "kg",

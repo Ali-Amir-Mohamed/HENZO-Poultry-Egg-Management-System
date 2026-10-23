@@ -1788,6 +1788,20 @@ ok('the stock goes down by 0.015 litre', Number((await db.query(`select public.s
 await expectErr('no spoons for a product without a field measure', 'employe', `insert into public.mouvements_stock (article_id, type_mouvement, quantite, mesure_nombre, bande_id) values ($1, 'sortie', 0.01, 3, $2)`, [SANS, B], 'mesure de terrain')
 }
 
+// ---------- 0061: syringe measure ----------
+try {
+  await db.exec(readFileSync(new URL('0061_mesure_seringue.sql', MIG), 'utf8'))
+  await db.exec(readFileSync(new URL('0061_mesure_seringue.sql', MIG), 'utf8'))
+  ok('migration 0061 runs (twice without error)', true)
+} catch (e) { ok('migration 0061 runs (twice without error)', false, e.message); process.exit(1) }
+{
+const CAL = (await oneP('kenfack', `insert into public.articles (nom, categorie, unite, mesure, mesure_par_unite) values ('Calcium D3', 'medicament', 'litre', 'seringue', 100) returning id`)).id
+await as('kenfack', `insert into public.mouvements_stock (article_id, type_mouvement, quantite, cout_unitaire) values ($1, 'entree', 1, 5000)`, [CAL])
+const B = (await db.query(`select id from public.bandes where ferme_id = $1 and statut <> 'cloturee' order by created_at limit 1`, [fermeAli])).rows[0].id
+await expectOk('the worker gives 4 syringes of 10 ml', 'employe', `insert into public.mouvements_stock (article_id, type_mouvement, quantite, mesure_nombre, bande_id) values ($1, 'sortie', 0.04, 4, $2)`, [CAL, B])
+ok('4 syringes = 0.04 litre', Number((await db.query(`select public.stock_article($1) s`, [CAL])).rows[0].s) === 0.96)
+}
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))
