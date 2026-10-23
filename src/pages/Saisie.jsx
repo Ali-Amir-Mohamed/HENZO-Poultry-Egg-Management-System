@@ -35,7 +35,7 @@ const FORMS = {
   aliment: {
     table: TABLES.mouvementsStock, icon: 'box', tone: 'sky', cible: 'tous', dateField: 'date_mouvement',
     fixed: { type_mouvement: 'sortie' }, article: true,
-    fields: [{ name: 'quantite', big: true, min: 0.01, step: '0.01' }]
+    fields: [{ name: 'quantite', big: true, min: 0.001, step: '0.001' }]
   },
   vente: { icon: 'cart', tone: 'green' },
   observation: {
@@ -80,7 +80,7 @@ export default function Saisie() {
 
 // ---------- Generic field forms ----------
 function emptyForm(def) {
-  const form = { cible: '', [def.dateField]: localDate(), notes: '', article_id: '' }
+  const form = { cible: '', [def.dateField]: localDate(), notes: '', article_id: '', enMesure: true }
   for (const f of def.fields) form[f.name] = f.initial ?? ''
   return form
 }
@@ -91,6 +91,9 @@ function FieldForm({ kind, refData }) {
   const [form, setForm] = useState(() => emptyForm(def))
   const [saved, setSaved] = useState(false)
   const set = (key) => (e) => { setSaved(false); setForm({ ...form, [key]: e.target.value }) }
+  const article = def.article ? refData.articles.find((a) => a.id === form.article_id) : null
+  const mesure = article?.mesure && Number(article.mesure_par_unite) > 0 && form.enMesure ? article.mesure : null
+  const enUnite = mesure ? Math.round((Number(form.quantite) / Number(article.mesure_par_unite)) * 1000) / 1000 : null
 
   const submit = async (e) => {
     e.preventDefault()
@@ -100,8 +103,10 @@ function FieldForm({ kind, refData }) {
     for (const f of def.fields) {
       row[f.name] = f.text || f.textarea ? (form[f.name] || null) : Number(form[f.name])
     }
+    // Spoons or buckets: the database turns them into the article's unit (the value sent here is only an estimate)
+    if (mesure) { row.mesure_nombre = Number(form.quantite); row.quantite = enUnite }
     await enqueue(def.table, row)
-    setForm({ ...emptyForm(def), cible: form.cible, article_id: form.article_id })
+    setForm({ ...emptyForm(def), cible: form.cible, article_id: form.article_id, enMesure: form.enMesure })
     setSaved(true)
   }
 
@@ -125,18 +130,29 @@ function FieldForm({ kind, refData }) {
           </select>
         </label>
       )}
+      {article?.mesure && Number(article.mesure_par_unite) > 0 && (
+        <div className="segmented" role="tablist">
+          <button type="button" role="tab" aria-selected={form.enMesure} className={form.enMesure ? 'active' : ''}
+            onClick={() => setForm({ ...form, enMesure: true, quantite: '' })}>{t(`mesures.${article.mesure}`)}</button>
+          <button type="button" role="tab" aria-selected={!form.enMesure} className={!form.enMesure ? 'active' : ''}
+            onClick={() => setForm({ ...form, enMesure: false, quantite: '' })}>{t(`unitesPl.${article.unite}`)}</button>
+        </div>
+      )}
 
       <div className="grid-2">
         {def.fields.map((f) => (
           <label key={f.name} className={`field ${f.big ? 'big' : ''} ${f.textarea ? 'span-2' : ''}`}>
-            <span>{t(`saisie.fields.${f.name}`)}</span>
+            <span>{mesure && f.name === 'quantite' ? t('saisie.enMesure', { mesure: t(`mesures.${mesure}`) }) : t(`saisie.fields.${f.name}`)}</span>
             {f.textarea ? (
               <textarea rows="4" required value={form[f.name]} onChange={set(f.name)} />
             ) : f.text ? (
               <input value={form[f.name]} onChange={set(f.name)} />
             ) : (
-              <input type="number" inputMode="decimal" min={f.min ?? 0} step={f.step ?? '1'}
+              <input type="number" inputMode="decimal" min={mesure && f.name === 'quantite' ? 0.5 : f.min ?? 0} step={mesure && f.name === 'quantite' ? '0.5' : f.step ?? '1'}
                 required={!f.optional} placeholder="0" value={form[f.name]} onChange={set(f.name)} />
+            )}
+            {mesure && f.name === 'quantite' && Number(form.quantite) > 0 && (
+              <small className="muted">{t('saisie.conversion', { q: enUnite.toLocaleString(undefined, { maximumFractionDigits: 3 }), unite: t(`unites.${article.unite}`) })}</small>
             )}
           </label>
         ))}

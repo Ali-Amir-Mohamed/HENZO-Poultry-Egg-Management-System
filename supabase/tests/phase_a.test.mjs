@@ -1763,6 +1763,31 @@ await db.exec(`select public.rappel_rapport_mensuel(); select public.rappel_rapp
 ok('the 1st of the month the partners are told, once', (await db.query(`select count(*)::int n from public.notifications where type_notification = 'rapport_mensuel' and ferme_id = $1`, [fermeAli])).rows[0].n === 3)
 }
 
+// ---------- 0060: field measures (spoons, buckets) ----------
+try {
+  await db.exec(readFileSync(new URL('0060_mesures_terrain.sql', MIG), 'utf8'))
+  await db.exec(readFileSync(new URL('0060_mesures_terrain.sql', MIG), 'utf8'))
+  ok('migration 0060 runs (twice without error)', true)
+} catch (e) { ok('migration 0060 runs (twice without error)', false, e.message); process.exit(1) }
+{
+for (const who of ['kenfack', 'dahirou', 'ali']) await as(who, `select public.changer_ferme($1)`, [fermeAli])
+ok('stock quantities keep 3 decimals', (await db.query(`select numeric_scale s from information_schema.columns where table_schema = 'public' and table_name = 'mouvements_stock' and column_name = 'quantite'`)).rows[0].s === 3)
+await expectOk('the rebuilt stock views are still readable', 'kenfack', `select * from public.stock_articles limit 1`)
+await expectOk('the rebuilt flock results are still readable', 'dahirou', `select * from public.resultat_bandes limit 1`)
+await expectErr('the average cost stays closed to users, as before', 'kenfack', `select * from public.cout_moyen_articles`, [], 'permission denied')
+await expectErr('anonymous still cannot read the stock', null, `select * from public.stock_articles`, [], 'permission denied')
+const VIT = (await oneP('kenfack', `insert into public.articles (nom, categorie, unite, mesure, mesure_par_unite) values ('Vitamine liquide', 'medicament', 'litre', 'cuillere_cafe', 200) returning id`)).id
+const SANS = (await oneP('kenfack', `insert into public.articles (nom, categorie, unite) values ('Désinfectant', 'medicament', 'litre') returning id`)).id
+await expectErr('a measure needs its count', 'kenfack', `insert into public.articles (nom, categorie, unite, mesure) values ('X', 'medicament', 'litre', 'seau')`, [], 'articles_mesure_check')
+await as('kenfack', `insert into public.mouvements_stock (article_id, type_mouvement, quantite, cout_unitaire) values ($1, 'entree', 2, 8000), ($2, 'entree', 1, 3000)`, [VIT, SANS])
+const B = (await db.query(`select id from public.bandes where ferme_id = $1 and statut <> 'cloturee' order by created_at limit 1`, [fermeAli])).rows[0].id
+await expectOk('the worker gives 3 teaspoons to a flock', 'employe', `insert into public.mouvements_stock (article_id, type_mouvement, quantite, mesure_nombre, bande_id) values ($1, 'sortie', 0.02, 3, $2)`, [VIT, B])
+const mv = (await db.query(`select quantite, mesure from public.mouvements_stock where article_id = $1 and type_mouvement = 'sortie'`, [VIT])).rows[0]
+ok('3 teaspoons = 0.015 litre, computed by the database', Number(mv.quantite) === 0.015 && mv.mesure === 'cuillere_cafe', JSON.stringify(mv))
+ok('the stock goes down by 0.015 litre', Number((await db.query(`select public.stock_article($1) s`, [VIT])).rows[0].s) === 1.985)
+await expectErr('no spoons for a product without a field measure', 'employe', `insert into public.mouvements_stock (article_id, type_mouvement, quantite, mesure_nombre, bande_id) values ($1, 'sortie', 0.01, 3, $2)`, [SANS, B], 'mesure de terrain')
+}
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))

@@ -264,7 +264,9 @@
     "eggStockOver": "Warning: you are selling more than the recorded stock ({{stock}}). Check today’s collection or adjust the stock.",
     "eggStockTitle": "Sale above stock",
     "eggStockConfirm": "This sale exceeds the recorded egg stock ({{stock}}). A collection may be missing. Save anyway?",
-    "seeReceipt": "See the receipt of this sale"
+    "seeReceipt": "See the receipt of this sale",
+    "enMesure": "Number of {{mesure}}",
+    "conversion": "= {{q}} {{unite}} taken from stock"
   },
   "ferme": {
     "newBande": "New broiler flock",
@@ -417,7 +419,15 @@
     "status": "Status",
     "editTitle": "Edit {{nom}}",
     "active": "Active",
-    "inactive": "Archived (no longer used)"
+    "inactive": "Archived (no longer used)",
+    "measure": "Field measure (optional)",
+    "measureNone": "None: entered in the unit",
+    "measureShort": "Measure",
+    "measureCount": "How many {{mesure}} in 1 {{unite}}",
+    "measureCountAny": "How many of this measure in 1 {{unite}}",
+    "measureFact": "1 {{unite}} = {{n}} {{mesure}}",
+    "measureMissing": "Say how many of this measure there are in one unit.",
+    "measureHint": "Guide: 1 teaspoon ≈ 5 ml, i.e. 200 per litre; 1 tablespoon ≈ 15 ml, about 67 per litre. For feed, empty a bag once with the bucket and count the buckets."
   },
   "reglages": {
     "tabs": {
@@ -2356,5 +2366,20 @@
     "footer": "Report made by HENZO from the recorded sales, expenses and cash boxes.",
     "farmDetail": "The detailed report of a farm (production, feed, flocks) stays in",
     "shareText": "Group report – {{mois}}: sales {{ventes}}, result {{resultat}}."
+  },
+  "mesures": {
+    "cuillere_cafe": "teaspoons",
+    "cuillere_soupe": "tablespoons",
+    "bouchon": "caps",
+    "gobelet": "cups",
+    "seau": "buckets"
+  },
+  "unitesPl": {
+    "kg": "kg",
+    "sac": "bags",
+    "litre": "litres",
+    "dose": "doses",
+    "flacon": "bottles",
+    "piece": "pieces"
   }
 }

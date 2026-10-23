@@ -264,7 +264,9 @@
     "eggStockOver": "Attention : vous vendez plus que le stock enregistré ({{stock}}). Vérifiez le ramassage du jour ou faites un ajustement du stock.",
     "eggStockTitle": "Vente supérieure au stock",
     "eggStockConfirm": "Cette vente dépasse le stock d’œufs enregistré ({{stock}}). Il manque peut-être un ramassage. Enregistrer quand même ?",
-    "seeReceipt": "Voir le reçu de cette vente"
+    "seeReceipt": "Voir le reçu de cette vente",
+    "enMesure": "Nombre de {{mesure}}",
+    "conversion": "= {{q}} {{unite}} retiré(s) du stock"
   },
   "ferme": {
     "newBande": "Nouvelle bande de poulets de chair",
@@ -417,7 +419,15 @@
     "status": "État",
     "editTitle": "Modifier {{nom}}",
     "active": "Actif",
-    "inactive": "Archivé (plus utilisé)"
+    "inactive": "Archivé (plus utilisé)",
+    "measure": "Mesure sur le terrain (facultatif)",
+    "measureNone": "Aucune : on saisit dans l’unité",
+    "measureShort": "Mesure",
+    "measureCount": "Combien de {{mesure}} dans 1 {{unite}}",
+    "measureCountAny": "Combien de cette mesure dans 1 {{unite}}",
+    "measureFact": "1 {{unite}} = {{n}} {{mesure}}",
+    "measureMissing": "Indiquez combien de cette mesure il y a dans une unité.",
+    "measureHint": "Repères : 1 cuillère à café ≈ 5 ml, soit 200 par litre ; 1 cuillère à soupe ≈ 15 ml, soit environ 67 par litre. Pour l’aliment, videz un sac une fois avec le seau et comptez les seaux."
   },
   "reglages": {
     "tabs": {
@@ -2356,5 +2366,20 @@
     "footer": "Rapport établi par HENZO à partir des ventes, dépenses et caisses enregistrées.",
     "farmDetail": "Le rapport détaillé d’une ferme (production, aliment, bandes) reste dans",
     "shareText": "Rapport du groupe – {{mois}} : ventes {{ventes}}, résultat {{resultat}}."
+  },
+  "mesures": {
+    "cuillere_cafe": "cuillères à café",
+    "cuillere_soupe": "cuillères à soupe",
+    "bouchon": "bouchons",
+    "gobelet": "gobelets",
+    "seau": "seaux"
+  },
+  "unitesPl": {
+    "kg": "kg",
+    "sac": "sacs",
+    "litre": "litres",
+    "dose": "doses",
+    "flacon": "flacons",
+    "piece": "pièces"
   }
 }

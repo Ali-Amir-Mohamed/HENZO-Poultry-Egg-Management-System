@@ -27,7 +27,7 @@ export async function loadReference() {
       .neq('statut', 'cloturee').order('date_arrivee'),
     supabase.from('effectif_lots').select('lot_id, code, statut, date_arrivee, effectif')
       .eq('statut', 'en_production').order('date_arrivee'),
-    supabase.from('articles').select('id, nom, categorie, unite').eq('actif', true).order('nom'),
+    supabase.from('articles').select('id, nom, categorie, unite, mesure, mesure_par_unite').eq('actif', true).order('nom'),
     supabase.from('tiers').select('id, nom, telephone, type_tiers, credit_autorise, plafond_credit')
       .in('type_tiers', ['client', 'client_fournisseur']).order('nom'),
     supabase.from('prix_actuels').select('produit, unite, prix'),

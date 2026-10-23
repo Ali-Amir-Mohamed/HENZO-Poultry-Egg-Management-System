@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../auth/AuthProvider'
 import { must, useQuery } from '../hooks'
-import { ARTICLE_CATEGORIES, ARTICLE_UNITES, can, TABLES } from '../config'
+import { ARTICLE_CATEGORIES, ARTICLE_UNITES, can, MESURES, TABLES } from '../config'
 import { localDate } from '../lib/stats'
 import Icon from '../components/Icon'
 import { day, Empty, Field, FormCard, Loading, Panel } from '../components/ui'
@@ -16,17 +16,24 @@ export default function Stock() {
   const { t, i18n } = useTranslation()
   const { role } = useAuth()
   const lang = i18n.resolvedLanguage
-  const fmt = (n) => Number(n ?? 0).toLocaleString(lang, { maximumFractionDigits: 2 })
+  const fmt = (n) => Number(n ?? 0).toLocaleString(lang, { maximumFractionDigits: 3 })
   const ask = useAsk()
   const run = useRun()
 
-  const stock = useQuery(async () => must(await supabase.from('stock_articles').select('*').order('nom')))
+  const stock = useQuery(async () => {
+    const [s, m] = await Promise.all([
+      supabase.from('stock_articles').select('*').order('nom'),
+      supabase.from(TABLES.articles).select('id, mesure, mesure_par_unite').not('mesure', 'is', null)
+    ])
+    const mesures = Object.fromEntries((m.data ?? []).map((a) => [a.id, a]))
+    return must(s).map((x) => (mesures[x.article_id] ? { ...x, mesure: mesures[x.article_id].mesure, mesure_par_unite: mesures[x.article_id].mesure_par_unite } : x))
+  })
   const moves = useQuery(async () => must(await supabase.from(TABLES.mouvementsStock)
-    .select('id, date_mouvement, type_mouvement, quantite, notes, depense_id, article:articles(nom, unite), bande:bandes(code), lot:lots_pondeuses(code)')
+    .select('id, date_mouvement, type_mouvement, quantite, mesure_nombre, mesure, notes, depense_id, article:articles(nom, unite), bande:bandes(code), lot:lots_pondeuses(code)')
     .order('created_at', { ascending: false }).limit(40)))
   const reload = () => { stock.reload(); moves.reload() }
 
-  const [article, setArticle] = useState({ nom: '', categorie: 'aliment', unite: 'sac', seuil_minimum: '0', poids_unitaire_kg: '50' })
+  const [article, setArticle] = useState({ nom: '', categorie: 'aliment', unite: 'sac', seuil_minimum: '0', poids_unitaire_kg: '50', mesure: '', mesure_par_unite: '' })
   const [move, setMove] = useState({ article_id: '', type_mouvement: 'entree', quantite: '', cout_unitaire: '', date_mouvement: localDate(), notes: '' })
 
   const createArticle = async () => {
@@ -34,9 +41,11 @@ export default function Stock() {
     must(await supabase.from(TABLES.articles).insert({
       ...article,
       seuil_minimum: Number(article.seuil_minimum),
-      poids_unitaire_kg: needsWeight && article.poids_unitaire_kg ? Number(article.poids_unitaire_kg) : null
+      poids_unitaire_kg: needsWeight && article.poids_unitaire_kg ? Number(article.poids_unitaire_kg) : null,
+      mesure: article.mesure || null,
+      mesure_par_unite: article.mesure ? Number(article.mesure_par_unite) : null
     }))
-    setArticle({ ...article, nom: '' })
+    setArticle({ ...article, nom: '', mesure: '', mesure_par_unite: '' })
     reload()
   }
   // A manual entry or adjustment typed by mistake can be removed (not purchases: cancel the expense instead)
@@ -54,10 +63,14 @@ export default function Stock() {
       ...(a.categorie === 'aliment' && a.unite !== 'kg'
         ? [{ name: 'poids_unitaire_kg', label: t('stock.unitWeight', { unite: t(`unites.${a.unite}`) }), type: 'number', value: a.poids_unitaire_kg ?? '', min: 0.001, step: '0.001', required: true }]
         : []),
+      { name: 'mesure', label: t('stock.measure'), type: 'select', value: a.mesure ?? '',
+        options: [{ value: '', label: t('stock.measureNone') }, ...MESURES.map((m) => ({ value: m, label: t(`mesures.${m}`) }))] },
+      { name: 'mesure_par_unite', label: t('stock.measureCountAny', { unite: t(`unites.${a.unite}`) }), type: 'number', value: a.mesure_par_unite ?? '', min: 0.001, step: '0.001' },
       { name: 'actif', label: t('stock.status'), type: 'select', value: a.actif ? 'oui' : 'non', options: [{ value: 'oui', label: t('stock.active') }, { value: 'non', label: t('stock.inactive') }] }
     ] })
     if (!v) return
-    const patch = { nom: v.nom, seuil_minimum: v.seuil_minimum, actif: v.actif === 'oui' }
+    if (v.mesure && !(Number(v.mesure_par_unite) > 0)) return ask.error(t('stock.measureMissing'))
+    const patch = { nom: v.nom, seuil_minimum: v.seuil_minimum, actif: v.actif === 'oui', mesure: v.mesure || null, mesure_par_unite: v.mesure ? Number(v.mesure_par_unite) : null }
     if ('poids_unitaire_kg' in v) patch.poids_unitaire_kg = v.poids_unitaire_kg
     await run(supabase.from(TABLES.articles).update(patch).eq('id', a.id), reload)
   }
@@ -94,6 +107,7 @@ export default function Stock() {
                 <div className="facts">
                   <div className="fact"><span>{t('stock.threshold')}</span><strong>{fmt(s.seuil_minimum)}</strong></div>
                   <div className="fact"><span>{t('stock.perDay')}</span><strong>{fmt(s.conso_jour)}</strong></div>
+                  {s.mesure && <div className="fact"><span>{t('stock.measureShort')}</span><strong>{t('stock.measureFact', { unite: t(`unites.${s.unite}`), n: fmt(s.mesure_par_unite), mesure: t(`mesures.${s.mesure}`) })}</strong></div>}
                   <div className="fact"><span>{t('stock.autonomy')}</span><strong>{s.autonomie_jours != null ? t('dashboard.days', { n: s.autonomie_jours }) : '—'}</strong></div>
                 </div>
                 {low && <div className="alert danger"><Icon name="alert" size={16} />{t('stock.low')}</div>}
@@ -126,7 +140,19 @@ export default function Stock() {
                 <input type="number" min="0.001" step="0.001" required value={article.poids_unitaire_kg} onChange={(e) => setArticle({ ...article, poids_unitaire_kg: e.target.value })} />
               </Field>
             )}
+            <Field label={t('stock.measure')}>
+              <select value={article.mesure} onChange={(e) => setArticle({ ...article, mesure: e.target.value })}>
+                <option value="">{t('stock.measureNone')}</option>
+                {MESURES.map((m) => <option key={m} value={m}>{t(`mesures.${m}`)}</option>)}
+              </select>
+            </Field>
+            {article.mesure && (
+              <Field label={t('stock.measureCount', { mesure: t(`mesures.${article.mesure}`), unite: t(`unites.${article.unite}`) })}>
+                <input type="number" min="0.001" step="0.001" required value={article.mesure_par_unite} onChange={(e) => setArticle({ ...article, mesure_par_unite: e.target.value })} />
+              </Field>
+            )}
           </div>
+          {article.mesure && <p className="muted small">{t('stock.measureHint')}</p>}
         </FormCard>
       )}
 
@@ -147,7 +173,7 @@ export default function Stock() {
               </select>
             </Field>
             <Field label={move.type_mouvement === 'ajustement' ? t('stock.adjustQty') : t('argent.quantity')}>
-              <input type="number" step="0.01" required value={move.quantite} onChange={(e) => setMove({ ...move, quantite: e.target.value })} />
+              <input type="number" step="0.001" required value={move.quantite} onChange={(e) => setMove({ ...move, quantite: e.target.value })} />
             </Field>
             <Field label={t('saisie.date')}><input type="date" required value={move.date_mouvement} onChange={(e) => setMove({ ...move, date_mouvement: e.target.value })} /></Field>
             {move.type_mouvement === 'entree' && (
@@ -168,6 +194,7 @@ export default function Stock() {
                   <div className="muted small">
                     {day(m.date_mouvement, lang)} · {t(`stock.types.${m.type_mouvement}`)}
                     {m.bande ? ` · ${m.bande.code}` : m.lot ? ` · ${m.lot.code}` : ''}
+                    {m.mesure ? ` · ${fmt(m.mesure_nombre)} ${t(`mesures.${m.mesure}`)}` : ''}
                     {m.notes ? ` · ${m.notes}` : ''}
                     {m.depense_id ? ` · ${t('stock.fromPurchase')}` : ''}
                   </div>
