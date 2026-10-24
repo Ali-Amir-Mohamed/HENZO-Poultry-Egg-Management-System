@@ -7,6 +7,8 @@ import { loadReference, prixDuMoment, readCachedReference, saveReference } from 
 import { localDate } from '../lib/stats'
 import { MODES_PAIEMENT, PRODUITS, TABLES } from '../config'
 import Icon from '../components/Icon'
+import StockBande from '../components/StockBande'
+import { useAuth } from '../auth/AuthProvider'
 
 // Offline-first field entry. saisi_par / ferme_id are filled by the database defaults.
 // Each form only lists the flocks it applies to (layers: lots, broilers: bandes).
@@ -36,6 +38,7 @@ const FORMS = {
     table: TABLES.mouvementsStock, icon: 'box', tone: 'sky', cible: 'tous', dateField: 'date_mouvement',
     fields: [] // own form: AlimentForm (several products at once)
   },
+  stockBande: { icon: 'sync', tone: 'sky', fields: [], roles: ['directeur', 'exploitation'] }, // own form: count what is left in a flock's stock
   vente: { icon: 'cart', tone: 'green' },
   observation: {
     table: TABLES.observations, icon: 'note', tone: 'sky', cible: 'facultatif', dateField: 'date_observation',
@@ -45,6 +48,7 @@ const FORMS = {
 
 export default function Saisie() {
   const { t } = useTranslation()
+  const { role } = useAuth()
   const [kind, setKind] = useState('ponte')
   const [ref, setRef] = useState(readCachedReference)
 
@@ -53,7 +57,7 @@ export default function Saisie() {
   return (
     <div className="stack">
       <div className="segmented wrap" role="tablist">
-        {Object.entries(FORMS).map(([k, f]) => (
+        {Object.entries(FORMS).filter(([, f]) => !f.roles || f.roles.includes(role)).map(([k, f]) => (
           <button key={k} type="button" role="tab" aria-selected={kind === k}
             className={kind === k ? 'active' : ''} onClick={() => setKind(k)}>
             <Icon name={f.icon} size={18} />{t(`saisie.kinds.${k}`)}
@@ -73,6 +77,7 @@ export default function Saisie() {
             saveReference(next)
           }} />
         : kind === 'aliment' ? <AlimentForm key="aliment" refData={ref} />
+        : kind === 'stockBande' ? <StockBandeChoix refData={ref} />
         : <FieldForm key={kind} kind={kind} refData={ref} />}
     </div>
   )
@@ -232,6 +237,26 @@ function AlimentForm({ refData }) {
       {saved > 0 && <div className="alert success"><Icon name="check" size={18} />{t('saisie.savedProducts', { count: saved })}</div>}
       <button type="submit" className="btn primary block"><Icon name="check" size={18} />{t('saisie.save')}</button>
     </form>
+  )
+}
+
+// ---------- A flock's own stock (online only) ----------
+function StockBandeChoix({ refData }) {
+  const { t } = useTranslation()
+  const [id, setId] = useState(refData.bandes[0]?.bande_id ?? '')
+  const b = refData.bandes.find((x) => x.bande_id === id)
+  if (!navigator.onLine) return <div className="alert warn"><Icon name="alert" size={16} />{t('stockBande.offline')}</div>
+  return (
+    <div className="stack">
+      <label className="field panel">
+        <span>{t('saisie.bande')}</span>
+        <select value={id} onChange={(e) => setId(e.target.value)}>
+          {!refData.bandes.length && <option value="">{t('saisie.noBande')}</option>}
+          {refData.bandes.map((x) => <option key={x.bande_id} value={x.bande_id}>{x.code} · {t('saisie.restants', { n: x.restants })}</option>)}
+        </select>
+      </label>
+      {b && <StockBande key={b.bande_id} bande={{ id: b.bande_id, code: b.code, statut: b.statut }} />}
+    </div>
   )
 }
 

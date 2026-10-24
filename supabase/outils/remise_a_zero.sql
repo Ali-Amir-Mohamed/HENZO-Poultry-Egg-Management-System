@@ -20,6 +20,8 @@
 -- =====================================================================
 
 truncate table
+  public.affectations_stock,
+  public.comptages_stock_bande,
   public.relances_clients,
   public.fabrications,
   public.formules_lignes,

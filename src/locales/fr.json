@@ -193,7 +193,8 @@
       "pesee": "Pesée",
       "aliment": "Aliment utilisé",
       "vente": "Vente",
-      "observation": "Observation"
+      "observation": "Observation",
+      "stockBande": "Stock de la bande"
     },
     "titles": {
       "ponte": "Ponte du jour",
@@ -201,7 +202,8 @@
       "pesee": "Pesée des poulets",
       "aliment": "Aliment / produit utilisé",
       "vente": "Vente",
-      "observation": "Observation"
+      "observation": "Observation",
+      "stockBande": "Stock de la bande"
     },
     "hints": {
       "ponte": "Pondeuses : tous les œufs ramassés, cassés compris.",
@@ -209,7 +211,8 @@
       "pesee": "Pesez un échantillon et notez le poids moyen.",
       "aliment": "Sortie du stock pour une bande ou un lot.",
       "vente": "Chaque vente appartient à une seule bande.",
-      "observation": "Tout ce qui mérite d’être signalé."
+      "observation": "Tout ce qui mérite d’être signalé.",
+      "stockBande": "Comptez ce qui reste : HENZO calcule ce que la bande a consommé."
     },
     "fields": {
       "oeufs_collectes": "Œufs collectés",
@@ -2385,5 +2388,35 @@
     "dose": "doses",
     "flacon": "flacons",
     "piece": "pièces"
+  },
+  "stockBande": {
+    "title": "Stock de la bande {{code}}",
+    "hint": "Aliment et médicaments réservés à cette bande. Comptez ce qui reste : HENZO calcule ce qu’elle a consommé et le répartit sur les jours.",
+    "empty": "Rien dans le stock de cette bande pour l’instant. Mettez-y des sacs ou des flacons du stock général.",
+    "put": "Mettre dans le stock",
+    "putTitle": "Mettre dans le stock de {{code}}",
+    "putHint": "Ces produits sortent du stock général et sont réservés à la bande.",
+    "free": "{{n}} {{unite}} dans le stock général",
+    "nothingFree": "Le stock général est vide : enregistrez d’abord l’achat.",
+    "received": "Reçu",
+    "used": "Consommé",
+    "left": "Reste",
+    "lastCount": "compté le {{d}}",
+    "neverCounted": "jamais compté",
+    "count": "Compter ce qui reste",
+    "countHint": "Comptez les sacs et les flacons qui restent pour cette bande. Laissez vide un produit que vous n’avez pas compté.",
+    "leftOf": "Il reste combien de {{unite}} de {{nom}} ?",
+    "expected": "HENZO en attend {{n}} au plus",
+    "saveCount": "Enregistrer le comptage",
+    "eaten": "{{nom}} : {{n}} {{unite}} consommé(s) du {{du}} au {{au}}, soit environ {{j}} {{uj}} par jour.",
+    "nothingEaten": "{{nom}} : rien de consommé depuis le dernier comptage.",
+    "move": "Déplacer",
+    "moveTitle": "Déplacer ce qui reste de {{nom}}",
+    "to": "Vers",
+    "flockStock": "Stock de la bande {{code}}",
+    "generalStock": "Stock général",
+    "qtyUnit": "Quantité ({{unite}})",
+    "leftAtEnd": "Il reste des produits dans le stock de cette bande : déplacez-les vers la bande suivante ou le stock général.",
+    "offline": "Le stock de la bande demande une connexion internet."
   }
 }

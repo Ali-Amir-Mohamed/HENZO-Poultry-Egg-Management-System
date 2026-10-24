@@ -9,6 +9,7 @@ import Icon from '../components/Icon'
 import { day, Loading, money, Panel } from '../components/ui'
 import { Fact, Timeline, WeightCurve } from '../components/fiche'
 import CapitalBande from './ferme/CapitalBande'
+import StockBande from '../components/StockBande'
 
 // One broiler flock as a single file: production, mortality, weight, feed,
 // expenses, sales, stock used, profitability and full history.
@@ -157,6 +158,7 @@ export default function FicheBande() {
       )}
 
       {['directeur', 'finance', 'exploitation'].includes(role) && <CapitalBande bande={bande} />}
+      {['directeur', 'exploitation'].includes(role) && <StockBande bande={bande} />}
 
       {(livraisons.length > 1 || canDeliver) && (
         <Panel icon="drumstick" tone="green" title={t('livraisons.title', { n: bande.nombre_initial })}

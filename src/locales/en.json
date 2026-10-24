@@ -193,7 +193,8 @@
       "pesee": "Weighing",
       "aliment": "Feed used",
       "vente": "Sale",
-      "observation": "Observation"
+      "observation": "Observation",
+      "stockBande": "Flock stock"
     },
     "titles": {
       "ponte": "Today's laying",
@@ -201,7 +202,8 @@
       "pesee": "Broiler weighing",
       "aliment": "Feed / product used",
       "vente": "Sale",
-      "observation": "Observation"
+      "observation": "Observation",
+      "stockBande": "Flock stock"
     },
     "hints": {
       "ponte": "Layers: all eggs collected, broken ones included.",
@@ -209,7 +211,8 @@
       "pesee": "Weigh a sample and record the average weight.",
       "aliment": "Stock taken out for a flock.",
       "vente": "Each sale belongs to one flock only.",
-      "observation": "Anything worth reporting."
+      "observation": "Anything worth reporting.",
+      "stockBande": "Count what is left: HENZO works out what the flock used."
     },
     "fields": {
       "oeufs_collectes": "Eggs collected",
@@ -2385,5 +2388,35 @@
     "dose": "doses",
     "flacon": "bottles",
     "piece": "pieces"
+  },
+  "stockBande": {
+    "title": "Stock of flock {{code}}",
+    "hint": "Feed and medicines kept for this flock. Count what is left: HENZO works out what it used and spreads it over the days.",
+    "empty": "Nothing in this flock’s stock yet. Put bags or bottles in from the general stock.",
+    "put": "Put in stock",
+    "putTitle": "Put in the stock of {{code}}",
+    "putHint": "These products leave the general stock and are kept for the flock.",
+    "free": "{{n}} {{unite}} in the general stock",
+    "nothingFree": "The general stock is empty: record the purchase first.",
+    "received": "Received",
+    "used": "Used",
+    "left": "Left",
+    "lastCount": "counted on {{d}}",
+    "neverCounted": "never counted",
+    "count": "Count what is left",
+    "countHint": "Count the bags and bottles left for this flock. Leave a product empty if you did not count it.",
+    "leftOf": "How many {{unite}} of {{nom}} are left?",
+    "expected": "HENZO expects {{n}} at most",
+    "saveCount": "Save the count",
+    "eaten": "{{nom}}: {{n}} {{unite}} used from {{du}} to {{au}}, about {{j}} {{uj}} a day.",
+    "nothingEaten": "{{nom}}: nothing used since the last count.",
+    "move": "Move",
+    "moveTitle": "Move what is left of {{nom}}",
+    "to": "To",
+    "flockStock": "Stock of flock {{code}}",
+    "generalStock": "General stock",
+    "qtyUnit": "Quantity ({{unite}})",
+    "leftAtEnd": "Products are left in this flock’s stock: move them to the next flock or the general stock.",
+    "offline": "The flock stock needs an internet connection."
   }
 }

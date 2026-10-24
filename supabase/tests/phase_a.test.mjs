@@ -1802,6 +1802,43 @@ await expectOk('the worker gives 4 syringes of 10 ml', 'employe', `insert into p
 ok('4 syringes = 0.04 litre', Number((await db.query(`select public.stock_article($1) s`, [CAL])).rows[0].s) === 0.96)
 }
 
+// ---------- 0062: stock per flock ----------
+try {
+  await db.exec(readFileSync(new URL('0062_stock_par_bande.sql', MIG), 'utf8'))
+  await db.exec(readFileSync(new URL('0062_stock_par_bande.sql', MIG), 'utf8'))
+  ok('migration 0062 runs (twice without error)', true)
+} catch (e) { ok('migration 0062 runs (twice without error)', false, e.message); process.exit(1) }
+{
+const BA = (await oneP('kenfack', `insert into public.bandes (code, date_arrivee, nombre_initial) values ('SB-A', current_date - 10, 1000) returning id`)).id
+const BB = (await oneP('kenfack', `insert into public.bandes (code, date_arrivee, nombre_initial) values ('SB-B', current_date - 2, 500) returning id`)).id
+const ALI = (await oneP('kenfack', `insert into public.articles (nom, categorie, unite, poids_unitaire_kg) values ('Démarrage SB', 'aliment', 'sac', 50) returning id`)).id
+const VIT = (await oneP('kenfack', `insert into public.articles (nom, categorie, unite) values ('Vitamine SB', 'medicament', 'litre') returning id`)).id
+await as('kenfack', `insert into public.mouvements_stock (article_id, type_mouvement, quantite, cout_unitaire) values ($1, 'entree', 30, 15000), ($2, 'entree', 2, 8000)`, [ALI, VIT])
+await as('kenfack', `insert into public.mortalites (bande_id, date_constat, nombre) values ($1, current_date - 5, 50)`, [BA])
+await expectErr('finance does not move stock', 'dahirou', `select public.mettre_en_stock_bande($1, $2::jsonb)`, [BA, JSON.stringify([{ article_id: ALI, quantite: 5 }])], 'exploitation')
+await expectOk('kenfack puts 20 bags and 1 litre in the stock of SB-A', 'kenfack', `select public.mettre_en_stock_bande($1, $2::jsonb, current_date - 10)`, [BA, JSON.stringify([{ article_id: ALI, quantite: 20 }, { article_id: VIT, quantite: 1 }])])
+await expectErr('only 10 bags left in the general stock', 'kenfack', `select public.mettre_en_stock_bande($1, $2::jsonb)`, [BB, JSON.stringify([{ article_id: ALI, quantite: 15 }])], 'Stock général insuffisant')
+ok('general stock 10 bags, flock stock 20', Number((await oneP('kenfack', `select public.stock_general($1) g, public.stock_bande($2, $1) b`, [ALI, BA])).g) === 10)
+await expectErr('a count above what the flock received is refused', 'kenfack', `select public.compter_stock_bande($1, $2::jsonb)`, [BA, JSON.stringify([{ article_id: ALI, reste: 21 }])], 'mettez d')
+const r = (await oneP('kenfack', `select public.compter_stock_bande($1, $2::jsonb) r`, [BA, JSON.stringify([{ article_id: ALI, reste: 4 }, { article_id: VIT, reste: 0.45 }])])).r
+ok('counting 4 bags left: 16 bags eaten over 11 days', Number(r[0].consomme) === 16 && r[0].du && Number(r[1].consomme) === 0.55, JSON.stringify(r))
+const jours = (await db.query(`select date_mouvement d, quantite q from public.mouvements_stock where article_id = $1 and bande_id = $2 and type_mouvement = 'sortie' order by date_mouvement`, [ALI, BA])).rows
+ok('the 16 bags are spread over the 11 days, more at the end than at the start', jours.length === 11 && Math.abs(jours.reduce((s, j) => s + Number(j.q), 0) - 16) < 0.0005 && Number(jours[10].q) > Number(jours[0].q), JSON.stringify(jours.map((j) => j.q)))
+const vit = (await db.query(`select quantite q from public.mouvements_stock where article_id = $1 and bande_id = $2 and type_mouvement = 'sortie'`, [VIT, BA])).rows
+ok('the vitamin is spread in equal parts', vit.length === 11 && Math.abs(vit.reduce((s, j) => s + Number(j.q), 0) - 0.55) < 0.0005)
+ok('the flock stock now shows 4 bags', Number((await oneP('kenfack', `select reste from public.stock_bandes where bande_id = $1 and article_id = $2`, [BA, ALI])).reste) === 4)
+await expectOk('a daily entry still lowers the flock stock', 'kenfack', `insert into public.mouvements_stock (article_id, type_mouvement, quantite, bande_id) values ($1, 'sortie', 1, $2)`, [ALI, BA])
+const r2 = (await oneP('kenfack', `select public.compter_stock_bande($1, $2::jsonb) r`, [BA, JSON.stringify([{ article_id: ALI, reste: 3 }])])).r
+ok('a second count the same day finds nothing more eaten', Number(r2[0].consomme) === 0, JSON.stringify(r2))
+await expectErr('cannot move more than what is left', 'kenfack', `select public.deplacer_stock_bande($1, $2, $3, 5)`, [BA, BB, ALI], 'Il ne reste que')
+await expectOk('the 3 bags left go to the next flock', 'kenfack', `select public.deplacer_stock_bande($1, $2, $3, 3)`, [BA, BB, ALI])
+await expectOk('1 bag goes back to the general stock', 'kenfack', `select public.deplacer_stock_bande($1, null, $2, 1)`, [BB, ALI])
+const fin = await oneP('kenfack', `select public.stock_bande($1, $3) a, public.stock_bande($2, $3) b, public.stock_general($3) g, public.stock_article($3) t`, [BA, BB, ALI])
+ok('SB-A empty, SB-B 2 bags, general 11, farm total 13', Number(fin.a) === 0 && Number(fin.b) === 2 && Number(fin.g) === 11 && Number(fin.t) === 13, JSON.stringify(fin))
+await expectErr('the employee cannot count a flock stock', 'employe', `select public.compter_stock_bande($1, $2::jsonb)`, [BB, JSON.stringify([{ article_id: ALI, reste: 1 }])], 'exploitation')
+await expectNoRows('the employee does not see the flocks stocks', 'employe', `select * from public.affectations_stock`)
+}
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))
