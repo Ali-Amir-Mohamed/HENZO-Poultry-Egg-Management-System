@@ -431,7 +431,8 @@
     "measureCountAny": "Combien de cette mesure dans 1 {{unite}}",
     "measureFact": "1 {{unite}} = {{n}} {{mesure}}",
     "measureMissing": "Indiquez combien de cette mesure il y a dans une unité.",
-    "measureHint": "Repères : 1 cuillère à café ≈ 5 ml, soit 200 par litre ; 1 cuillère à soupe ≈ 15 ml, soit environ 67 par litre ; 1 seringue de 10 ml = 100 par litre. Pour l’aliment, videz un sac une fois avec le seau et comptez les seaux."
+    "measureHint": "Repères : 1 cuillère à café ≈ 5 ml, soit 200 par litre ; 1 cuillère à soupe ≈ 15 ml, soit environ 67 par litre ; 1 seringue de 10 ml = 100 par litre. Pour l’aliment, videz un sac une fois avec le seau et comptez les seaux.",
+    "container": "Contenu d’un sac / bidon / flacon (en {{unite}}) – pour « Fini »"
   },
   "reglages": {
     "tabs": {
@@ -2389,7 +2390,7 @@
   },
   "stockBande": {
     "title": "Stock de la bande {{code}}",
-    "hint": "Aliment et médicaments réservés à cette bande. Comptez ce qui reste : HENZO calcule ce qu’elle a consommé et le répartit sur les jours.",
+    "hint": "Aliment et médicaments réservés à cette bande. Appuyez sur « Fini » quand un sac, un bidon ou un flacon est vide : HENZO calcule la consommation.",
     "empty": "Rien dans le stock de cette bande pour l’instant. Mettez-y des sacs ou des flacons du stock général.",
     "put": "Mettre dans le stock",
     "putTitle": "Mettre dans le stock de {{code}}",
@@ -2401,7 +2402,7 @@
     "left": "Reste",
     "lastCount": "compté le {{d}}",
     "neverCounted": "jamais compté",
-    "count": "Compter ce qui reste",
+    "count": "Compter ce qui reste (fin de bande)",
     "countHint": "Comptez les sacs et les flacons qui restent pour cette bande. Laissez vide un produit que vous n’avez pas compté.",
     "leftOf": "Il reste combien de {{unite}} de {{nom}} ?",
     "expected": "HENZO en attend {{n}} au plus",
@@ -2415,6 +2416,15 @@
     "generalStock": "Stock général",
     "qtyUnit": "Quantité ({{unite}})",
     "leftAtEnd": "Il reste des produits dans le stock de cette bande : déplacez-les vers la bande suivante ou le stock général.",
-    "offline": "Le stock de la bande demande une connexion internet."
+    "offline": "Le stock de la bande demande une connexion internet.",
+    "finish": "Fini",
+    "finishTitle": "{{nom}} fini",
+    "finishYes": "Oui, c’est fini",
+    "finishConfirm": "Un contenant de {{n}} {{unite}} de {{nom}} est vide ?",
+    "finishFirst": "Première fois pour ce produit : indiquez ce que contenait le sac, le bidon ou le flacon. HENZO s’en souviendra.",
+    "heldUnit": "Il contenait combien de {{unite}} ?",
+    "receivedUsed": "reçu {{r}} · consommé {{c}}",
+    "lastFinished": "dernier le {{d}}",
+    "neverFinished": "aucun fini encore"
   }
 }

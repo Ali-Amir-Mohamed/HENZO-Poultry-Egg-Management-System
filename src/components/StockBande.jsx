@@ -70,6 +70,26 @@ export default function StockBande({ bande }) {
     await run(supabase.rpc('deplacer_stock_bande', { p_de: bande.id, p_vers: v.vers || null, p_article: l.article_id, p_quantite: Number(v.quantite) }), q.reload)
   }
 
+  // A bag, jerrycan or bottle is empty: one tap. The first time, HENZO asks what it held and remembers it.
+  const finir = async (l) => {
+    let p_quantite = null
+    if (l.contenance) {
+      const ok = await ask.confirm(t('stockBande.finishConfirm', { n: n(l.contenance), unite: unite(l.unite, l.contenance), nom: l.nom }),
+        { title: t('stockBande.finishTitle', { nom: l.nom }), icon: 'check', submit: t('stockBande.finishYes') })
+      if (!ok) return
+    } else {
+      const v = await ask.form({
+        title: t('stockBande.finishTitle', { nom: l.nom }), icon: 'check', submit: t('stockBande.finishYes'),
+        message: t('stockBande.finishFirst'),
+        fields: [{ name: 'q', label: t('stockBande.heldUnit', { unite: t(`unitesPl.${l.unite}`) }), type: 'number', min: 0.001, step: '0.001', required: true, value: l.unite === 'sac' ? 1 : '' }]
+      })
+      if (!v) return
+      p_quantite = Number(v.q)
+    }
+    const r = await run(supabase.rpc('finir_contenant', { p_bande: bande.id, p_article: l.article_id, p_quantite }), q.reload)
+    if (r && r !== true) setResultat(r)
+  }
+
   const compter = async (e) => {
     e.preventDefault()
     const p = lignes.filter((l) => comptage.restes[l.article_id] !== '' && comptage.restes[l.article_id] != null)
@@ -84,15 +104,16 @@ export default function StockBande({ bande }) {
       actions={ouverte ? <button className="btn ghost sm" onClick={mettre}><Icon name="plus" size={14} />{t('stockBande.put')}</button> : null}>
       {lignes.length === 0 ? <p className="muted">{t('stockBande.empty')}</p> : (
         <table className="table">
-          <thead><tr><th>{t('saisie.article')}</th><th className="num">{t('stockBande.received')}</th><th className="num">{t('stockBande.used')}</th><th className="num">{t('stockBande.left')}</th><th /></tr></thead>
+          <thead><tr><th>{t('saisie.article')}</th><th className="num">{t('stockBande.left')}</th><th /></tr></thead>
           <tbody>
             {lignes.map((l) => (
               <tr key={l.article_id}>
-                <td><strong>{l.nom}</strong><div className="muted small">{l.dernier_comptage ? t('stockBande.lastCount', { d: day(l.dernier_comptage, lang) }) : t('stockBande.neverCounted')}</div></td>
-                <td className="num">{n(l.recu)}</td>
-                <td className="num">{n(l.consomme)}</td>
+                <td><strong>{l.nom}</strong><div className="muted small">{t('stockBande.receivedUsed', { r: n(l.recu), c: n(l.consomme) })} · {l.dernier_comptage ? t('stockBande.lastFinished', { d: day(l.dernier_comptage, lang) }) : t('stockBande.neverFinished')}</div></td>
                 <td className="num"><strong>{n(l.reste)}</strong> {unite(l.unite, l.reste)}</td>
-                <td>{Number(l.reste) > 0 && <button className="btn ghost sm" onClick={() => deplacer(l)} title={t('stockBande.move')}><Icon name="sync" size={14} /></button>}</td>
+                <td><div className="row" style={{ justifyContent: 'flex-end' }}>
+                  {ouverte && Number(l.reste) > 0 && <button className="btn primary sm" onClick={() => finir(l)}><Icon name="check" size={14} />{t('stockBande.finish')}</button>}
+                  {Number(l.reste) > 0 && <button className="btn ghost sm" onClick={() => deplacer(l)} title={t('stockBande.move')} aria-label={t('stockBande.move')}><Icon name="sync" size={14} /></button>}
+                </div></td>
               </tr>
             ))}
           </tbody>
@@ -110,7 +131,7 @@ export default function StockBande({ bande }) {
       )}
 
       {ouverte && restants.length > 0 && !comptage && (
-        <button className="btn primary block" onClick={() => { setResultat(null); setComptage({ date: localDate(), restes: {} }) }}>
+        <button className="btn ghost block" onClick={() => { setResultat(null); setComptage({ date: localDate(), restes: {} }) }}>
           <Icon name="sync" size={18} />{t('stockBande.count')}
         </button>
       )}

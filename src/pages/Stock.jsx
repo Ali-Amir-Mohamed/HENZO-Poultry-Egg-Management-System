@@ -66,11 +66,12 @@ export default function Stock() {
       { name: 'mesure', label: t('stock.measure'), type: 'select', value: a.mesure ?? '',
         options: [{ value: '', label: t('stock.measureNone') }, ...MESURES.map((m) => ({ value: m, label: t(`mesures.${m}`) }))] },
       { name: 'mesure_par_unite', label: t('stock.measureCountAny', { unite: t(`unites.${a.unite}`) }), type: 'number', value: a.mesure_par_unite ?? '', min: 0.001, step: '0.001' },
+      { name: 'contenance', label: t('stock.container', { unite: t(`unitesPl.${a.unite}`) }), type: 'number', value: a.contenance ?? '', min: 0.001, step: '0.001' },
       { name: 'actif', label: t('stock.status'), type: 'select', value: a.actif ? 'oui' : 'non', options: [{ value: 'oui', label: t('stock.active') }, { value: 'non', label: t('stock.inactive') }] }
     ] })
     if (!v) return
     if (v.mesure && !(Number(v.mesure_par_unite) > 0)) return ask.error(t('stock.measureMissing'))
-    const patch = { nom: v.nom, seuil_minimum: v.seuil_minimum, actif: v.actif === 'oui', mesure: v.mesure || null, mesure_par_unite: v.mesure ? Number(v.mesure_par_unite) : null }
+    const patch = { nom: v.nom, seuil_minimum: v.seuil_minimum, actif: v.actif === 'oui', mesure: v.mesure || null, mesure_par_unite: v.mesure ? Number(v.mesure_par_unite) : null, contenance: Number(v.contenance) > 0 ? Number(v.contenance) : null }
     if ('poids_unitaire_kg' in v) patch.poids_unitaire_kg = v.poids_unitaire_kg
     await run(supabase.from(TABLES.articles).update(patch).eq('id', a.id), reload)
   }

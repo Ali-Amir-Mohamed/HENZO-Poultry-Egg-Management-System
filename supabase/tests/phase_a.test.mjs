@@ -1858,6 +1858,27 @@ await expectOk('ali cancels the purchase', 'ali', `update public.depenses set an
 ok('what was left of it leaves the flock stock (9 bags)', Number((await oneP('kenfack', `select public.stock_bande($1, $2) b`, [BC, ART])).b) === 0)
 }
 
+// ---------- 0064: "finished" container in one tap ----------
+try {
+  await db.exec(readFileSync(new URL('0064_contenant_fini.sql', MIG), 'utf8'))
+  await db.exec(readFileSync(new URL('0064_contenant_fini.sql', MIG), 'utf8'))
+  ok('migration 0064 runs (twice without error)', true)
+} catch (e) { ok('migration 0064 runs (twice without error)', false, e.message); process.exit(1) }
+{
+const BD = (await oneP('kenfack', `insert into public.bandes (code, date_arrivee, nombre_initial) values ('SB-D', current_date - 6, 600) returning id`)).id
+const VB = (await oneP('kenfack', `insert into public.articles (nom, categorie, unite) values ('Vitamine bidon SB', 'medicament', 'litre') returning id`)).id
+await as('kenfack', `insert into public.mouvements_stock (article_id, type_mouvement, quantite, cout_unitaire) values ($1, 'entree', 12, 3000)`, [VB])
+await as('kenfack', `select public.mettre_en_stock_bande($1, $2::jsonb, current_date - 6)`, [BD, JSON.stringify([{ article_id: VB, quantite: 12 }])])
+await expectErr('the first time, HENZO asks what the container held', 'kenfack', `select public.finir_contenant($1, $2)`, [BD, VB], 'première fois')
+const r = (await oneP('kenfack', `select public.finir_contenant($1, $2, 5) r`, [BD, VB])).r
+ok('a 5-litre jerrycan finished: 5 litres used over the 7 days', Number(r[0].consomme) === 5, JSON.stringify(r))
+ok('the size is remembered', Number((await db.query(`select contenance from public.articles where id = $1`, [VB])).rows[0].contenance) === 5)
+await expectOk('next time, one tap', 'kenfack', `select public.finir_contenant($1, $2)`, [BD, VB])
+ok('2 jerrycans finished: 2 litres left', Number((await oneP('kenfack', `select reste from public.stock_bandes where bande_id = $1 and article_id = $2`, [BD, VB])).reste) === 2)
+await expectErr('not a third full jerrycan', 'kenfack', `select public.finir_contenant($1, $2)`, [BD, VB], 'Il ne reste que 2')
+await expectErr('the employee cannot', 'employe', `select public.finir_contenant($1, $2)`, [BD, VB], 'exploitation')
+}
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))

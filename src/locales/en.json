@@ -431,7 +431,8 @@
     "measureCountAny": "How many of this measure in 1 {{unite}}",
     "measureFact": "1 {{unite}} = {{n}} {{mesure}}",
     "measureMissing": "Say how many of this measure there are in one unit.",
-    "measureHint": "Guide: 1 teaspoon ≈ 5 ml, i.e. 200 per litre; 1 tablespoon ≈ 15 ml, about 67 per litre; 1 syringe of 10 ml = 100 per litre. For feed, empty a bag once with the bucket and count the buckets."
+    "measureHint": "Guide: 1 teaspoon ≈ 5 ml, i.e. 200 per litre; 1 tablespoon ≈ 15 ml, about 67 per litre; 1 syringe of 10 ml = 100 per litre. For feed, empty a bag once with the bucket and count the buckets.",
+    "container": "Content of one bag / jerrycan / bottle (in {{unite}}) – for “Finished”"
   },
   "reglages": {
     "tabs": {
@@ -2389,7 +2390,7 @@
   },
   "stockBande": {
     "title": "Stock of flock {{code}}",
-    "hint": "Feed and medicines kept for this flock. Count what is left: HENZO works out what it used and spreads it over the days.",
+    "hint": "Feed and medicines kept for this flock. Tap “Finished” when a bag, jerrycan or bottle is empty: HENZO works out the consumption.",
     "empty": "Nothing in this flock’s stock yet. Put bags or bottles in from the general stock.",
     "put": "Put in stock",
     "putTitle": "Put in the stock of {{code}}",
@@ -2401,7 +2402,7 @@
     "left": "Left",
     "lastCount": "counted on {{d}}",
     "neverCounted": "never counted",
-    "count": "Count what is left",
+    "count": "Count what is left (end of flock)",
     "countHint": "Count the bags and bottles left for this flock. Leave a product empty if you did not count it.",
     "leftOf": "How many {{unite}} of {{nom}} are left?",
     "expected": "HENZO expects {{n}} at most",
@@ -2415,6 +2416,15 @@
     "generalStock": "General stock",
     "qtyUnit": "Quantity ({{unite}})",
     "leftAtEnd": "Products are left in this flock’s stock: move them to the next flock or the general stock.",
-    "offline": "The flock stock needs an internet connection."
+    "offline": "The flock stock needs an internet connection.",
+    "finish": "Finished",
+    "finishTitle": "{{nom}} finished",
+    "finishYes": "Yes, it is finished",
+    "finishConfirm": "A container of {{n}} {{unite}} of {{nom}} is empty?",
+    "finishFirst": "First time for this product: say what the bag, jerrycan or bottle held. HENZO will remember it.",
+    "heldUnit": "How many {{unite}} did it hold?",
+    "receivedUsed": "received {{r}} · used {{c}}",
+    "lastFinished": "last on {{d}}",
+    "neverFinished": "none finished yet"
   }
 }
