@@ -34,10 +34,6 @@ const FORMS = {
       { name: 'nombre_peses', big: true, min: 1, initial: '10' }
     ]
   },
-  aliment: {
-    table: TABLES.mouvementsStock, icon: 'box', tone: 'sky', cible: 'tous', dateField: 'date_mouvement',
-    fields: [] // own form: AlimentForm (several products at once)
-  },
   stockBande: { icon: 'sync', tone: 'sky', fields: [], roles: ['directeur', 'exploitation'] }, // own form: count what is left in a flock's stock
   vente: { icon: 'cart', tone: 'green' },
   observation: {
@@ -76,7 +72,6 @@ export default function Saisie() {
             setRef(next)
             saveReference(next)
           }} />
-        : kind === 'aliment' ? <AlimentForm key="aliment" refData={ref} />
         : kind === 'stockBande' ? <StockBandeChoix refData={ref} />
         : <FieldForm key={kind} kind={kind} refData={ref} />}
     </div>
@@ -143,99 +138,6 @@ function FieldForm({ kind, refData }) {
         </label>
       )}
       <Submit saved={saved} />
-    </form>
-  )
-}
-
-// ---------- Feed and products used ----------
-// Several products for the same flock and day in one go. A product with a field measure (spoons, syringes,
-// buckets) can be typed in that measure: the database turns it into the article's unit.
-const ligneAliment = () => ({ article_id: '', enMesure: true, quantite: '' })
-
-function AlimentForm({ refData }) {
-  const { t } = useTranslation()
-  const vide = { cible: '', date_mouvement: localDate(), notes: '' }
-  const [form, setForm] = useState(vide)
-  const [lignes, setLignes] = useState([ligneAliment()])
-  const [saved, setSaved] = useState(0)
-  const set = (key) => (e) => { setSaved(0); setForm({ ...form, [key]: e.target.value }) }
-  const setLigne = (i, patch) => { setSaved(0); setLignes(lignes.map((l, j) => (j === i ? { ...l, ...patch } : l))) }
-  const article = (id) => refData.articles.find((a) => a.id === id)
-  const avecMesure = (a) => !!a?.mesure && Number(a.mesure_par_unite) > 0
-  const mesureDe = (l) => { const a = article(l.article_id); return avecMesure(a) && l.enMesure ? a : null }
-  const enUnite = (l) => { const a = mesureDe(l); return a ? Math.round((Number(l.quantite) / Number(a.mesure_par_unite)) * 1000) / 1000 : Number(l.quantite) }
-
-  const submit = async (e) => {
-    e.preventDefault()
-    const base = { date_mouvement: form.date_mouvement, type_mouvement: 'sortie', ...cibleToIds(form.cible), notes: form.notes || null }
-    const remplies = lignes.filter((l) => l.article_id && Number(l.quantite) > 0)
-    for (const l of remplies) {
-      const row = { ...base, article_id: l.article_id, quantite: enUnite(l) }
-      // Spoons or buckets: the database recomputes the quantity from the measure (the value sent here is only an estimate)
-      if (mesureDe(l)) row.mesure_nombre = Number(l.quantite)
-      await enqueue(TABLES.mouvementsStock, row)
-    }
-    setForm({ ...vide, cible: form.cible, date_mouvement: form.date_mouvement })
-    setLignes([ligneAliment()])
-    setSaved(remplies.length)
-  }
-
-  return (
-    <form className="panel form" onSubmit={submit}>
-      <FormHead kind="aliment" />
-      <div className="grid-2">
-        <label className="field">
-          <span>{t('saisie.date')}</span>
-          <input type="date" required value={form.date_mouvement} onChange={set('date_mouvement')} />
-        </label>
-        <CibleSelect type="tous" refData={refData} value={form.cible} onChange={set('cible')} />
-      </div>
-
-      {lignes.map((l, i) => {
-        const a = article(l.article_id)
-        const m = mesureDe(l)
-        return (
-          <div key={i}>
-            <div className="vente-ligne">
-              <label className="field">
-                {i === 0 && <span>{t('saisie.article')}</span>}
-                <select required={i === 0 || !!l.quantite} value={l.article_id} onChange={(e) => setLigne(i, { article_id: e.target.value, enMesure: true, quantite: '' })}>
-                  <option value="" disabled>{refData.articles.length ? t('saisie.chooseArticle') : t('saisie.noArticle')}</option>
-                  {refData.articles.map((x) => <option key={x.id} value={x.id}>{x.nom}</option>)}
-                </select>
-              </label>
-              <label className="field">
-                {i === 0 && <span>{t('saisie.unite')}</span>}
-                {avecMesure(a) ? (
-                  <select value={l.enMesure ? 'mesure' : 'unite'} onChange={(e) => setLigne(i, { enMesure: e.target.value === 'mesure', quantite: '' })}>
-                    <option value="mesure">{t(`mesures.${a.mesure}`)}</option>
-                    <option value="unite">{t(`unitesPl.${a.unite}`)}</option>
-                  </select>
-                ) : <input disabled value={a ? t(`unitesPl.${a.unite}`) : ''} />}
-              </label>
-              <label className="field">
-                {i === 0 && <span>{t('saisie.fields.quantite')}</span>}
-                <input type="number" inputMode="decimal" required={i === 0 || !!l.article_id} min={m ? 0.5 : 0.001} step={m ? '0.5' : '0.001'} placeholder="0"
-                  value={l.quantite} onChange={(e) => setLigne(i, { quantite: e.target.value })} />
-              </label>
-              {lignes.length > 1
-                ? <button type="button" className="icon-btn dark" onClick={() => setLignes(lignes.filter((_, j) => j !== i))} aria-label={t('stock.remove')}><Icon name="trash" size={16} /></button>
-                : <span />}
-            </div>
-            {m && Number(l.quantite) > 0 && (
-              <small className="muted">{t('saisie.conversion', { q: enUnite(l).toLocaleString(undefined, { maximumFractionDigits: 3 }), unite: t(`unites.${a.unite}`) })}</small>
-            )}
-          </div>
-        )
-      })}
-      <button type="button" className="btn ghost sm" onClick={() => setLignes([...lignes, ligneAliment()])}><Icon name="plus" size={14} />{t('saisie.addProduct')}</button>
-
-      <label className="field">
-        <span>{t('saisie.notes')}</span>
-        <textarea rows="2" value={form.notes} onChange={set('notes')} />
-      </label>
-      {saved > 0 && <div className="alert success"><Icon name="check" size={18} />{t('saisie.savedProducts', { count: saved })}</div>}
-      <button type="submit" className="btn primary block"><Icon name="check" size={18} />{t('saisie.save')}</button>
     </form>
   )
 }

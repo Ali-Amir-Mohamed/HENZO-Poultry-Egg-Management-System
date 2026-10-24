@@ -267,12 +267,7 @@
     "eggStockOver": "Warning: you are selling more than the recorded stock ({{stock}}). Check today’s collection or adjust the stock.",
     "eggStockTitle": "Sale above stock",
     "eggStockConfirm": "This sale exceeds the recorded egg stock ({{stock}}). A collection may be missing. Save anyway?",
-    "seeReceipt": "See the receipt of this sale",
-    "enMesure": "Number of {{mesure}}",
-    "conversion": "= {{q}} {{unite}} taken from stock",
-    "addProduct": "Add another product",
-    "savedProducts_one": "{{count}} product saved",
-    "savedProducts_other": "{{count}} products saved"
+    "seeReceipt": "See the receipt of this sale"
   },
   "ferme": {
     "newBande": "New broiler flock",

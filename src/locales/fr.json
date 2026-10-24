@@ -267,12 +267,7 @@
     "eggStockOver": "Attention : vous vendez plus que le stock enregistré ({{stock}}). Vérifiez le ramassage du jour ou faites un ajustement du stock.",
     "eggStockTitle": "Vente supérieure au stock",
     "eggStockConfirm": "Cette vente dépasse le stock d’œufs enregistré ({{stock}}). Il manque peut-être un ramassage. Enregistrer quand même ?",
-    "seeReceipt": "Voir le reçu de cette vente",
-    "enMesure": "Nombre de {{mesure}}",
-    "conversion": "= {{q}} {{unite}} retiré(s) du stock",
-    "addProduct": "Ajouter un autre produit",
-    "savedProducts_one": "{{count}} produit enregistré",
-    "savedProducts_other": "{{count}} produits enregistrés"
+    "seeReceipt": "Voir le reçu de cette vente"
   },
   "ferme": {
     "newBande": "Nouvelle bande de poulets de chair",
