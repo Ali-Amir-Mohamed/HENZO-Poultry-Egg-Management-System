@@ -390,7 +390,10 @@
     "cancelSaleTitle": "Cancel the {{n}} sale",
     "collectFrom": "Collect – {{nom}}",
     "payTo": "Pay – {{nom}}",
-    "willNeedValidationAll": "This expense will be sent to finance for approval: the money leaves the cash box only once approved."
+    "willNeedValidationAll": "This expense will be sent to finance for approval: the money leaves the cash box only once approved.",
+    "toStockOf": "Send to the stock of",
+    "generalStock": "General stock",
+    "toFlockStockNote": "The goods will go straight into the stock of flock {{code}}."
   },
   "stock": {
     "empty": "No product. First create your feeds and medicines.",

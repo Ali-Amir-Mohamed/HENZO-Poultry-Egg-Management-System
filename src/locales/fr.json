@@ -390,7 +390,10 @@
     "cancelSaleTitle": "Annuler la vente de {{n}}",
     "collectFrom": "Encaisser – {{nom}}",
     "payTo": "Payer – {{nom}}",
-    "willNeedValidationAll": "Cette dépense sera envoyée à Dahirou (finance) pour validation : l’argent ne sortira de la caisse qu’une fois validée."
+    "willNeedValidationAll": "Cette dépense sera envoyée à Dahirou (finance) pour validation : l’argent ne sortira de la caisse qu’une fois validée.",
+    "toStockOf": "Envoyer dans le stock de",
+    "generalStock": "Stock général",
+    "toFlockStockNote": "La marchandise ira directement dans le stock de la bande {{code}}."
   },
   "stock": {
     "empty": "Aucun produit. Créez d’abord vos aliments et médicaments.",

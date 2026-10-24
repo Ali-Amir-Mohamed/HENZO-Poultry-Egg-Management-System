@@ -295,6 +295,8 @@ function Depenses({ onAsked }) {
   const supplierRequired = credit || (refs.data?.seuilTiers != null && Number(form.montant) > Number(refs.data.seuilTiers)
     && !['salaires', 'retrait_associe'].includes(form.categorie))
   const articles = (refs.data?.articles ?? []).filter((a) => a.categorie === form.categorie)
+  // A stocked purchase for a broiler flock goes straight into that flock's stock (database trigger)
+  const versStock = stockable && form.portee === 'ferme'
 
   const create = async () => {
     const cible = form.cible.startsWith('b:') ? { bande_id: form.cible.slice(2) }
@@ -364,9 +366,9 @@ function Depenses({ onAsked }) {
               </select>
             </Field>
             {form.portee === 'ferme' ? (
-              <Field label={t('argent.forFlock')}>
+              <Field label={versStock ? t('argent.toStockOf') : t('argent.forFlock')}>
                 <select value={form.cible} onChange={set('cible')}>
-                  <option value="">{t('argent.noFlock')}</option>
+                  <option value="">{versStock ? t('argent.generalStock') : t('argent.noFlock')}</option>
                   <optgroup label={t('types.chair_pl')}>
                     {(refs.data?.bandes ?? []).map((b) => <option key={b.bande_id} value={`b:${b.bande_id}`}>{b.code}</option>)}
                   </optgroup>
@@ -420,6 +422,9 @@ function Depenses({ onAsked }) {
                 <Field label={t('argent.quantity')}><input type="number" min="0.01" step="0.01" required value={form.quantite} onChange={set('quantite')} /></Field>
               )}
             </div>
+          )}
+          {versStock && form.article_id && form.cible.startsWith('b:') && (
+            <p className="note"><Icon name="box" size={16} />{t('argent.toFlockStockNote', { code: (refs.data?.bandes ?? []).find((b) => `b:${b.bande_id}` === form.cible)?.code })}</p>
           )}
 
           <div className="field">

@@ -1839,6 +1839,25 @@ await expectErr('the employee cannot count a flock stock', 'employe', `select pu
 await expectNoRows('the employee does not see the flocks stocks', 'employe', `select * from public.affectations_stock`)
 }
 
+// ---------- 0063: purchase sent straight to a flock's stock ----------
+try {
+  await db.exec(readFileSync(new URL('0063_achat_stock_bande.sql', MIG), 'utf8'))
+  await db.exec(readFileSync(new URL('0063_achat_stock_bande.sql', MIG), 'utf8'))
+  ok('migration 0063 runs (twice without error)', true)
+} catch (e) { ok('migration 0063 runs (twice without error)', false, e.message); process.exit(1) }
+{
+const BC = (await oneP('kenfack', `insert into public.bandes (code, date_arrivee, nombre_initial) values ('SB-C', current_date - 3, 800) returning id`)).id
+const ART = (await oneP('kenfack', `insert into public.articles (nom, categorie, unite, poids_unitaire_kg) values ('Croissance SB', 'aliment', 'sac', 50) returning id`)).id
+const achat = (q, bande, lib) => oneP('kenfack', `insert into public.depenses (portee, activite, categorie, libelle, montant, mode_paiement, article_id, quantite, bande_id) values ('ferme', 'chair', 'aliment', $4, $2 * 5000, 'especes', $1, $2, $3) returning id`, [ART, q, bande, lib])
+const D1 = (await achat(12, BC, '12 sacs pour SB-C')).id
+await achat(5, null, '5 sacs stock général')
+const s = await oneP('kenfack', `select public.stock_bande($1, $2) b, public.stock_general($2) g`, [BC, ART])
+ok('a purchase for SB-C goes straight into its stock, the other one stays in the general stock', Number(s.b) === 12 && Number(s.g) === 5, JSON.stringify(s))
+await as('kenfack', `select public.compter_stock_bande($1, $2::jsonb)`, [BC, JSON.stringify([{ article_id: ART, reste: 9 }])])
+await expectOk('ali cancels the purchase', 'ali', `update public.depenses set annulee = true, motif_annulation = 'Erreur de saisie' where id = $1`, [D1])
+ok('what was left of it leaves the flock stock (9 bags)', Number((await oneP('kenfack', `select public.stock_bande($1, $2) b`, [BC, ART])).b) === 0)
+}
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))
