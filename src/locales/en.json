@@ -2395,7 +2395,7 @@
     "empty": "Nothing in this flock’s stock yet. Put bags or bottles in from the general stock.",
     "put": "Put in stock",
     "putTitle": "Put in the stock of {{code}}",
-    "putHint": "These products leave the general stock and are kept for the flock.",
+    "putHint": "The whole general stock is proposed. Change a quantity, or put 0 for what stays in the general stock. These products are then kept for the flock.",
     "free": "{{n}} {{unite}} in the general stock",
     "nothingFree": "The general stock is empty: record the purchase first.",
     "received": "Received",

@@ -2395,7 +2395,7 @@
     "empty": "Rien dans le stock de cette bande pour l’instant. Mettez-y des sacs ou des flacons du stock général.",
     "put": "Mettre dans le stock",
     "putTitle": "Mettre dans le stock de {{code}}",
-    "putHint": "Ces produits sortent du stock général et sont réservés à la bande.",
+    "putHint": "Tout le stock général est proposé. Changez une quantité, ou mettez 0 pour ce qui reste dans le stock général. Ces produits sont ensuite réservés à la bande.",
     "free": "{{n}} {{unite}} dans le stock général",
     "nothingFree": "Le stock général est vide : enregistrez d’abord l’achat.",
     "received": "Reçu",

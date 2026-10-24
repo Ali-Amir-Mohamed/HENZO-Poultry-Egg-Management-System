@@ -41,18 +41,20 @@ export default function StockBande({ bande }) {
   const mettre = async () => {
     const dispo = general.filter((g) => g.libre > 0)
     if (!dispo.length) return ask.error(t('stockBande.nothingFree'))
+    // Everything in the general stock is proposed: change a quantity, or put 0 for what stays in the general stock
     const v = await ask.form({
       title: t('stockBande.putTitle', { code: bande.code }), icon: 'box', submit: t('stockBande.put'),
       message: t('stockBande.putHint'),
       fields: [
-        { name: 'article_id', label: t('saisie.article'), type: 'select', required: true, value: dispo[0].article_id,
-          options: dispo.map((g) => ({ value: g.article_id, label: `${g.nom} — ${t('stockBande.free', { n: n(g.libre), unite: unite(g.unite, g.libre) })}` })) },
-        { name: 'quantite', label: t('argent.quantity'), type: 'number', min: 0.001, step: '0.001', required: true },
+        ...dispo.map((g) => ({ name: g.article_id, label: `${g.nom} (${t(`unitesPl.${g.unite}`)}) — ${t('stockBande.free', { n: n(g.libre), unite: unite(g.unite, g.libre) })}`,
+          type: 'number', min: 0, max: g.libre, step: '0.001', value: g.libre })),
         { name: 'date', label: t('saisie.date'), type: 'date', value: localDate(), required: true }
       ]
     })
     if (!v) return
-    await run(supabase.rpc('mettre_en_stock_bande', { p_bande: bande.id, p_lignes: [{ article_id: v.article_id, quantite: Number(v.quantite) }], p_date: v.date }), q.reload)
+    const lignes = dispo.filter((g) => Number(v[g.article_id]) > 0).map((g) => ({ article_id: g.article_id, quantite: Number(v[g.article_id]) }))
+    if (!lignes.length) return
+    await run(supabase.rpc('mettre_en_stock_bande', { p_bande: bande.id, p_lignes: lignes, p_date: v.date }), q.reload)
   }
 
   const deplacer = async (l) => {
