@@ -86,6 +86,8 @@ a { color: inherit; }
 .stack { display: flex; flex-direction: column; gap: 1rem; }
 
 /* ---------- Logo ---------- */
+.logo-img { background: #fff !important; box-shadow: 0 0 0 1px var(--border); overflow: hidden; }
+.logo-img img { width: 88%; height: 88%; object-fit: contain; }
 .logo {
   display: inline-grid; place-items: center; flex: none;
   border-radius: 22%;

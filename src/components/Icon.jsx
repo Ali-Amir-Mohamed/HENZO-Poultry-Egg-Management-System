@@ -65,7 +65,17 @@ export function HenMark({ size }) {
   )
 }
 
+// The company's logo (AGROFARM PARTNERS), shown everywhere in the app
 export function Logo({ size = 40 }) {
+  return (
+    <span className="logo logo-img" style={{ width: size, height: size }}>
+      <img src="/logo-societe.png" alt="" />
+    </span>
+  )
+}
+
+// The former HENZO mark, kept for HENZO AGRO documents (another company)
+export function LogoHenzo({ size = 40 }) {
   return (
     <span className="logo" style={{ width: size, height: size }}>
       <HenMark size={size * 0.74} />

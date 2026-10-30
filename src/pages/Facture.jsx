@@ -8,7 +8,7 @@ import { can } from '../config'
 import { estNegoce } from '../lib/systeme'
 import { montantEnLettres } from '../lib/montantEnLettres'
 import { envoyerImageWhatsApp } from '../lib/whatsapp'
-import Icon, { Logo } from '../components/Icon'
+import Icon, { LogoHenzo } from '../components/Icon'
 import { day, Loading } from '../components/ui'
 import { useAsk, useRun } from '../components/Dialog'
 
@@ -84,7 +84,7 @@ export default function Facture() {
 
         <header className="fc-head">
           <div className="fc-soc">
-            {negoce ? <Logo size={44} /> : <img src="/logo-societe.png" alt="" className="fc-logo" />}
+            {negoce ? <LogoHenzo size={44} /> : <img src="/logo-societe.png" alt="" className="fc-logo" />}
             <div>
               <strong>{nom}</strong>
               {identite.map((x) => <small key={x}>{x}</small>)}

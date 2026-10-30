@@ -27,7 +27,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg'],
+      includeAssets: ['logo-societe.png', 'icons/icon-192.png'],
       manifest: {
         name: 'HENZO – Gestion avicole',
         short_name: 'HENZO',
