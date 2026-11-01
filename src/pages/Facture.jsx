@@ -12,8 +12,9 @@ import Icon, { LogoHenzo } from '../components/Icon'
 import { day, Loading } from '../components/ui'
 import { useAsk, useRun } from '../components/Dialog'
 
-// Invoice in the classic Cameroonian layout (like a utility cash receipt): company block, bilingual boxed table, totals with the
-// net to pay shaded, amount in words, signature. A5 landscape when printed; the same picture goes on WhatsApp.
+// The farm's invoice is a small ticket (8 cm wide). HENZO AGRO keeps the classic Cameroonian layout (like a utility cash receipt):
+// company block, bilingual boxed table, totals with the net to pay shaded, amount in words, signature, A5 landscape when printed.
+// The same picture goes on WhatsApp.
 // Printable (or saved as PDF from the print window) and shareable on WhatsApp.
 const nombre = (n) => Number(n ?? 0).toLocaleString('fr-FR')
 // "300 pièces", "10 plateaux", but "26,5 kg" (every unit label takes an s in the plural, in French and English, except kg)
@@ -73,18 +74,62 @@ export default function Facture() {
 
   return (
     <div className="stack">
-      <style>{'@page { size: A5 landscape; margin: 7mm; }'}</style>{/* printed on half an A4 sheet, lying flat, only while the invoice is open */}
+      {negoce && <style>{'@page { size: A5 landscape; margin: 7mm; }'}</style>}{/* printed on half an A4 sheet, lying flat, only while the invoice is open */}
       <button className="back no-print" onClick={() => navigate(-1)}><Icon name="chevron" size={16} className="flip" />{t('fiche.back')}</button>
       {manque && <div className="alert warn no-print"><Icon name="alert" size={16} />{t('compta.fact.missingIdentity')}</div>}
 
+      {!negoce ? (
+      // The farm's invoice: a small ticket (8 cm wide), for a ticket printer or a plain sheet
+      <article ref={docRef} className={`tk ${f.annulee ? 'cancelled' : ''}`}>
+        {f.annulee && <div className="fc-stamp">{t('compta.fact.cancelledStamp')}</div>}
+        <header className="tk-c">
+          <img src="/logo-societe.png" alt="" className="tk-logo" />
+          <strong className="tk-nom">{nom}</strong>
+          <div>Élevage avicole</div>
+          {[s.niu && `NIU : ${s.niu}`, s.rccm && `RCCM : ${s.rccm}`, s.adresse_siege,
+            [s.telephone_societe && `Tél. ${s.telephone_societe}`, s.email_societe].filter(Boolean).join(' · ')]
+            .filter(Boolean).map((x) => <div key={x} className="tk-m">{x}</div>)}
+        </header>
+        <hr />
+        <div className="tk-c tk-titre">FACTURE N° {f.numero}</div>
+        <div className="tk-r"><span>Date</span><span>{day(f.date_facture, lang)}</span></div>
+        <div className="tk-r"><span>Client</span><b>{f.client_nom}</b></div>
+        {f.client_telephone && <div className="tk-r"><span>Tél. client</span><span>{f.client_telephone}</span></div>}
+        {f.client_niu && <div className="tk-r"><span>NIU client</span><span>{f.client_niu}</span></div>}
+        {caissier && <div className="tk-r"><span>Caissier</span><span>{caissier}</span></div>}
+        <hr />
+        <div className="tk-r tk-m"><b>Article</b><b>Montant</b></div>
+        {lignes.map((l) => (
+          <div key={l.id} className="tk-ligne">
+            <div>{l.designation}</div>
+            <div className="tk-r"><span className="tk-m">{nombre(l.quantite)} {uniteDe(l)} × {nombre(l.prix_unitaire)}</span><span>{nombre(l.montant)}</span></div>
+          </div>
+        ))}
+        <hr />
+        {f.tva_applicable && <div className="tk-r"><span>Total HT</span><span>{nombre(f.total_ht)}</span></div>}
+        <div className="tk-r"><span>TVA</span><span>{f.tva_applicable ? `${nombre(f.total_tva)} (${Number(f.taux_tva).toLocaleString('fr-FR')} %)` : t('compta.fact.noVatShort')}</span></div>
+        <div className="tk-r tk-net"><span>NET À PAYER</span><span>{nombre(f.total_ttc)} FCFA</span></div>
+        {!f.annulee && <>
+          <div className="tk-r"><span>Payé{paiement.length > 0 ? ` (${paiement.map((m) => t(`modes.${m}`)).join(' + ')})` : ''}</span><span>{nombre(paye)}</span></div>
+          {reste > 0 && <div className="tk-r tk-du"><span>Reste à payer</span><span>{nombre(reste)}</span></div>}
+        </>}
+        <p className="tk-m">{t('compta.fact.words', { montant: montantEnLettres(f.total_ttc) })}</p>
+        {f.annulee && <p className="fc-cancel">{t('compta.fact.cancelled')} : {f.motif_annulation}</p>}
+        {f.notes && <p>{f.notes}</p>}
+        {(s.banque_paiement || s.mentions_facture) && <hr />}
+        {s.banque_paiement && <div className="tk-m">{t('compta.fact.bank')} : {s.banque_paiement}</div>}
+        {s.mentions_facture && <div className="tk-m">{s.mentions_facture}</div>}
+        <div className="tk-sign">{t('compta.fact.signature')}</div>
+        <div className="tk-c tk-m">Merci pour votre confiance</div>
+      </article>
+      ) : (
       <div className="fc-wrap" ref={wrapRef} style={{ zoom }}>
       <article ref={docRef} className={`fc ${f.annulee ? 'cancelled' : ''}`}>
-        {!negoce && <img src="/logo-societe.png" alt="" className="fc-wm" />}
         {f.annulee && <div className="fc-stamp">{t('compta.fact.cancelledStamp')}</div>}
 
         <header className="fc-head">
           <div className="fc-soc">
-            {negoce ? <LogoHenzo size={44} /> : <img src="/logo-societe.png" alt="" className="fc-logo" />}
+            <LogoHenzo size={44} />
             <div>
               <strong>{nom}</strong>
               {identite.map((x) => <small key={x}>{x}</small>)}
@@ -157,6 +202,7 @@ export default function Facture() {
         </footer>
       </article>
       </div>
+      )}
 
       <div className="row no-print">
         <button className="btn primary" onClick={() => window.print()}><Icon name="download" size={16} />{t('recu.print')}</button>
