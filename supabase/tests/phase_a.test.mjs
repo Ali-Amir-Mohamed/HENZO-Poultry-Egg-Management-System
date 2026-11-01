@@ -1879,6 +1879,38 @@ await expectErr('not a third full jerrycan', 'kenfack', `select public.finir_con
 await expectErr('the employee cannot', 'employe', `select public.finir_contenant($1, $2)`, [BD, VB], 'exploitation')
 }
 
+// ---------- HENZO AGRO reset tool (supabase/outils/remise_a_zero_henzo_agro.sql) ----------
+{
+const compter = async () => {
+  const tables = (await db.query(`select c.relname t from pg_class c join pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'public' and c.relkind = 'r' and exists (select 1 from pg_attribute a where a.attrelid = c.oid and a.attname = 'ferme_id' and not a.attisdropped)`)).rows.map((r) => r.t)
+  const res = {}
+  for (const t of tables) {
+    for (const r of (await db.query(`select (select type_activite from public.fermes where id = x.ferme_id) ty, count(*)::int n from public.${t} x group by 1`)).rows) res[`${t}:${r.ty}`] = r.n
+  }
+  return res
+}
+const avant = await compter()
+ok('HENZO AGRO has data before the reset', (avant['ventes:negoce'] ?? 0) > 0 && (avant['ecritures:negoce'] ?? 0) > 0, JSON.stringify({ v: avant['ventes:negoce'], e: avant['ecritures:negoce'] }))
+try {
+  await db.exec(readFileSync(new URL('../outils/remise_a_zero_henzo_agro.sql', MIG), 'utf8'))
+  ok('HENZO AGRO reset runs', true)
+} catch (e) { ok('HENZO AGRO reset runs', false, e.message) }
+const apres = await compter()
+const garde = ['fermes', 'profiles', 'membres_fermes', 'caisses', 'plan_comptable', 'parametres_paie', 'modeles_taches', 'boutiques', 'admin_comptes_bancaires', 'admin_documents', 'admin_echeances', 'admin_terrains', 'abonnements_push', 'bareme_igs']
+const resteAgro = Object.entries(apres).filter(([k, n]) => k.endsWith(':negoce') && !garde.includes(k.split(':')[0]) && n > 0)
+ok('every HENZO AGRO figure is gone', resteAgro.length === 0, JSON.stringify(resteAgro))
+ok('HENZO AGRO keeps its cash boxes and chart of accounts', apres['caisses:negoce'] === avant['caisses:negoce'] && apres['plan_comptable:negoce'] === avant['plan_comptable:negoce'])
+const ferme = Object.keys(avant).filter((k) => !k.endsWith(':negoce') && !k.startsWith('achats_intersocietes') && avant[k] !== apres[k])
+ok('the farms keep all their data', ferme.length === 0, JSON.stringify(ferme.map((k) => [k, avant[k], apres[k]])))
+ok('HENZO AGRO cash balances back to 0', Number((await db.query(`select coalesce(sum(s.solde), 0) s from public.soldes_caisses s join public.caisses c on c.id = s.caisse_id join public.fermes f on f.id = c.ferme_id where f.type_activite = 'negoce'`)).rows[0].s) === 0)
+let protege = false
+try { await db.exec(`delete from public.ecritures where id = (select id from public.ecritures limit 1)`) } catch { protege = true }
+ok('the register protections are back on', protege)
+await db.exec(readFileSync(new URL('../outils/remise_a_zero_henzo_agro.sql', MIG), 'utf8'))
+ok('HENZO AGRO reset runs a second time', true)
+}
+
 // ---------- Reset tool (supabase/outils/remise_a_zero.sql) ----------
 try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))
