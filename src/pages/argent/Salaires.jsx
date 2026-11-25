@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../../lib/supabase'
@@ -9,32 +10,42 @@ import { day, Empty, Loading, money, Panel } from '../../components/ui'
 import { useAsk, useRun } from '../../components/Dialog'
 import { ChargesAReverser, ParametresPaie } from './Paie'
 
-// Employees and salaries (director, finance; only finance pays and sets salaries). Everybody is paid by the month,
-// shown in two groups: farm staff (added by Kenfack in Ferme > Équipe) and office staff (Ali, Dahirou: Argent > Employés). An employee declared to the CNPS gets a payslip: CNPS, IRPP, CAC, CFC, RAV, TDL
-// are withheld and paid over each month; the cash box pays only the net (salary + bonus − withholdings − deductions − advances).
-// Every payment is a « salaires » expense; cancelling it (director) cancels the pay and its payslip too.
+// Employees and salaries (director, finance). Each month the pay goes through three steps (0067):
+// Dahirou PREPARES (bonuses, allowances, deductions: the payslip is computed at once for checking), Ali VALIDATES,
+// Dahirou PAYS (the « salaires » expense, the cash box and the payslip, as before). Then Ali closes the month:
+// a mistake in a closed month is corrected by a « régularisation » on a later salary. An employee declared to the CNPS
+// gets a payslip (CNPS, IRPP, CAC, CFC, RAV, TDL withheld and paid over each month); the cash box pays only the net.
 const moisCourant = () => new Date().toLocaleDateString('en-CA').slice(0, 7)
 
 export default function Salaires() {
   const { t, i18n } = useTranslation()
   const lang = i18n.resolvedLanguage
   const { role } = useAuth()
+  const prepare = can(role, 'salaires.preparer')
+  const valide = can(role, 'salaires.valider')
   const payeur = can(role, 'salaires.payer')
   const ask = useAsk()
   const run = useRun()
+  const [mois, setMois] = useState(moisCourant)
+  const m1 = `${mois}-01`
   const q = useQuery(async () => {
-    const [emp, av, paies, bulletins] = await Promise.all([
+    const [emp, av, paies, bulletins, preps, periode] = await Promise.all([
       supabase.from('employes').select('*').order('categorie', { ascending: false }).order('actif', { ascending: false }).order('nom'),
       supabase.from('avances_salaire').select('*').eq('annulee', false).order('date_avance', { ascending: false }),
       supabase.from('paies').select('*, employe:employes(nom)').eq('annulee', false).order('mois', { ascending: false }).order('created_at', { ascending: false }).limit(50),
-      supabase.from('bulletins_paie').select('paie_id').order('created_at', { ascending: false }).limit(200)
+      supabase.from('bulletins_paie').select('paie_id').order('created_at', { ascending: false }).limit(200),
+      supabase.from('preparations_paie').select('*').eq('mois', m1),
+      supabase.from('periodes_paie').select('cloturee, cloturee_le').eq('mois', m1).maybeSingle()
     ])
-    return { employes: must(emp), avances: must(av), paies: must(paies), bulletins: new Set(must(bulletins).map((b) => b.paie_id)) }
-  })
+    return { employes: must(emp), avances: must(av), paies: must(paies), bulletins: new Set(must(bulletins).map((b) => b.paie_id)),
+      preps: must(preps), cloture: !!periode.data?.cloturee }
+  }, [m1])
   const modes = MODES_PAIEMENT.map((m) => ({ value: m, label: t(`modes.${m}`) }))
+  const moisLong = new Date(`${m1}T00:00`).toLocaleDateString(lang, { month: 'long', year: 'numeric' })
 
   const aDeduire = (e) => q.data.avances.filter((a) => a.employe_id === e.id && !a.paie_id).reduce((s, a) => s + Number(a.montant), 0)
-  const payeCeMois = (e) => q.data.paies.some((p) => p.employe_id === e.id && String(p.mois).slice(0, 7) === moisCourant())
+  const prepDe = (e) => q.data.preps.find((p) => p.employe_id === e.id)
+  const paieDe = (e) => q.data.paies.find((p) => p.employe_id === e.id && String(p.mois).slice(0, 7) === mois)
 
   const avance = async (e) => {
     const v = await ask.form({ title: t('salaires.advanceTitle', { nom: e.nom }), icon: 'wallet', submit: t('salaires.advancePay'),
@@ -48,36 +59,60 @@ export default function Salaires() {
     if (v) await run(supabase.rpc('verser_avance', { p_employe: e.id, p_montant: v.montant, p_mode: v.mode, p_motif: v.motif || null, p_date: v.date }), q.reload)
   }
 
-  const payer = async (e) => {
-    const avances = aDeduire(e)
-    const v = await ask.form({ title: t('salaires.payTitle', { nom: e.nom }), icon: 'wallet', submit: t('salaires.next'),
-      message: t('salaires.payHint', { salaire: money(e.salaire_mensuel, lang), avances: money(avances, lang) }),
+  // Dahirou: bonuses (subject to CNPS and tax), allowances (subject or not), a correction, a deduction
+  const preparer = async (e) => {
+    const old = prepDe(e)
+    const ancien = (type, libelle) => old?.elements?.find((x) => x.type === type && (!libelle || x.libelle === libelle))
+    const autres = old?.elements?.filter((x) => x.type === 'indemnite' && !['Transport', 'Logement'].includes(x.libelle)) ?? []
+    const oui = [{ value: 'non', label: t('circuit.notSubject') }, { value: 'oui', label: t('circuit.subject') }]
+    const v = await ask.form({ title: t('circuit.prepareTitle', { nom: e.nom, mois: moisLong }), icon: 'wallet', submit: t('circuit.prepare'),
+      message: t('circuit.prepareHint', { salaire: money(e.salaire_mensuel, lang), avances: money(aDeduire(e), lang) }),
       fields: [
-        { name: 'mois', label: t('salaires.month'), type: 'month', value: moisCourant(), required: true },
-        { name: 'primes', label: t('salaires.bonus'), type: 'number', min: 0, value: 0 },
-        { name: 'retenues', label: t('salaires.deductions'), type: 'number', min: 0, value: 0 },
-        { name: 'motif', label: t('salaires.deductionReason'), type: 'text', showIf: (x) => Number(x.retenues) > 0 },
-        { name: 'mode', label: t('saisie.modeAcompte'), type: 'select', value: 'especes', options: modes }
+        { name: 'prime_libelle', label: t('circuit.bonusName'), value: ancien('prime')?.libelle ?? t('circuit.bonusDefault') },
+        { name: 'prime', label: t('circuit.bonusAmount'), type: 'number', min: 0, value: ancien('prime')?.montant ?? 0 },
+        { name: 'transport', label: t('circuit.transport'), type: 'number', min: 0, value: ancien('indemnite', 'Transport')?.montant ?? 0 },
+        { name: 'logement', label: t('circuit.housing'), type: 'number', min: 0, value: ancien('indemnite', 'Logement')?.montant ?? 0 },
+        { name: 'autre_libelle', label: t('circuit.otherName'), value: autres[0]?.libelle ?? '' },
+        { name: 'autre', label: t('circuit.otherAmount'), type: 'number', min: 0, value: autres[0]?.montant ?? 0 },
+        { name: 'autre_soumis', label: t('circuit.otherSubject'), type: 'select', value: autres[0]?.soumis ? 'oui' : 'non', options: oui, showIf: (x) => Number(x.autre) > 0 },
+        { name: 'regul_libelle', label: t('circuit.regulName'), value: ancien('regularisation')?.libelle ?? '' },
+        { name: 'regul', label: t('circuit.regulAmount'), type: 'number', min: 0, value: ancien('regularisation')?.montant ?? 0 },
+        { name: 'retenues', label: t('salaires.deductions'), type: 'number', min: 0, value: old?.retenues ?? 0 },
+        { name: 'motif', label: t('salaires.deductionReason'), type: 'text', value: old?.motif_retenues ?? '', showIf: (x) => Number(x.retenues) > 0 }
       ] })
     if (!v) return
-    const { data: b, error } = await supabase.rpc('simuler_paie', { p_employe: e.id, p_primes: Number(v.primes) || 0 })
-    if (error) return ask.error(error.message)
-    const legales = Number(b.total_retenues) || 0
-    const net = Number(b.brut) - legales - (Number(v.retenues) || 0) - avances
-    if (net < 0) return ask.error(t('salaires.negative'))
-    const ligne = (k, n) => (Number(n) > 0 ? `− ${t(`paie.lines.${k}`)} : ${money(n, lang)}` : null)
-    const detail = [
-      `${t('salaires.base')} : ${money(e.salaire_mensuel, lang)}`,
-      Number(v.primes) > 0 && `+ ${t('salaires.bonus')} : ${money(v.primes, lang)}`,
-      `= ${t('paie.lines.brut')} : ${money(b.brut, lang)}`,
-      ...(b.declare_cnps ? ['cnps_salarie', 'irpp', 'cac', 'cfc_salarie', 'rav', 'tdl'].map((k) => ligne(k, b[k])) : [t('paie.notDeclared')]),
-      Number(v.retenues) > 0 && `− ${t('salaires.deductions')} : ${money(v.retenues, lang)}`,
-      avances > 0 && `− ${t('salaires.advances')} : ${money(avances, lang)}`,
-      `= ${t('salaires.net')} : ${money(net, lang)} (${t(`modes.${v.mode}`)})`,
-      b.declare_cnps && t('paie.employerShare', { n: money(b.total_patronal, lang) })
-    ].filter(Boolean).join('\n')
-    if (!(await ask.confirm(detail, { title: t('salaires.confirmTitle', { nom: e.nom }), icon: 'wallet', submit: t('salaires.pay') }))) return
-    await run(supabase.rpc('payer_salaire', { p_employe: e.id, p_mois: `${v.mois}-01`, p_mode: v.mode, p_primes: Number(v.primes) || 0, p_retenues: Number(v.retenues) || 0, p_motif_retenues: v.motif || null }), q.reload)
+    const elements = [
+      { type: 'prime', libelle: v.prime_libelle || t('circuit.bonusDefault'), montant: Number(v.prime) || 0 },
+      { type: 'indemnite', libelle: 'Transport', montant: Number(v.transport) || 0, soumis: false },
+      { type: 'indemnite', libelle: 'Logement', montant: Number(v.logement) || 0, soumis: false },
+      { type: 'indemnite', libelle: v.autre_libelle || t('circuit.otherDefault'), montant: Number(v.autre) || 0, soumis: v.autre_soumis === 'oui' },
+      { type: 'regularisation', libelle: v.regul_libelle || t('circuit.regulDefault'), montant: Number(v.regul) || 0 }
+    ].filter((x) => x.montant > 0)
+    await run(supabase.rpc('preparer_paie', { p_employe: e.id, p_mois: m1, p_elements: elements, p_retenues: Number(v.retenues) || 0, p_motif_retenues: v.motif || null }), q.reload)
+  }
+
+  const retirer = async (p, e) => {
+    if (await ask.confirm(t('circuit.removeConfirm', { nom: e.nom }), { title: t('circuit.remove'), icon: 'trash', submit: t('circuit.remove') }))
+      await run(supabase.rpc('retirer_preparation_paie', { p_id: p.id }), q.reload)
+  }
+  const envoyer = async () => { await run(supabase.rpc('envoyer_paie_validation', { p_mois: m1 }), q.reload) }
+  const valider = async (ids) => {
+    const total = q.data.preps.filter((p) => ids.includes(p.id)).reduce((s, p) => s + Number(p.net), 0)
+    if (await ask.confirm(t('circuit.validateConfirm', { count: ids.length, n: money(total, lang), mois: moisLong }), { title: t('circuit.validate'), icon: 'check', submit: t('circuit.validate') }))
+      await run(supabase.rpc('valider_paie', { p_ids: ids }), q.reload)
+  }
+  const payer = async (p, e) => {
+    const v = await ask.form({ title: t('salaires.confirmTitle', { nom: e.nom }), icon: 'wallet', submit: t('salaires.pay'),
+      message: t('circuit.payHint', { n: money(p.net, lang) }),
+      fields: [
+        { name: 'mode', label: t('saisie.modeAcompte'), type: 'select', value: 'especes', options: modes },
+        { name: 'date', label: t('saisie.date'), type: 'date', value: new Date().toLocaleDateString('en-CA'), required: true }
+      ] })
+    if (v) await run(supabase.rpc('payer_paie', { p_id: p.id, p_mode: v.mode, p_date: v.date }), q.reload)
+  }
+  const cloturer = async () => {
+    if (await ask.confirm(t('circuit.closeConfirm', { mois: moisLong }), { title: t('circuit.close'), icon: 'check', submit: t('circuit.close') }))
+      await run(supabase.rpc('cloturer_mois_paie', { p_mois: m1 }), q.reload)
   }
 
   const modifier = async (e) => {
@@ -96,9 +131,30 @@ export default function Salaires() {
   if (!q.data) return <Loading error={q.error} />
   const actifs = q.data.employes.filter((e) => e.actif)
   const masse = actifs.reduce((s, e) => s + Number(e.salaire_mensuel), 0)
+  const prepares = q.data.preps.filter((p) => p.statut === 'preparee')
+  const valides = q.data.preps.filter((p) => p.statut === 'validee')
+  const payes = q.data.preps.filter((p) => p.statut === 'payee')
+  const ferme = q.data.cloture
 
   return (
     <>
+      {/* ---------- The month and its three steps ---------- */}
+      <Panel icon="calendar" tone="yolk" title={t('circuit.title', { mois: moisLong })}
+        subtitle={ferme ? t('circuit.closed') : t('circuit.steps')}
+        actions={<input type="month" value={mois} onChange={(ev) => ev.target.value && setMois(ev.target.value)} aria-label={t('salaires.month')} />}>
+        <div className="circuit-steps">
+          <span className={prepares.length ? 'on' : ''}><b>1</b>{t('circuit.stepPrepared', { count: prepares.length })}</span>
+          <span className={valides.length ? 'on' : ''}><b>2</b>{t('circuit.stepValidated', { count: valides.length })}</span>
+          <span className={payes.length ? 'on' : ''}><b>3</b>{t('circuit.stepPaid', { count: payes.length })}</span>
+          <span className={ferme ? 'on' : ''}><b><Icon name="check" size={12} /></b>{ferme ? t('circuit.closedShort') : t('circuit.open')}</span>
+        </div>
+        <div className="row">
+          {can(role, 'salaires.envoyer') && prepares.length > 0 && <button className="btn primary sm" onClick={envoyer}><Icon name="bell" size={14} />{t('circuit.send')}</button>}
+          {valide && prepares.length > 0 && <button className="btn primary sm" onClick={() => valider(prepares.map((p) => p.id))}><Icon name="check" size={14} />{t('circuit.validateAll', { count: prepares.length })}</button>}
+          {valide && !ferme && payes.length > 0 && prepares.length === 0 && valides.length === 0 && <button className="btn ghost sm" onClick={cloturer}>{t('circuit.close')}</button>}
+        </div>
+      </Panel>
+
       <Panel icon="users" tone="green" title={t('salaires.title')} subtitle={t('salaires.total', { count: actifs.length, n: money(masse, lang) })}>
         {q.data.employes.length === 0 ? <Empty icon="users" text={t('salaires.none')} /> : ['ferme', 'bureau'].map((cat) => {
           const liste = q.data.employes.filter((e) => (e.categorie ?? 'ferme') === cat)
@@ -110,6 +166,8 @@ export default function Salaires() {
               <ul className="list">
                 {liste.map((e) => {
                   const av = aDeduire(e)
+                  const p = prepDe(e)
+                  const paie = paieDe(e)
                   return (
                     <li key={e.id} className={e.actif ? '' : 'read'}>
                       <div className="grow">
@@ -121,14 +179,26 @@ export default function Salaires() {
                           {av > 0 && <> · <span className="warn-text">{t('salaires.toDeduct', { n: money(av, lang) })}</span></>}
                           {!e.actif && ` · ${t('salaires.left')}`}
                         </div>
+                        {p && p.statut !== 'payee' && (
+                          <div className="small circuit-detail">
+                            {t('circuit.netLine', { n: money(p.net, lang) })}
+                            {[Number(p.primes) > 0 && `${t('circuit.bonuses')} ${money(p.primes, lang)}`, Number(p.indemnites) > 0 && `${t('circuit.allowances')} ${money(p.indemnites, lang)}`,
+                              Number(p.retenues_legales) > 0 && t('paie.withheld', { n: money(p.retenues_legales, lang) }), Number(p.avances) > 0 && t('salaires.advancesDeducted', { n: money(p.avances, lang) }),
+                              Number(p.retenues) > 0 && `−${money(p.retenues, lang)} (${p.motif_retenues})`].filter(Boolean).map((x) => ` · ${x}`)}
+                          </div>
+                        )}
                         {e.actif && (
                           <div className="row-actions">
-                            {payeCeMois(e)
-                              ? <span className="tag ok"><Icon name="check" size={12} /> {t('salaires.paidThisMonth')}</span>
-                              : payeur ? <button className="btn primary sm" onClick={() => payer(e)}><Icon name="wallet" size={14} />{t('salaires.pay')}</button>
-                                : <span className="tag warn">{t('salaires.notPaidYet')}</span>}
+                            {paie ? <span className="tag ok"><Icon name="check" size={12} /> {t('circuit.statut.payee')}</span>
+                              : p ? <span className={`tag ${p.statut === 'validee' ? 'ok' : 'warn'}`}>{t(`circuit.statut.${p.statut}`)}</span>
+                                : <span className="tag">{t('circuit.statut.aucune')}</span>}
+                            {!paie && !ferme && prepare && <button className={`btn ${p ? 'ghost' : 'primary'} sm`} onClick={() => preparer(e)}><Icon name="note" size={14} />{p ? t('circuit.edit') : t('circuit.prepare')}</button>}
+                            {p?.statut === 'preparee' && valide && <button className="btn primary sm" onClick={() => valider([p.id])}><Icon name="check" size={14} />{t('circuit.validate')}</button>}
+                            {p?.statut === 'validee' && payeur && <button className="btn primary sm" onClick={() => payer(p, e)}><Icon name="wallet" size={14} />{t('salaires.pay')}</button>}
+                            {p && !paie && prepare && <button className="btn ghost sm" onClick={() => retirer(p, e)}>{t('circuit.remove')}</button>}
+                            {paie && q.data.bulletins.has(paie.id) && <Link to={`/bulletin/${paie.id}`} className="btn ghost sm"><Icon name="receipt" size={14} />{t('paie.payslip')}</Link>}
                             {payeur && <button className="btn ghost sm" onClick={() => avance(e)}>{t('salaires.advance')}</button>}
-                            {payeur && <button className="btn ghost sm" onClick={() => modifier(e)}>{t('salaires.editSalary')}</button>}
+                            {prepare && <button className="btn ghost sm" onClick={() => modifier(e)}>{t('salaires.editSalary')}</button>}
                           </div>
                         )}
                       </div>
@@ -139,10 +209,9 @@ export default function Salaires() {
             </div>
           )
         })}
-        {!payeur && <p className="note"><Icon name="wallet" size={16} />{t('salaires.onlyFinance')}</p>}
       </Panel>
 
-      <p className="note"><Icon name="users" size={16} />{t('salaires.addedBy')}</p>
+      <p className="note"><Icon name="users" size={16} />{t('circuit.filesBy')}</p>
 
       <ChargesAReverser />
 
@@ -161,7 +230,7 @@ export default function Salaires() {
                 </li>
               ))}
           </ul>
-          <p className="muted small">{t('salaires.cancelHint')}</p>
+          <p className="muted small">{t('circuit.cancelHint')}</p>
         </Panel>
       )}
 

@@ -72,8 +72,12 @@ export default function Bulletin() {
           <thead><tr><th>{t('paie.item')}</th><th>{t('paie.base')}</th><th className="num">{t('paie.gain')}</th><th className="num">{t('paie.deduction')}</th></tr></thead>
           <tbody>
             <tr><td>{t('paie.lines.base')}</td><td /><td className="num">{n(b.salaire_base)}</td><td /></tr>
-            {Number(b.primes) > 0 && <tr><td>{t('paie.lines.primes')}</td><td /><td className="num">{n(b.primes)}</td><td /></tr>}
+            {/* detail of bonuses (subject to CNPS and tax) when the pay went through the preparation (0067) */}
+            {(b.elements ?? []).filter((x) => x.soumis).map((x, i) => <tr key={`s${i}`}><td>{x.libelle}</td><td /><td className="num">{n(x.montant)}</td><td /></tr>)}
+            {!(b.elements ?? []).some((x) => x.soumis) && Number(b.primes) > 0 && <tr><td>{t('paie.lines.primes')}</td><td /><td className="num">{n(b.primes)}</td><td /></tr>}
             <tr className="strong"><td><strong>{t('paie.lines.brut')}</strong></td><td /><td className="num"><strong>{n(b.brut)}</strong></td><td /></tr>
+            {/* allowances not subject to CNPS nor tax: added after the gross */}
+            {(b.elements ?? []).filter((x) => !x.soumis).map((x, i) => <tr key={`n${i}`}><td>{x.libelle} <span className="muted small">({t('circuit.notSubjectShort')})</span></td><td /><td className="num">{n(x.montant)}</td><td /></tr>)}
             {retenues.map(([k, v, base]) => <tr key={k}><td>{t(`paie.lines.${k}`)}</td><td className="small muted">{base}</td><td /><td className="num">{n(v)}</td></tr>)}
             {Number(b.retenues_diverses) > 0 && <tr><td>{t('paie.lines.retenues')}{b.paie?.motif_retenues ? ` (${b.paie.motif_retenues})` : ''}</td><td /><td /><td className="num">{n(b.retenues_diverses)}</td></tr>}
             {Number(b.avances) > 0 && <tr><td>{t('paie.lines.avances')}</td><td /><td /><td className="num">{n(b.avances)}</td></tr>}

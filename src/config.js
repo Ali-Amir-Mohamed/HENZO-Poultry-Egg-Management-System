@@ -75,8 +75,11 @@ export const PERMISSIONS = {
   'capital.manage': [D, F],      // investors, contributions, withdrawals, 10 % decisions
   'capital.allocate': [D, X, F], // investors' capital placed in each flock
   'salaires': [D, F],            // see employees and pay (confidential)
-  'salaires.payer': [F],         // pay advances and salaries (Dahirou only)
-  'equipe': [X],                 // farm staff: add, change the job, without salaries (Kenfack)
+  'salaires.preparer': [D, F],   // prepare the month's pay: bonuses, allowances, deductions (Dahirou)
+  'salaires.envoyer': [F],       // send the prepared month to Ali
+  'salaires.valider': [D],       // validate the pay, close the month (Ali)
+  'salaires.payer': [F],         // pay advances and validated salaries (Dahirou only)
+  'equipe': [D, F],              // staff files: add, change the job, departure (Dahirou, and Ali); Kenfack reads
   'equipe.voir': [D, X, F],      // see the farm team (Ali and Dahirou read only)
   'employes.bureau': [D, F],     // office staff (accountant, secretary…): Argent > Employés
   'admin.complet': [D],          // documents, deadlines, editing land

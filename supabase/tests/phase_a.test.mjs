@@ -1936,6 +1936,57 @@ await expectErr('a visitor cannot read the flock stock', null, `select * from pu
 await expectOk('kenfack still reads the flock stock', 'kenfack', `select * from public.stock_bandes`)
 await expectOk('ali still calls a signed-in function', 'ali', `select * from public.mes_fermes()`)
 
+// ---------- 0067: HR step 1, pay circuit (prepare → validate → pay → close) ----------
+try {
+  await db.exec(readFileSync(new URL('0067_circuit_paie.sql', MIG), 'utf8'))
+  await db.exec(readFileSync(new URL('0067_circuit_paie.sql', MIG), 'utf8'))
+  ok('migration 0067 runs (twice without error)', true)
+} catch (e) { ok('migration 0067 runs (twice without error)', false, e.message); process.exit(1) }
+{
+await expectErr('kenfack no longer adds staff', 'kenfack', `select public.ajouter_employe('Paul Test RH')`, [], 'finance')
+const EMP = (await oneP('dahirou', `select public.ajouter_employe('Paul Test RH', '690000000', 'Ouvrier') id`)).id
+ok('dahirou adds a farm employee', !!EMP)
+await expectOk('dahirou sets the salary and the CNPS declaration', 'dahirou', `update public.employes set salaire_mensuel = 100000, declare_cnps = true where id = $1`, [EMP])
+await expectErr('kenfack cannot change an employee file', 'kenfack', `select public.modifier_employe($1, 'Paul', null, 'Chef', true)`, [EMP], 'finance')
+await expectOk('dahirou changes the job', 'dahirou', `select public.modifier_employe($1, 'Paul Test RH', '690000000', 'Chef d''équipe', true)`, [EMP])
+const M = (await db.query(`select to_char(date_trunc('month', current_date) - interval '1 month', 'YYYY-MM-DD') m`)).rows[0].m
+
+const el = JSON.stringify([{ type: 'prime', libelle: 'Prime de rendement', montant: 10000 }, { type: 'indemnite', libelle: 'Transport', montant: 15000 }])
+await expectErr('kenfack cannot prepare a pay', 'kenfack', `select public.preparer_paie($1, $2, $3::jsonb)`, [EMP, M, el], 'finance')
+const P = (await oneP('dahirou', `select public.preparer_paie($1, $2, $3::jsonb) id`, [EMP, M, el])).id
+const pr = (await db.query(`select * from public.preparations_paie where id = $1`, [P])).rows[0]
+ok('the prime is subject to CNPS and tax, the transport allowance is not',
+  Number(pr.primes) === 10000 && Number(pr.indemnites) === 15000 && Number(pr.calcul.brut) === 110000, JSON.stringify({ p: pr.primes, i: pr.indemnites, b: pr.calcul?.brut }))
+ok('net = base + prime + allowance − legal deductions', Number(pr.net) === 100000 + 10000 + 15000 - Number(pr.retenues_legales), `${pr.net} / ${pr.retenues_legales}`)
+ok('a preparation is not an expense (no double count)', Number((await db.query(`select count(*) n from public.depenses where libelle like '%Paul Test RH%'`)).rows[0].n) === 0)
+
+await expectErr('dahirou cannot pay before Ali validates', 'dahirou', `select public.payer_paie($1, 'especes')`, [P], 'validé')
+await expectOk('dahirou sends the month to Ali', 'dahirou', `select public.envoyer_paie_validation($1)`, [M])
+await expectErr('dahirou cannot validate', 'dahirou', `select public.valider_paie(array[$1]::uuid[])`, [P], 'directeur')
+await expectOk('ali validates', 'ali', `select public.valider_paie(array[$1]::uuid[])`, [P])
+await expectErr('kenfack cannot pay', 'kenfack', `select public.payer_paie($1, 'especes')`, [P])
+await expectErr('the old direct payment is closed', 'dahirou', `select public.payer_salaire($1, $2, 'especes')`, [EMP, M], 'trois étapes')
+const PAIE = (await oneP('dahirou', `select public.payer_paie($1, 'especes') id`, [P])).id
+const dep = (await db.query(`select d.montant, d.categorie from public.paies p join public.depenses d on d.id = p.depense_id where p.id = $1`, [PAIE])).rows[0]
+ok('paying creates the salary expense of the net amount', dep && dep.categorie === 'salaires' && Number(dep.montant) === Number(pr.net), JSON.stringify(dep))
+const bul = (await db.query(`select indemnites, elements, net_a_payer from public.bulletins_paie where paie_id = $1`, [PAIE])).rows[0]
+ok('the payslip shows the allowance and the detail', bul && Number(bul.indemnites) === 15000 && bul.elements.length === 2 && Number(bul.net_a_payer) === Number(pr.net), JSON.stringify(bul))
+await expectErr('it cannot be prepared again once paid', 'dahirou', `select public.preparer_paie($1, $2)`, [EMP, M], 'déjà payé')
+
+await expectErr('dahirou cannot close the month', 'dahirou', `select public.cloturer_mois_paie($1)`, [M], 'directeur')
+await expectOk('ali closes the month', 'ali', `select public.cloturer_mois_paie($1)`, [M])
+await expectErr('a salary of a closed month cannot be cancelled', 'ali',
+  `update public.depenses set annulee = true, motif_annulation = 'Erreur' where id = (select depense_id from public.paies where id = $1)`, [PAIE], 'clôturée')
+const EMP2 = (await oneP('dahirou', `select public.ajouter_employe('Awa Test RH') id`)).id
+await expectErr('nothing can be prepared in a closed month', 'dahirou', `select public.preparer_paie($1, $2)`, [EMP2, M], 'clôturée')
+const M2 = (await db.query(`select to_char(date_trunc('month', current_date), 'YYYY-MM-DD') m`)).rows[0].m
+const P2 = (await oneP('dahirou', `select public.preparer_paie($1, $2, $3::jsonb) id`, [EMP, M2, JSON.stringify([{ type: 'regularisation', libelle: 'Rappel octobre', montant: 5000 }])])).id
+ok('a correction goes on the next month, as a régularisation', !!P2)
+await expectErr('Ali cannot close a month with unpaid pays', 'ali', `select public.cloturer_mois_paie($1)`, [M2], 'pas payé')
+await expectOk('dahirou removes a preparation', 'dahirou', `select public.retirer_preparation_paie($1)`, [P2])
+await expectNoRows('kenfack does not see the preparations', 'kenfack', `select * from public.preparations_paie`)
+}
+
 // ---------- HENZO AGRO reset tool (supabase/outils/remise_a_zero_henzo_agro.sql) ----------
 {
 const compter = async () => {

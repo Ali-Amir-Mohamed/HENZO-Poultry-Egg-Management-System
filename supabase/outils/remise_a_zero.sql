@@ -20,6 +20,8 @@
 -- =====================================================================
 
 truncate table
+  public.preparations_paie,
+  public.periodes_paie,
   public.affectations_stock,
   public.comptages_stock_bande,
   public.relances_clients,
