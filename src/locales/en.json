@@ -22,7 +22,11 @@
     "benefices": "Profits",
     "provenderie": "Feed mill",
     "associes": "Partners",
-    "rapport": "Report"
+    "rapport": "Report",
+    "groupe1": "Farm",
+    "groupe1Negoce": "Business",
+    "groupe2": "Money",
+    "groupe3": "Company"
   },
   "roles": {
     "directeur": "Director",
@@ -188,7 +192,41 @@
     "last7": "Eggs: last 7 days",
     "total": "{{n}} eggs in total",
     "brokenToday": "{{n}} broken today",
-    "reportReady": "The {{mois}} report is ready: print it or share it with the partners"
+    "reportReady": "The {{mois}} report is ready: print it or share it with the partners",
+    "hello": "Good morning, {{name}} 👋",
+    "evening": "Good evening, {{name}} 👋",
+    "pointsN_one": "{{count}} point to watch",
+    "pointsN_other": "{{count}} points to watch",
+    "salesMonth": "Sales this month",
+    "vsLastMonth": "vs last month",
+    "flocksN_one": "{{count}} flock",
+    "flocksN_other": "{{count}} flocks",
+    "mortality": "Flock mortality",
+    "deadN": "{{n}} dead in total",
+    "sales6": "Sales, last 6 months",
+    "inFcfa": "In thousands of FCFA",
+    "watch": "To watch",
+    "watchHint": "Farm alerts",
+    "moreAlerts_one": "+ {{count}} more alert",
+    "moreAlerts_other": "+ {{count}} more alerts",
+    "allGood": "Nothing to report, all is well.",
+    "dayOf": "D{{n}} / {{total}}",
+    "sales": "Sales",
+    "salesThisMonth": "This month: {{n}} F",
+    "period": "Period",
+    "months3": "3 months",
+    "months6": "6 months",
+    "months12": "1 year",
+    "expensesMonth": "Expenses this month",
+    "byCategory": "By category",
+    "others": "Others",
+    "noExpense": "No expense this month.",
+    "available": "Money available",
+    "flockSale": "Flock {{code}} · sale on {{d}}",
+    "daysLeft_one": "{{count}} day left",
+    "daysLeft_other": "{{count}} days left",
+    "saleLate_one": "Planned sale {{count}} day late",
+    "saleLate_other": "Planned sale {{count}} days late"
   },
   "saisie": {
     "kinds": {
@@ -2430,5 +2468,9 @@
     "receivedUsed": "received {{r}} · used {{c}}",
     "lastFinished": "last on {{d}}",
     "neverFinished": "none finished yet"
+  },
+  "splash": {
+    "welcome": "Welcome back, {{name}}",
+    "opening": "Opening your dashboard…"
   }
 }

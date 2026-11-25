@@ -22,7 +22,11 @@
     "benefices": "Bénéfices",
     "provenderie": "Provenderie",
     "associes": "Associés",
-    "rapport": "Rapport"
+    "rapport": "Rapport",
+    "groupe1": "Ferme",
+    "groupe1Negoce": "Activité",
+    "groupe2": "Argent",
+    "groupe3": "Société"
   },
   "roles": {
     "directeur": "Directeur",
@@ -188,7 +192,41 @@
     "last7": "Œufs : 7 derniers jours",
     "total": "{{n}} œufs au total",
     "brokenToday": "{{n}} cassés aujourd’hui",
-    "reportReady": "Le rapport de {{mois}} est prêt : à imprimer ou partager avec les associés"
+    "reportReady": "Le rapport de {{mois}} est prêt : à imprimer ou partager avec les associés",
+    "hello": "Bonjour, {{name}} 👋",
+    "evening": "Bonsoir, {{name}} 👋",
+    "pointsN_one": "{{count}} point à surveiller",
+    "pointsN_other": "{{count}} points à surveiller",
+    "salesMonth": "Ventes du mois",
+    "vsLastMonth": "vs mois passé",
+    "flocksN_one": "{{count}} bande",
+    "flocksN_other": "{{count}} bandes",
+    "mortality": "Mortalité des bandes",
+    "deadN": "{{n}} morts au total",
+    "sales6": "Ventes des 6 derniers mois",
+    "inFcfa": "En milliers de FCFA",
+    "watch": "À surveiller",
+    "watchHint": "Alertes de la ferme",
+    "moreAlerts_one": "+ {{count}} autre alerte",
+    "moreAlerts_other": "+ {{count}} autres alertes",
+    "allGood": "Rien à signaler, tout va bien.",
+    "dayOf": "J{{n}} / {{total}}",
+    "sales": "Ventes",
+    "salesThisMonth": "Ce mois : {{n}} F",
+    "period": "Période",
+    "months3": "3 mois",
+    "months6": "6 mois",
+    "months12": "1 an",
+    "expensesMonth": "Dépenses du mois",
+    "byCategory": "Par catégorie",
+    "others": "Autres",
+    "noExpense": "Aucune dépense ce mois-ci.",
+    "available": "Argent disponible",
+    "flockSale": "Bande {{code}} · vente le {{d}}",
+    "daysLeft_one": "{{count}} jour restant",
+    "daysLeft_other": "{{count}} jours restants",
+    "saleLate_one": "Vente prévue dépassée de {{count}} jour",
+    "saleLate_other": "Vente prévue dépassée de {{count}} jours"
   },
   "saisie": {
     "kinds": {
@@ -2430,5 +2468,9 @@
     "receivedUsed": "reçu {{r}} · consommé {{c}}",
     "lastFinished": "dernier le {{d}}",
     "neverFinished": "aucun fini encore"
+  },
+  "splash": {
+    "welcome": "Bon retour, {{name}}",
+    "opening": "Ouverture de votre tableau de bord…"
   }
 }

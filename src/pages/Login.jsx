@@ -7,6 +7,7 @@ import Icon, { Logo } from '../components/Icon'
 import { EXPIRED_FLAG } from '../components/SessionGuard'
 import { faceIdActiveIci, faceIdSupported, messageFaceId, nomBiometrie } from '../lib/faceid'
 import { APP_VERSION, forcerMiseAJour } from '../lib/version'
+import { demanderSplash } from '../components/Splash'
 
 export default function Login({ systeme = 'elevage', site, onRetour }) {
   const negoce = systeme === 'negoce'
@@ -28,6 +29,7 @@ export default function Login({ systeme = 'elevage', site, onRetour }) {
     setError(null)
     // A fresh sign-in starts a new activity period (see SessionGuard)
     try { localStorage.setItem('henzo.lastActivity', String(Date.now())) } catch {}
+    demanderSplash()   // « Bon retour » screen once the app opens
     const { error } = await signIn(username, password)
     setBusy(false)
     if (error) setError(t('auth.error'))
@@ -39,6 +41,7 @@ export default function Login({ systeme = 'elevage', site, onRetour }) {
     setBusy(true)
     setError(null)
     try { localStorage.setItem('henzo.lastActivity', String(Date.now())) } catch {}
+    demanderSplash()
     const { error } = await signInWithFaceId()
     setBusy(false)
     if (error) setError(messageFaceId(error, t))

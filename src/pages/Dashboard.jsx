@@ -30,21 +30,30 @@ export default function Dashboard() {
     loadStats(role).then((s) => { setStats(s); setStale(false) }).catch((e) => setError(e.message))
   }, [role])
 
+  // The home page has its own dark glass background (see .dash-sombre in styles.css)
+  useEffect(() => {
+    document.body.classList.add('dash-sombre')
+    return () => document.body.classList.remove('dash-sombre')
+  }, [])
+
   const lang = i18n.resolvedLanguage
   const firstName = (profile.nom_complet || '').split(' ')[0]
+  const soir = new Date().getHours() >= 18
+  const nbAlertes = stats?.alertes?.length ?? 0
 
   return (
-    <div className="stack">
-      <section className="hero">
+    <div className="stack dash">
+      <section className="dash-hero">
         <div>
-          <p className="hero-date">
+          <h1>{t(soir ? 'dashboard.evening' : 'dashboard.hello', { name: firstName })}</h1>
+          <p>
             {new Date().toLocaleDateString(lang, { weekday: 'long', day: 'numeric', month: 'long' })}
+            {' · '}{t(`roles.${profile.role}`)}
+            {nbAlertes > 0 && <> · <strong>{t('dashboard.pointsN', { count: nbAlertes })}</strong></>}
           </p>
-          <h1>{t('dashboard.welcome', { name: firstName })}</h1>
-          <span className="chip">{t(`roles.${profile.role}`)}</span>
         </div>
         {canAccess(role, 'saisie') && (
-          <Link to="/saisie" className="btn yolk"><Icon name="plus" size={18} />{t('dashboard.newEntry')}</Link>
+          <Link to="/saisie" className="btn dash-cta"><Icon name="plus" size={18} />{t('dashboard.newEntry')}</Link>
         )}
       </section>
 
@@ -166,54 +175,158 @@ function EmployeeRoutine({ stats }) {
   )
 }
 
+const DONUT =['#f5b52e', '#3fb768', '#78b4f0', '#e0503a']
+
+// Directors, operations and finance: sales and expenses charts, four key figures, alerts and flocks (glass look)
 function ManagerHome({ stats }) {
   const { t, i18n } = useTranslation()
   const lang = i18n.resolvedLanguage
   const fmt = (n, opts) => Number(n ?? 0).toLocaleString(lang, opts)
+  const [periode, setPeriode] = useState(6)
   const today = stats.pondeuse.days.at(-1)
   const taux = stats.pondeuse.effectif ? ((today.eggs / stats.pondeuse.effectif) * 100).toFixed(1) : '0'
   const max = Math.max(1, ...stats.pondeuse.days.map((d) => d.eggs))
   const restantsChair = stats.chair.reduce((s, b) => s + b.restants, 0)
+  const initial = stats.chair.reduce((s, b) => s + (b.nombre_initial ?? 0), 0)
+  const morts = stats.chair.reduce((s, b) => s + (b.morts ?? 0), 0)
+  const mortalite = initial ? (morts / initial) * 100 : 0
+  const pondeuses = stats.pondeuse.effectif > 0 || stats.pondeuse.lots > 0
+  const duree = 42   // usual broiler cycle (days), for the progress of each flock
+  const avancee = stats.chair.reduce((a, b) => (!a || b.age_jours > a.age_jours ? b : a), null)
+  const joursVente = avancee?.date_vente_prevue ? Math.ceil((new Date(`${avancee.date_vente_prevue}T00:00`) - new Date(new Date().toDateString())) / 864e5) : null
+
+  // sales chart (missing in an older cached copy, or when the role cannot read the sales)
+  const ventes = stats.ventes?.slice(-periode)
+  const maxVente = Math.max(1, ...(ventes ?? []).map((m) => m.total))
+  const ceMois = stats.ventes?.at(-1)?.total ?? 0
+  const moisAvant = stats.ventes?.at(-2)?.total ?? 0
+  const evolution = moisAvant ? Math.round(((ceMois - moisAvant) / moisAvant) * 100) : null
+
+  // expenses of the month: the three biggest categories, the rest together
+  const dep = stats.depensesMois
+  const totalDep = (dep ?? []).reduce((s, d) => s + d.total, 0)
+  const parts = dep ? [...dep.slice(0, 3), ...(dep.length > 3 ? [{ categorie: 'autres', total: dep.slice(3).reduce((s, d) => s + d.total, 0) }] : [])] : []
+  let cumul = 0
+  const anneau = parts.map((p, i) => {
+    const de = cumul
+    cumul += totalDep ? (p.total / totalDep) * 100 : 0
+    return `${DONUT[i]} ${de}% ${cumul}%`
+  }).join(', ')
 
   return (
     <>
-      {/* ---------- Alerts (computed by the database) ---------- */}
-      {stats.alertes?.length > 0 && (
-        <section className="alerts">
-          {stats.alertes.map((a, i) => (
-            <Link key={i} to={a.lien} className={`alert ${a.niveau}`}>
-              <Icon name={ALERT_ICONS[a.type_alerte] ?? 'alert'} size={18} />
-              {t(`alertes.${a.type_alerte}`, alertParams(a.params, t, lang))}
+      <section className={`dash-grid ${ventes && dep ? '' : 'one'}`}>
+        {/* ---------- Sales ---------- */}
+        {ventes && (
+          <div className="dash-panel">
+            <div className="dash-head dash-head-row">
+              <div><h2>{t('dashboard.sales')}</h2><span>{t('dashboard.salesThisMonth', { n: fmt(ceMois) })}
+                {evolution != null && <b className={evolution < 0 ? 'down' : 'up'}> {evolution > 0 ? '+' : ''}{evolution} %</b>}</span></div>
+              <div className="dash-seg" role="group" aria-label={t('dashboard.period')}>
+                {[3, 6, 12].map((n) => <button key={n} type="button" className={periode === n ? 'on' : ''} onClick={() => setPeriode(n)}>{t(`dashboard.months${n}`)}</button>)}
+              </div>
+            </div>
+            <div className="dash-bars">
+              {ventes.map((m, i) => (
+                <div key={m.mois} className={`dash-bar ${i === ventes.length - 1 ? 'on' : ''}`}>
+                  <span className="dash-bar-val">{m.total ? `${fmt(Math.round(m.total / 1000))} k` : ''}</span>
+                  <div className="dash-bar-track"><i style={{ height: `${Math.max(2, (m.total / maxVente) * 100)}%` }} /></div>
+                  <span className="dash-bar-lbl">{new Date(`${m.mois}-01T00:00`).toLocaleDateString(lang, { month: 'short' })}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ---------- Expenses of the month ---------- */}
+        {dep && (
+          <div className="dash-panel">
+            <div className="dash-head"><h2>{t('dashboard.expensesMonth')}</h2><span>{t('dashboard.byCategory')}</span></div>
+            {totalDep > 0 ? (
+              <div className="dash-donut">
+                <div className="dash-ring" style={{ background: `conic-gradient(${anneau})` }}>
+                  <div><strong>{fmt(totalDep >= 1e6 ? totalDep / 1e6 : totalDep / 1000, { maximumFractionDigits: 2 })} {totalDep >= 1e6 ? 'M' : 'k'}</strong><span>FCFA</span></div>
+                </div>
+                <ul className="dash-legend">
+                  {parts.map((p, i) => (
+                    <li key={p.categorie}><i style={{ background: DONUT[i] }} />{p.categorie === 'autres' ? t('dashboard.others') : t(`categories.${p.categorie}`)}
+                      <b>{fmt((p.total / totalDep) * 100, { maximumFractionDigits: 0 })} %</b></li>
+                  ))}
+                </ul>
+              </div>
+            ) : <p className="dash-ok"><Icon name="check" size={16} />{t('dashboard.noExpense')}</p>}
+          </div>
+        )}
+      </section>
+
+      {/* ---------- Four key figures ---------- */}
+      <section className="dash-kpis">
+        <div className="dash-kpi gold">
+          <span className="dash-kpi-icon"><Icon name="wallet" size={16} /></span>
+          <strong>{fmt(stats.soldes.chair + stats.soldes.pondeuse)} F</strong>
+          <span className="dash-kpi-label">{t('dashboard.available')}</span>
+          {stats.creances.total > 0 && <span className="dash-tag">{t('dashboard.receivables', { n: fmt(stats.creances.total) })}</span>}
+        </div>
+        <div className="dash-kpi">
+          <span className="dash-kpi-icon"><Icon name="drumstick" size={16} /></span>
+          <strong>{fmt(restantsChair)}</strong>
+          <span className="dash-kpi-label">{t('dashboard.broilers')}</span>
+          <span className="dash-tag">{t('dashboard.flocksN', { count: stats.chair.length })} · {avgWeightLabel(stats.chair, fmt)}</span>
+        </div>
+        <div className="dash-kpi">
+          <span className="dash-kpi-icon"><Icon name="alert" size={16} /></span>
+          <strong>{fmt(mortalite, { maximumFractionDigits: 1 })} %</strong>
+          <span className="dash-kpi-label">{t('dashboard.mortality')}</span>
+          <span className={`dash-tag ${mortalite > 5 ? 'down' : 'up'}`}>{t('dashboard.deadN', { n: fmt(morts) })}</span>
+        </div>
+        <div className="dash-kpi">
+          <span className="dash-kpi-icon"><Icon name="calendar" size={16} /></span>
+          <strong>{avancee ? t('dashboard.dayOf', { n: avancee.age_jours, total: duree }) : '—'}</strong>
+          <span className="dash-kpi-label">{avancee ? t('dashboard.flockSale', { code: avancee.code, d: avancee.date_vente_prevue ? new Date(`${avancee.date_vente_prevue}T00:00`).toLocaleDateString(lang, { day: 'numeric', month: 'numeric' }) : '—' }) : t('dashboard.noBroilers')}</span>
+          {joursVente != null && <span className={`dash-tag ${joursVente < 0 ? 'down' : 'up'}`}>{joursVente >= 0 ? t('dashboard.daysLeft', { count: joursVente }) : t('dashboard.saleLate', { count: -joursVente })}</span>}
+        </div>
+      </section>
+
+      {/* ---------- Alerts and flocks ---------- */}
+      <section className="dash-grid half">
+        <div className="dash-panel">
+          <div className="dash-head"><h2>{t('dashboard.watch')}</h2><span>{t('dashboard.watchHint')}</span></div>
+          {stats.alertes?.length > 0 ? (
+            <div className="dash-alerts">
+              {stats.alertes.slice(0, 5).map((a, i) => (
+                <Link key={i} to={a.lien} className={`dash-alert ${a.niveau}`}>
+                  <Icon name={ALERT_ICONS[a.type_alerte] ?? 'alert'} size={16} />
+                  <span>{t(`alertes.${a.type_alerte}`, alertParams(a.params, t, lang))}</span>
+                </Link>
+              ))}
+              {stats.alertes.length > 5 && <span className="dash-more">{t('dashboard.moreAlerts', { count: stats.alertes.length - 5 })}</span>}
+            </div>
+          ) : <p className="dash-ok"><Icon name="check" size={16} />{t('dashboard.allGood')}</p>}
+        </div>
+        <div className="dash-panel">
+          <div className="dash-head"><h2>{t('dashboard.broilerFlocks')}</h2><span>{t('dashboard.cashChair')} : {fmt(stats.soldes.chair)} F</span></div>
+          {stats.chair.length ? stats.chair.map((b) => (
+            <Link key={b.bande_id} to={`/ferme/bande/${b.bande_id}`} className="dash-flock">
+              <strong>{b.code}</strong>
+              <span className="dash-progress"><i style={{ width: `${Math.min(100, (b.age_jours / duree) * 100)}%` }} /></span>
+              <span className="dash-flock-age">{t('dashboard.dayOf', { n: b.age_jours, total: duree })} · {fmt(b.restants)}</span>
             </Link>
-          ))}
-        </section>
-      )}
-
-      {/* ---------- Cash ---------- */}
-      <h2 className="section-title"><span className="kpi-icon green sm"><Icon name="wallet" size={18} /></span>{t('dashboard.cash')}</h2>
-      <section className="kpis three">
-        <Kpi icon="drumstick" tone="sky" label={t('dashboard.cashChair')} value={`${fmt(stats.soldes.chair)} F`} />
-        <Kpi icon="egg" tone="yolk" label={t('dashboard.cashLayers')} value={`${fmt(stats.soldes.pondeuse)} F`} />
-        <Kpi icon="wallet" tone="green" label={t('dashboard.cashTotal')} value={`${fmt(stats.soldes.chair + stats.soldes.pondeuse)} F`}
-          hint={stats.creances.total ? t('dashboard.receivables', { n: fmt(stats.creances.total) }) : null} />
+          )) : <p className="dash-ok">{t('dashboard.noBroilers')}</p>}
+        </div>
       </section>
+
       {stats.capitaux && (Number(stats.capitaux.capital_investisseurs) > 0 || Number(stats.capitaux.solde_prets) > 0) && (
-        <section className="summary">
-          <div><span>{t('dashboard.investorCapital')}</span><strong>{fmt(stats.capitaux.capital_investisseurs)} F</strong></div>
-          <div><span>{t('dashboard.loansDue')}</span><strong>{fmt(stats.capitaux.solde_prets)} F</strong></div>
-          <div className="main"><span>{t('dashboard.committed')}</span><strong>{fmt(Number(stats.capitaux.capital_investisseurs) + Number(stats.capitaux.solde_prets))} F</strong></div>
+        <section className="dash-kpis three">
+          <div className="dash-kpi"><strong>{fmt(stats.capitaux.capital_investisseurs)} F</strong><span className="dash-kpi-label">{t('dashboard.investorCapital')}</span></div>
+          <div className="dash-kpi"><strong>{fmt(stats.capitaux.solde_prets)} F</strong><span className="dash-kpi-label">{t('dashboard.loansDue')}</span></div>
+          <div className="dash-kpi"><strong>{fmt(Number(stats.capitaux.capital_investisseurs) + Number(stats.capitaux.solde_prets))} F</strong><span className="dash-kpi-label">{t('dashboard.committed')}</span></div>
         </section>
       )}
 
-      {/* ---------- Broilers ---------- */}
-      <h2 className="section-title"><span className="kpi-icon sky sm"><Icon name="drumstick" size={18} /></span>{t('types.chair_pl')}</h2>
-      <section className="kpis three">
-        <Kpi icon="drumstick" tone="sky" label={t('dashboard.broilers')} value={fmt(restantsChair)} />
-        <Kpi icon="calendar" tone="green" label={t('dashboard.broilerFlocks')} value={fmt(stats.chair.length)} />
-        <Kpi icon="scale" tone="yolk" label={t('dashboard.lastWeight')} value={avgWeightLabel(stats.chair, fmt)} />
-      </section>
-      <section className="panel">
-        {stats.chair.length ? (
+      {/* ---------- Broiler flocks in detail ---------- */}
+      {stats.chair.length > 0 && (
+        <section className="dash-panel">
+          <div className="dash-head"><h2>{t('types.chair_pl')}</h2></div>
           <div className="table-wrap">
             <table className="table">
               <thead>
@@ -236,35 +349,35 @@ function ManagerHome({ stats }) {
               </tbody>
             </table>
           </div>
-        ) : <p className="muted">{t('dashboard.noBroilers')}</p>}
-      </section>
+        </section>
+      )}
 
-      {/* ---------- Layers ---------- */}
-      <h2 className="section-title"><span className="kpi-icon yolk sm"><Icon name="egg" size={18} /></span>{t('types.pondeuse_pl')}</h2>
-      <section className="kpis three">
-        <Kpi icon="egg" tone="yolk" label={t('dashboard.eggsToday')} value={fmt(today.eggs)}
-          hint={t('dashboard.layingRate', { rate: taux })} />
-        {stats.pondeuse.stock
-          ? <Kpi icon="egg" tone="green" label={t('oeufs.title')} value={t('oeufs.traysN', { n: fmt(stats.pondeuse.stock.plateaux) })}
-            hint={`${stats.pondeuse.stock.oeufs_isoles ? `+ ${fmt(stats.pondeuse.stock.oeufs_isoles)} ${t('oeufs.eggs')} · ` : ''}${t('dashboard.brokenToday', { n: fmt(today.broken) })}`} />
-          : <Kpi icon="broken" tone="rose" label={t('dashboard.broken')} value={fmt(today.broken)} />}
-        <Kpi icon="hen" tone="green" label={t('dashboard.layers')} value={fmt(stats.pondeuse.effectif)} />
-      </section>
-      <section className="panel">
-        <div className="panel-head">
-          <h2>{t('dashboard.last7')}</h2>
-          <span className="muted">{t('dashboard.total', { n: fmt(stats.pondeuse.days.reduce((s, d) => s + d.eggs, 0)) })}</span>
-        </div>
-        <div className="bars">
-          {stats.pondeuse.days.map((d, i) => (
-            <div key={d.date} className={`bar-col ${i === 6 ? 'today' : ''}`}>
-              <span className="bar-val">{d.eggs ? fmt(d.eggs) : ''}</span>
-              <div className="bar-track"><div className="bar" style={{ height: `${(d.eggs / max) * 100}%` }} /></div>
-              <span className="bar-label">{new Date(`${d.date}T00:00`).toLocaleDateString(lang, { weekday: 'short' })}</span>
+      {/* ---------- Layers (only when the farm has some) ---------- */}
+      {pondeuses && (
+        <>
+          <section className="dash-kpis three">
+            <div className="dash-kpi"><span className="dash-kpi-icon"><Icon name="egg" size={16} /></span><strong>{fmt(today.eggs)}</strong>
+              <span className="dash-kpi-label">{t('dashboard.eggsToday')}</span><span className="dash-tag">{t('dashboard.layingRate', { rate: taux })}</span></div>
+            <div className="dash-kpi"><span className="dash-kpi-icon"><Icon name="egg" size={16} /></span>
+              <strong>{stats.pondeuse.stock ? t('oeufs.traysN', { n: fmt(stats.pondeuse.stock.plateaux) }) : '—'}</strong>
+              <span className="dash-kpi-label">{t('oeufs.title')}</span><span className="dash-tag">{t('dashboard.brokenToday', { n: fmt(today.broken) })}</span></div>
+            <div className="dash-kpi"><span className="dash-kpi-icon"><Icon name="hen" size={16} /></span><strong>{fmt(stats.pondeuse.effectif)}</strong>
+              <span className="dash-kpi-label">{t('dashboard.layers')}</span><span className="dash-tag">{t('dashboard.cashLayers')} : {fmt(stats.soldes.pondeuse)} F</span></div>
+          </section>
+          <section className="dash-panel">
+            <div className="dash-head"><h2>{t('dashboard.last7')}</h2><span>{t('dashboard.total', { n: fmt(stats.pondeuse.days.reduce((s, d) => s + d.eggs, 0)) })}</span></div>
+            <div className="dash-bars">
+              {stats.pondeuse.days.map((d, i) => (
+                <div key={d.date} className={`dash-bar ${i === 6 ? 'on' : ''}`}>
+                  <span className="dash-bar-val">{d.eggs ? fmt(d.eggs) : ''}</span>
+                  <div className="dash-bar-track"><i style={{ height: `${Math.max(2, (d.eggs / max) * 100)}%` }} /></div>
+                  <span className="dash-bar-lbl">{new Date(`${d.date}T00:00`).toLocaleDateString(lang, { weekday: 'short' })}</span>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </section>
+          </section>
+        </>
+      )}
     </>
   )
 }
@@ -275,16 +388,5 @@ function avgWeightLabel(rows, fmt) {
   if (!birds) return '—'
   const g = weighed.reduce((s, r) => s + r.poids_moyen_g * r.restants, 0) / birds
   return `${fmt(g / 1000, { maximumFractionDigits: 2 })} kg`
-}
-
-function Kpi({ icon, tone, label, value, hint }) {
-  return (
-    <div className="kpi">
-      <span className={`kpi-icon ${tone}`}><Icon name={icon} size={22} /></span>
-      <span className="kpi-label">{label}</span>
-      <strong className="kpi-value">{value}</strong>
-      {hint && <span className="kpi-hint">{hint}</span>}
-    </div>
-  )
 }
 

@@ -11,26 +11,27 @@ import Notifications from './Notifications'
 import SessionGuard from './SessionGuard'
 import FarmSwitch from './FarmSwitch'
 import ErrorBoundary from './ErrorBoundary'
+import Splash from './Splash'
 import Icon, { Logo } from './Icon'
 
 export const SECTIONS = [
-  { to: '/', key: 'dashboard', icon: 'home' },
-  { to: '/associes', key: 'associes', icon: 'users' },
-  { to: '/rapport', key: 'rapport', icon: 'note' },
-  { to: '/saisie', key: 'saisie', icon: 'plus' },
-  { to: '/ferme', key: 'ferme', icon: 'hen' },
-  { to: '/commandes', key: 'commandes', icon: 'calendar' },
-  { to: '/provenderie', key: 'provenderie', icon: 'box' },
-  { to: '/benefices', key: 'benefices', icon: 'chart' },
-  { to: '/argent', key: 'argent', icon: 'wallet' },
-  { to: '/compta', key: 'compta', icon: 'receipt' },
-  { to: '/planning', key: 'planning', icon: 'calendar' },
-  { to: '/analyses', key: 'analyses', icon: 'chart' },
-  { to: '/stock', key: 'stock', icon: 'box' },
-  { to: '/boutique', key: 'boutique', icon: 'cart' },
-  { to: '/administration', key: 'administration', icon: 'note' },
-  { to: '/reglages', key: 'reglages', icon: 'settings' },
-  { to: '/sync', key: 'sync', icon: 'sync' }
+  { to: '/', key: 'dashboard', icon: 'home', groupe: 0 },
+  { to: '/associes', key: 'associes', icon: 'users', groupe: 0 },
+  { to: '/rapport', key: 'rapport', icon: 'note', groupe: 0 },
+  { to: '/saisie', key: 'saisie', icon: 'plus', groupe: 0 },
+  { to: '/ferme', key: 'ferme', icon: 'hen', groupe: 1 },
+  { to: '/commandes', key: 'commandes', icon: 'calendar', groupe: 1 },
+  { to: '/provenderie', key: 'provenderie', icon: 'box', groupe: 1 },
+  { to: '/benefices', key: 'benefices', icon: 'chart', groupe: 2 },
+  { to: '/argent', key: 'argent', icon: 'wallet', groupe: 2 },
+  { to: '/compta', key: 'compta', icon: 'receipt', groupe: 2 },
+  { to: '/planning', key: 'planning', icon: 'calendar', groupe: 1 },
+  { to: '/analyses', key: 'analyses', icon: 'chart', groupe: 2 },
+  { to: '/stock', key: 'stock', icon: 'box', groupe: 1 },
+  { to: '/boutique', key: 'boutique', icon: 'cart', groupe: 1 },
+  { to: '/administration', key: 'administration', icon: 'note', groupe: 3 },
+  { to: '/reglages', key: 'reglages', icon: 'settings', groupe: 3 },
+  { to: '/sync', key: 'sync', icon: 'sync', groupe: 3 }
 ]
 
 // On phones the bottom bar shows at most 4 sections + "More"
@@ -82,8 +83,12 @@ export default function Layout() {
           </div>
         </div>
         <nav className="nav">
+          {/* Group titles: only in the computer side menu, where the items are sorted by group (CSS order) */}
+          {[1, 2, 3].filter((g) => sections.some((s) => s.groupe === g)).map((g) => (
+            <span key={`g${g}`} className="nav-group" style={{ '--o': g * 100 }}>{t(`nav.groupe${g}${negoce && g === 1 ? 'Negoce' : ''}`)}</span>
+          ))}
           {sections.map((s, i) => (
-            <NavLink key={s.key} to={s.to} end={s.to === '/'}
+            <NavLink key={s.key} to={s.to} end={s.to === '/'} style={{ '--o': s.groupe * 100 + i + 1 }}
               className={`nav-item ${needsMore && i >= MOBILE_SLOTS ? 'desktop-only' : ''}`}>
               <span className="nav-icon">
                 <Icon name={s.icon} size={20} />
@@ -115,6 +120,7 @@ export default function Layout() {
         </ErrorBoundary>
       </main>
       <SessionGuard />
+      <Splash name={(profile?.nom_complet || '').split(' ')[0]} />
     </div>
   )
 }

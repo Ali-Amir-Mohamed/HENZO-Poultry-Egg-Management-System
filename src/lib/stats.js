@@ -44,7 +44,13 @@ async function loadEmployee() {
 async function loadManager() {
   const since = new Date()
   since.setDate(since.getDate() - 6)
-  const [bandes, lots, pontes, pesees, caisses, creances, capitaux, alertes, oeufs] = await Promise.all([
+  // Sales of the last 12 months (current month included) for the chart, and this month's expenses by category
+  const debut6 = new Date()
+  debut6.setDate(1)
+  debut6.setMonth(debut6.getMonth() - 11)
+  const debutMois = new Date()
+  debutMois.setDate(1)
+  const [bandes, lots, pontes, pesees, caisses, creances, capitaux, alertes, oeufs, ventes6, depMois] = await Promise.all([
     supabase.from('effectif_bandes').select('bande_id, code, statut, age_jours, restants, morts, nombre_initial, date_vente_prevue')
       .neq('statut', 'cloturee').order('date_arrivee'),
     supabase.from('effectif_lots').select('lot_id, code, effectif').eq('statut', 'en_production'),
@@ -54,8 +60,20 @@ async function loadManager() {
     supabase.from('creances_clients').select('reste'),
     supabase.from('capitaux_engages').select('*').maybeSingle(),
     supabase.from('alertes_responsables').select('*').order('niveau').order('date_ref'),
-    supabase.from('stock_oeufs').select('stock_oeufs, plateaux, oeufs_isoles').maybeSingle()
+    supabase.from('stock_oeufs').select('stock_oeufs, plateaux, oeufs_isoles').maybeSingle(),
+    supabase.from('ventes').select('date_vente, montant').eq('annulee', false).gte('date_vente', localDate(debut6)).limit(20000),
+    supabase.from('depenses').select('categorie, montant').eq('annulee', false).neq('statut', 'rejetee').gte('date_depense', localDate(debutMois)).limit(5000)
   ])
+  // one bar per month; a role that cannot read the sales simply gets no chart
+  const mois = Array.from({ length: 12 }, (_, i) => {
+    const d = new Date(debut6)
+    d.setMonth(d.getMonth() + i)
+    return { mois: localDate(d).slice(0, 7), total: 0 }
+  })
+  for (const v of ventes6.data ?? []) {
+    const m = mois.find((x) => x.mois === String(v.date_vente).slice(0, 7))
+    if (m) m.total += Number(v.montant)
+  }
 
   // Broilers: latest weight per flock
   const lastWeight = {}
@@ -86,7 +104,10 @@ async function loadManager() {
     soldes,
     creances: { total: must(creances).reduce((s, c) => s + Number(c.reste), 0) },
     capitaux: must(capitaux),
-    alertes: must(alertes)
+    alertes: must(alertes),
+    ventes: ventes6.error ? null : mois,
+    depensesMois: depMois.error ? null : Object.entries((depMois.data ?? []).reduce((a, d) => ({ ...a, [d.categorie]: (a[d.categorie] ?? 0) + Number(d.montant) }), {}))
+      .map(([categorie, total]) => ({ categorie, total })).sort((a, b) => b.total - a.total)
   }
 }
 
