@@ -1879,6 +1879,51 @@ await expectErr('not a third full jerrycan', 'kenfack', `select public.finir_con
 await expectErr('the employee cannot', 'employe', `select public.finir_contenant($1, $2)`, [BD, VB], 'exploitation')
 }
 
+// ---------- 0065: Kenfack and Dahirou correct directly, Ali is notified ----------
+try {
+  await db.exec(readFileSync(new URL('0065_corrections_directes.sql', MIG), 'utf8'))
+  await db.exec(readFileSync(new URL('0065_corrections_directes.sql', MIG), 'utf8'))
+  ok('migration 0065 runs (twice without error)', true)
+} catch (e) { ok('migration 0065 runs (twice without error)', false, e.message); process.exit(1) }
+{
+const FK = (await db.query(`select ferme_id from public.profiles where id = $1`, [U.kenfack])).rows[0].ferme_id
+const notifs = async () => Number((await db.query(`select count(*) n from public.notifications where ferme_id = $1 and role_destinataire = 'directeur'`, [FK])).rows[0].n)
+const dernier = async () => (await db.query(`select message from public.notifications where ferme_id = $1 and role_destinataire = 'directeur' order by created_at desc, id desc limit 1`, [FK])).rows[0]?.message ?? ''
+const libre = (table, extra = '') => `select x.id from public.${table} x where x.ferme_id = '${FK}' and not x.annulee ${extra} order by x.created_at desc limit 1`
+const sansFacture = `and not exists (select 1 from public.facture_lignes l where l.vente_id = x.id and l.active) and not exists (select 1 from public.achats_intersocietes a where a.vente_id = x.id)`
+
+const V1 = (await db.query(libre('ventes', sansFacture))).rows[0]?.id
+let n = await notifs()
+await expectOk('kenfack cancels a sale himself', 'kenfack', `update public.ventes set annulee = true, motif_annulation = 'Saisie en double' where id = $1`, [V1])
+ok('ali is notified, with the name and the reason', (await notifs()) === n + 1 && (await dernier()).includes('Kenfack a annulé une vente') && (await dernier()).includes('Saisie en double'), await dernier())
+
+const D1 = (await db.query(libre('depenses', `and x.categorie <> 'retrait_associe' and x.statut <> 'rejetee'`))).rows[0]?.id
+n = await notifs()
+await expectOk('dahirou cancels an expense himself', 'dahirou', `update public.depenses set annulee = true, motif_annulation = 'Mauvais montant' where id = $1`, [D1])
+ok('ali is notified of the expense', (await notifs()) === n + 1 && (await dernier()).includes('Dahirou a annulé la dépense'), await dernier())
+await expectErr('kenfack cannot validate an expense for all that', 'kenfack',
+  `update public.depenses set statut = 'validee' where id = (select id from public.depenses where statut = 'a_valider' and not annulee limit 1)`, [], 'valident')
+
+n = await notifs()
+await expectOk('kenfack corrects a cash entry', 'kenfack', `insert into public.ecritures (caisse_id, sens, montant, nature, libelle, ecriture_corrigee_id, saisi_par)
+  select caisse_id, 'sortie', 2500, 'correction', 'Erreur de saisie', id, auth.uid() from public.ecritures where ferme_id = public.ferme_actuelle() and nature <> 'correction' limit 1`)
+ok('ali is notified of the correction', (await notifs()) === n + 1 && (await dernier()).includes('Kenfack a corrigé une caisse : −2 500 FCFA'), await dernier())
+
+const F = (await db.query(`select id from public.factures where ferme_id = $1 and not annulee limit 1`, [FK])).rows[0]?.id
+if (F) {
+  n = await notifs()
+  await expectOk('dahirou cancels an invoice', 'dahirou', `select public.annuler_facture($1, 'Mauvais client')`, [F])
+  ok('ali is notified of the invoice', (await notifs()) === n + 1 && (await dernier()).includes('Dahirou a annulé la facture'), await dernier())
+} else ok('an invoice to cancel exists', false)
+
+await expectNoRows('the employee still cannot cancel a sale', 'employe', `update public.ventes set annulee = true, motif_annulation = 'x' where id = (${libre('ventes', sansFacture)}) returning id`)
+await expectErr('a reason is still required', 'kenfack', `update public.ventes set annulee = true, motif_annulation = ' ' where id = (${libre('ventes', sansFacture)})`, [], 'motif')
+const V2 = (await db.query(libre('ventes', sansFacture))).rows[0]?.id
+n = await notifs()
+await expectOk('ali cancels a sale', 'ali', `update public.ventes set annulee = true, motif_annulation = 'Test' where id = $1`, [V2])
+ok('no notification for his own cancellation', (await notifs()) === n)
+}
+
 // ---------- HENZO AGRO reset tool (supabase/outils/remise_a_zero_henzo_agro.sql) ----------
 {
 const compter = async () => {

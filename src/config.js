@@ -63,6 +63,7 @@ export const PERMISSIONS = {
   'depense.validate': [D, F],
   'retrait.confirm': [D],
   'annuler': [D],
+  'operation.annuler': [D, X, F], // cancel a sale or an expense, with a reason (Ali is notified)
   'paiement': [D, X, F],
   'soldeInitial': [D, F],
   'credit.grant': [X],
@@ -101,11 +102,12 @@ export const PERMISSIONS = {
   'journal': [D],
   'sauvegarde': [D],
   'correction': [D],
-  'correction.request': [X, F],  // ask the director to cancel / correct a financial record
+  'ecriture.corriger': [D, X, F], // correct a cash entry, with a reason (Ali is notified)
+  'correction.request': [],       // no longer needed: Kenfack and Dahirou correct directly (0065)
   'transfert': [D, F],
   'facture.create': [D, X, F],   // official invoices from sales (Argent > Factures)
   'factures.voir': [D, X, F, C], // see the invoices
-  'facture.annuler': [D],        // cancel an invoice (number never reused)
+  'facture.annuler': [D, X, F],  // cancel an invoice (number never reused; Ali is notified)
   'impots.payer': [D, F],        // record a tax payment (= taxes expense), in Argent > Impôts
   'societe.edit': [C],           // company legal / tax sheet (the accountant)
   'compta.livres': [C],          // accounting books and chart of accounts

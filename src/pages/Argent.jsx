@@ -206,9 +206,9 @@ function Caisses({ onAsked }) {
                 <div className="grow">
                   <strong>{e.libelle || t(`natures.${e.nature}`)}</strong>
                   <div className="muted small">{day(e.date_operation, lang)} · {t(`types.${e.caisse.activite}_pl`)} · {t(`modes.${e.caisse.mode}`)} · {t(`natures.${e.nature}`)}</div>
-                  {!['correction', 'annulation'].includes(e.nature) && (can(role, 'correction') || (e.nature === 'transfert' && can(role, 'annuler'))) && (
+                  {!['correction', 'annulation'].includes(e.nature) && (can(role, 'ecriture.corriger') || (e.nature === 'transfert' && can(role, 'annuler'))) && (
                     <div className="row-actions">
-                      {can(role, 'correction') && <button className="btn ghost sm" onClick={() => corriger(e)}>{t('argent.correct')}</button>}
+                      {can(role, 'ecriture.corriger') && <button className="btn ghost sm" onClick={() => corriger(e)}>{t('argent.correct')}</button>}
                       {e.nature === 'transfert' && e.sens === 'sortie' && can(role, 'annuler') && (
                         <button className="btn ghost sm" onClick={() => annulerTransfert(e)}>{t('argent.cancelTransfer')}</button>
                       )}
@@ -485,7 +485,7 @@ function Depenses({ onAsked }) {
                         <button className="btn ghost sm" onClick={() => decide(d, 'rejetee')}>{t('argent.reject')}</button>
                       </>
                     )}
-                    {!d.annulee && d.statut !== 'rejetee' && can(role, 'annuler') && (
+                    {!d.annulee && d.statut !== 'rejetee' && can(role, d.categorie === 'retrait_associe' ? 'annuler' : 'operation.annuler') && (
                       <button className="btn ghost sm" onClick={() => annuler(d)}>{t('argent.cancel')}</button>
                     )}
                     {!d.annulee && d.statut !== 'rejetee' && can(role, 'correction.request') && (
@@ -571,7 +571,7 @@ function Ventes({ onAsked }) {
                 {!v.annulee && (
                   <div className="row-actions">
                     <Link to={`/recu/${v.id}`} className="btn ghost sm"><Icon name="receipt" size={14} />{t('recu.open')}</Link>
-                    {can(role, 'annuler') && <button className="btn ghost sm" onClick={() => annuler(v)}>{t('argent.cancel')}</button>}
+                    {can(role, 'operation.annuler') && <button className="btn ghost sm" onClick={() => annuler(v)}>{t('argent.cancel')}</button>}
                     {can(role, 'correction.request') && (
                       <button className="btn ghost sm" onClick={() => demander('ventes', v.id,
                         `${t(`produits.${v.produit}`)} ${v.bande?.code ?? v.lot?.code ?? ''} · ${money(v.montant, lang)} · ${day(v.date_vente, lang)}`)}>
