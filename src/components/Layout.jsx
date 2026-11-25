@@ -52,6 +52,11 @@ export default function Layout() {
   // Administration reminders (also sent every morning by the database when pg_cron is on)
   useEffect(() => { if (role === 'directeur' && navigator.onLine) supabase.rpc('rappels_administration').then(() => {}, () => {}) }, [role])
   const needsMore = sections.length > MOBILE_SLOTS + 1
+  // Glass look on every page: chicks photo behind, frosted panels (see .dash-sombre in styles.css)
+  useEffect(() => {
+    document.body.classList.add('dash-sombre')
+    return () => document.body.classList.remove('dash-sombre')
+  }, [])
 
   return (
     <div className={`shell ${negoce ? 'negoce' : ''}`}>

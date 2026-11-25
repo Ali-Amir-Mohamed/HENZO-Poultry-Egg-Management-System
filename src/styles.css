@@ -1127,3 +1127,53 @@ body.dash-sombre::before {
 .splash-bar i { display: block; height: 100%; border-radius: 5px; background: linear-gradient(90deg, #3fb768, #f5b52e); }
 .splash-pct { margin-top: .5rem; font-size: .8rem; color: rgba(255, 255, 255, .75); font-variant-numeric: tabular-nums; }
 @media (prefers-reduced-motion: reduce) { .splash-logo { animation: none; } }
+
+/* ---------- Glass look on every page (same as the home page): green and gold, white text, panels in frosted glass ---------- */
+body.dash-sombre {
+  --green-900: #0b2414; --green-800: #123a20; --green-700: #2a8a45; --green-500: #7fe0a0; --green-100: rgba(127, 224, 160, .16);
+  --yolk: #f5b52e; --yolk-dark: #e0a020; --yolk-100: rgba(245, 181, 46, .2); --on-yolk: #2a1a00;
+  --sky: #8cc4f5; --rose: #ff8a76; --surface-2: rgba(255, 255, 255, .1);
+  --shadow: 0 18px 40px -18px rgba(0, 0, 0, .45);
+}
+body.dash-sombre .panel, body.dash-sombre .kpi, body.dash-sombre .summary, body.dash-sombre .card, body.dash-sombre .hero {
+  background: rgba(255, 255, 255, .14); border: 1px solid rgba(255, 255, 255, .32); border-radius: 18px;
+  backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%);
+  box-shadow: 0 18px 40px -18px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .25);
+}
+body.dash-sombre .hero { background: linear-gradient(140deg, rgba(245, 181, 46, .45), rgba(255, 255, 255, .1)); }
+body.dash-sombre .hero::after { display: none; }
+body.dash-sombre .content { text-shadow: 0 1px 2px rgba(0, 0, 0, .25); }
+body.dash-sombre .content h1, body.dash-sombre .content h2, body.dash-sombre .content h3 { color: #fff; }
+body.dash-sombre .field input, body.dash-sombre .field select, body.dash-sombre .field textarea,
+body.dash-sombre .dialog input, body.dash-sombre .dialog select, body.dash-sombre .dialog textarea {
+  background: rgba(255, 255, 255, .12); border-color: rgba(255, 255, 255, .3); color: #fff; text-shadow: none;
+}
+body.dash-sombre select option { background: #123a20; color: #fff; }
+body.dash-sombre .table td, body.dash-sombre .table th { border-color: rgba(255, 255, 255, .16); }
+body.dash-sombre .table th { background: transparent; color: rgba(255, 255, 255, .75); }
+body.dash-sombre .list li { border-color: rgba(255, 255, 255, .14); }
+body.dash-sombre .btn.primary { background: linear-gradient(90deg, #3fb768, #1f8a3e); box-shadow: 0 8px 20px -8px rgba(63, 183, 104, .6); }
+body.dash-sombre .btn.ghost { color: #fff; border-color: rgba(255, 255, 255, .35); background: rgba(255, 255, 255, .08); }
+body.dash-sombre .segmented { background: rgba(255, 255, 255, .12); }
+body.dash-sombre .segmented button.active { background: #fff; color: #1b3a20; }
+body.dash-sombre .muted, body.dash-sombre .note { color: rgba(255, 255, 255, .78); }
+body.dash-sombre .back { color: #fff; }
+/* windows that open over the page stay solid, for easy reading */
+body.dash-sombre .dialog { background: #10301b; border: 1px solid rgba(255, 255, 255, .18); }
+body.dash-sombre .dialog-backdrop { background: rgba(3, 12, 6, .6); }
+/* printed pages and invoices keep their white paper */
+body.dash-sombre .fc, body.dash-sombre .tk, body.dash-sombre .receipt, body.dash-sombre .invoice {
+  --surface: #fff; --surface-2: #f7f9fb; --text: #142033; --muted: #5b6b80; --border: #dfe5ee;
+  --green-700: #1e5c32; --green-500: #2f8a4a; --green-100: #e3f2e5; --yolk-100: #fdf1d4; --rose: #d9485f; --rose-100: #fbe4e8; --ok: #15803d; --ok-100: #dcfce7;
+  background: #fff; color: #142033; text-shadow: none;
+}
+body.dash-sombre .fc *, body.dash-sombre .tk *, body.dash-sombre .receipt *, body.dash-sombre .invoice * { text-shadow: none; }
+body.dash-sombre .receipt h1, body.dash-sombre .receipt h2, body.dash-sombre .receipt h3, body.dash-sombre .invoice h1, body.dash-sombre .invoice h2, body.dash-sombre .invoice h3 { color: inherit; }
+body.dash-sombre .receipt .muted, body.dash-sombre .invoice .muted { color: #5b6b80; }
+@media print { body.dash-sombre::before { display: none; } body.dash-sombre { background: #fff; } }
+body.dash-sombre .total-box { background: linear-gradient(140deg, rgba(127, 224, 160, .35), rgba(255, 255, 255, .1)); border: 1px solid rgba(127, 224, 160, .5); color: #fff; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+body.dash-sombre .content input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), body.dash-sombre .content select, body.dash-sombre .content textarea {
+  background: rgba(255, 255, 255, .12); border: 1px solid rgba(255, 255, 255, .3); color: #fff; border-radius: 8px; text-shadow: none;
+}
+body.dash-sombre .content input::placeholder, body.dash-sombre .content textarea::placeholder { color: rgba(255, 255, 255, .6); }
+body.dash-sombre .receipt input, body.dash-sombre .invoice input { color: #142033; }

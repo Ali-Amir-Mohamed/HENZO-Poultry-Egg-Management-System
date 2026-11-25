@@ -30,12 +30,6 @@ export default function Dashboard() {
     loadStats(role).then((s) => { setStats(s); setStale(false) }).catch((e) => setError(e.message))
   }, [role])
 
-  // The home page has its own dark glass background (see .dash-sombre in styles.css)
-  useEffect(() => {
-    document.body.classList.add('dash-sombre')
-    return () => document.body.classList.remove('dash-sombre')
-  }, [])
-
   const lang = i18n.resolvedLanguage
   const firstName = (profile.nom_complet || '').split(' ')[0]
   const soir = new Date().getHours() >= 18
