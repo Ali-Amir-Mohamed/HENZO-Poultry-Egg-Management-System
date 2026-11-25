@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/AuthProvider'
 import LanguageSwitch from '../components/LanguageSwitch'
@@ -49,7 +49,30 @@ export default function Login({ systeme = 'elevage', site, onRetour }) {
     </button>
   )
 
-  // A frosted-glass card over a blurred photo of the farm (public/login-fond.jpg)
+  // Slight 3D tilt following the mouse, with a light reflection on the glass (computers only:
+  // nothing moves on a phone, nor when the person asked the system for less motion)
+  const carte = useRef(null)
+  const incliner = (e) => {
+    const el = carte.current
+    if (!el || e.pointerType !== 'mouse' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const r = el.getBoundingClientRect()
+    const x = Math.min(Math.max((e.clientX - r.left) / r.width, 0), 1)
+    const y = Math.min(Math.max((e.clientY - r.top) / r.height, 0), 1)
+    el.style.setProperty('--ry', `${(x - 0.5) * 10}deg`)
+    el.style.setProperty('--rx', `${(0.5 - y) * 8}deg`)
+    el.style.setProperty('--gx', `${x * 100}%`)
+    el.style.setProperty('--gy', `${y * 100}%`)
+    el.classList.add('tilt')
+  }
+  const redresser = () => {
+    const el = carte.current
+    if (!el) return
+    el.classList.remove('tilt')
+    el.style.setProperty('--rx', '0deg')
+    el.style.setProperty('--ry', '0deg')
+  }
+
+  // A frosted-glass card over a photo of the farm (public/login-fond.webp)
   return (
     <div className={`login-page ${negoce ? 'negoce' : ''}`}>
       <div className="login-bg" aria-hidden="true" />
@@ -61,8 +84,9 @@ export default function Login({ systeme = 'elevage', site, onRetour }) {
         <div className="login-lang"><ThemeSwitch className="icon-btn light" /><LanguageSwitch className="icon-btn light" /></div>
       </header>
 
-      <main className="login-main">
-        <form className="login-card" onSubmit={submit}>
+      <main className="login-main" onPointerMove={incliner} onPointerLeave={redresser}>
+        <form ref={carte} className="login-card" onSubmit={submit}>
+          <span className="login-glare" aria-hidden="true" />
           <span className="login-card-logo"><img src="/logo-societe.png" alt="" /></span>
           <div>
             <h2>{t('auth.welcome1')} <em>{t('auth.welcome2')}</em></h2>
