@@ -33,6 +33,10 @@
     "comptable": "Comptable"
   },
   "auth": {
+    "welcome1": "Bon",
+    "welcome2": "retour",
+    "showPassword": "Afficher le mot de passe",
+    "hidePassword": "Masquer le mot de passe",
     "title": "Connexion",
     "subtitle": "Entrez vos identifiants pour accéder à la ferme.",
     "username": "Nom d’utilisateur",

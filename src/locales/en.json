@@ -33,6 +33,10 @@
     "comptable": "Accountant"
   },
   "auth": {
+    "welcome1": "Welcome",
+    "welcome2": "back",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
     "title": "Sign in",
     "subtitle": "Enter your credentials to access the farm.",
     "username": "Username",

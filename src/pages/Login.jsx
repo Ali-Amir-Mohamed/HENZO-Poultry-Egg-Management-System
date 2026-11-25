@@ -16,6 +16,7 @@ export default function Login({ systeme = 'elevage', site, onRetour }) {
   const [password, setPassword] = useState('')
   const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
+  const [voir, setVoir] = useState(false)   // show the password while typing
   const [expired] = useState(() => {
     try { const v = sessionStorage.getItem(EXPIRED_FLAG); sessionStorage.removeItem(EXPIRED_FLAG); return !!v } catch { return false }
   })
@@ -48,42 +49,62 @@ export default function Login({ systeme = 'elevage', site, onRetour }) {
     </button>
   )
 
+  // A frosted-glass card over a blurred photo of the farm (public/login-fond.jpg)
   return (
     <div className={`login-page ${negoce ? 'negoce' : ''}`}>
-      <div className="login-lang"><ThemeSwitch className="icon-btn light" /><LanguageSwitch className="icon-btn light" /></div>
-      <div className="login-hero">
-        <Logo size={72} />
-        <h1>{negoce ? 'HENZO AGRO' : t('app.name')}</h1>
-        <p>{negoce ? t('systeme.negoceTagline') : t('app.tagline')}</p>
-        {site && <span className="login-site">{site}</span>}
-      </div>
-      <form className="login-card" onSubmit={submit}>
-        <h2>{t('auth.title')}</h2>
-        <p className="muted">{negoce ? t('systeme.negoceSubtitle') : t('auth.subtitle')}</p>
-        {expired && <div className="alert warn"><Icon name="clock" size={18} />{t('auth.expired')}</div>}
-        {/* Face ID first on a phone where it was activated, otherwise offered under the password form */}
-        {faceIdActiveIci() && boutonFaceId && <>{boutonFaceId}<p className="login-or">{t('faceid.orPassword')}</p></>}
-        <label className="field">
-          <span>{t('auth.username')}</span>
-          <input type="text" autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck="false"
-            required value={username} onChange={(e) => setUsername(e.target.value)} />
-        </label>
-        <label className="field">
-          <span>{t('auth.password')}</span>
-          <input type="password" autoComplete="current-password" required value={password}
-            onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
-        </label>
-        {error && <div className="alert danger"><Icon name="alert" size={18} />{error}</div>}
-        <button type="submit" className="btn primary block" disabled={busy}>
-          {busy ? t('common.loading') : t('auth.submit')}
-        </button>
-        {!faceIdActiveIci() && boutonFaceId && <><p className="login-or">{t('faceid.or')}</p>{boutonFaceId}</>}
-      </form>
-      {onRetour && <button type="button" className="link-btn login-retour" onClick={onRetour}>← {t('systeme.back')}</button>}
-      <p className="login-foot">
-        © {new Date().getFullYear()} HENZO · {t('version.label')} {APP_VERSION}
-        <br /><button type="button" className="link-btn" onClick={forcerMiseAJour}>{t('version.force')}</button>
-      </p>
+      <div className="login-bg" aria-hidden="true" />
+      <header className="login-top">
+        <div className="login-brand">
+          <Logo size={36} />
+          <div><strong>{negoce ? 'HENZO AGRO' : t('app.name')}</strong><small>AGROFARM PARTNERS</small></div>
+        </div>
+        <div className="login-lang"><ThemeSwitch className="icon-btn light" /><LanguageSwitch className="icon-btn light" /></div>
+      </header>
+
+      <main className="login-main">
+        <form className="login-card" onSubmit={submit}>
+          <span className="login-card-logo"><img src="/logo-societe.png" alt="" /></span>
+          <div>
+            <h2>{t('auth.welcome1')} <em>{t('auth.welcome2')}</em></h2>
+            <p className="login-sub">{negoce ? t('systeme.negoceSubtitle') : t('auth.subtitle')}</p>
+            {site && <span className="login-site">{site}</span>}
+          </div>
+          {expired && <div className="alert warn"><Icon name="clock" size={18} />{t('auth.expired')}</div>}
+          {/* Face ID first on a phone where it was activated, otherwise offered under the password form */}
+          {faceIdActiveIci() && boutonFaceId && <>{boutonFaceId}<p className="login-or">{t('faceid.orPassword')}</p></>}
+          <label className="login-field">
+            <span>{t('auth.username')}</span>
+            <div className="login-input">
+              <Icon name="user" size={18} />
+              <input type="text" autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck="false"
+                required value={username} onChange={(e) => setUsername(e.target.value)} />
+            </div>
+          </label>
+          <label className="login-field">
+            <span>{t('auth.password')}</span>
+            <div className="login-input">
+              <Icon name="lock" size={18} />
+              <input type={voir ? 'text' : 'password'} autoComplete="current-password" required value={password}
+                onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
+              <button type="button" className="login-eye" onClick={() => setVoir(!voir)}
+                aria-label={voir ? t('auth.hidePassword') : t('auth.showPassword')} title={voir ? t('auth.hidePassword') : t('auth.showPassword')}>
+                <Icon name={voir ? 'eyeOff' : 'eye'} size={18} />
+              </button>
+            </div>
+          </label>
+          {error && <div className="alert danger"><Icon name="alert" size={18} />{error}</div>}
+          <button type="submit" className="btn primary block login-submit" disabled={busy}>
+            {busy ? t('common.loading') : <>{t('auth.submit')} <span aria-hidden="true">→</span></>}
+          </button>
+          {!faceIdActiveIci() && boutonFaceId && <><p className="login-or">{t('faceid.or')}</p>{boutonFaceId}</>}
+        </form>
+      </main>
+
+      <footer className="login-foot">
+        {onRetour && <button type="button" className="link-btn login-retour" onClick={onRetour}>← {t('systeme.back')}</button>}
+        <span>© {new Date().getFullYear()} AGROFARM PARTNERS SARL · {t('version.label')} {APP_VERSION}</span>
+        <button type="button" className="link-btn" onClick={forcerMiseAJour}>{t('version.force')}</button>
+      </footer>
     </div>
   )
 }
