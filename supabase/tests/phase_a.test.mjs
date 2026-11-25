@@ -1924,6 +1924,18 @@ await expectOk('ali cancels a sale', 'ali', `update public.ventes set annulee = 
 ok('no notification for his own cancellation', (await notifs()) === n)
 }
 
+// ---------- 0066: nothing open to a visitor who is not signed in ----------
+try {
+  await db.exec(readFileSync(new URL('0066_durcissement_anon.sql', MIG), 'utf8'))
+  const r = await db.exec(readFileSync(new URL('0066_durcissement_anon.sql', MIG), 'utf8'))
+  const c = r.at(-1).rows
+  ok('migration 0066 runs twice and closes everything to visitors', c.every((x) => Number(x.nombre) === 0), JSON.stringify(c))
+} catch (e) { ok('migration 0066 runs (twice without error)', false, e.message); process.exit(1) }
+await expectErr('a visitor cannot call a function', null, `select public.definir_role('${U.kenfack}', 'directeur')`, [], 'permission denied')
+await expectErr('a visitor cannot read the flock stock', null, `select * from public.stock_bandes`, [], 'permission denied')
+await expectOk('kenfack still reads the flock stock', 'kenfack', `select * from public.stock_bandes`)
+await expectOk('ali still calls a signed-in function', 'ali', `select * from public.mes_fermes()`)
+
 // ---------- HENZO AGRO reset tool (supabase/outils/remise_a_zero_henzo_agro.sql) ----------
 {
 const compter = async () => {
