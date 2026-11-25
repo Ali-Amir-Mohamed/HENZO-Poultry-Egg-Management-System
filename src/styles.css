@@ -1220,3 +1220,55 @@ body.dash-sombre .notif .bubble { border-color: transparent; }
   .topbar .notif-panel, .topbar .theme-panel { position: fixed; left: calc(100% + 12px); right: auto; top: auto; bottom: 0; width: 360px; max-height: calc(100vh - 24px); }
   .topbar .theme-panel { width: 290px; }
 }
+
+/* ---------- Small windows and phones: the menu stays vertical, as a narrow column of icons on the left ---------- */
+@media (max-width: 1023px) {
+  .shell { padding-left: 84px; }
+  .topbar {
+    position: fixed; top: 8px; left: 8px; bottom: 8px; width: 68px; z-index: 30;
+    display: flex; flex-direction: column; border-radius: 18px;
+    background: linear-gradient(180deg, var(--green-800), var(--green-900)); box-shadow: 0 20px 50px -20px rgba(0, 0, 0, .55);
+  }
+  body.dash-sombre .topbar {
+    background: rgba(255, 255, 255, .14); border: 1px solid rgba(255, 255, 255, .32);
+    backdrop-filter: blur(18px) saturate(150%); -webkit-backdrop-filter: blur(18px) saturate(150%);
+    box-shadow: 0 20px 50px -20px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .25);
+  }
+  .topbar-inner { display: contents; }
+  .brand { order: 0; justify-content: center; padding: .6rem 0 .3rem; }
+  .brand > div { display: none; }
+  .nav, body.dash-sombre .nav {
+    order: 1; position: static; flex: 1; min-height: 0; max-width: none; margin: 0; padding: .3rem .35rem;
+    flex-direction: column; justify-content: flex-start; gap: .15rem; overflow-x: hidden; overflow-y: auto; scrollbar-width: none;
+    background: none; border: 0; box-shadow: none;
+  }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav-item, body.dash-sombre .nav-item {
+    order: var(--o, 0); flex: none; flex-direction: column; gap: .15rem; padding: .45rem .1rem; border-radius: 12px;
+    font-size: .6rem; font-weight: 600; color: rgba(255, 255, 255, .85); text-align: center;
+  }
+  .nav-item > span:last-child { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .nav-item.desktop-only { display: flex !important; }
+  .nav-item.mobile-only { display: none !important; }
+  .nav-icon, .nav-item.active .nav-icon { padding: 0; background: none; color: inherit; }
+  .nav-item.active, body.dash-sombre .nav-item.active { background: linear-gradient(90deg, #f5b52e, #e08f17); color: #2a1a00; }
+  .nav-group { display: none; }
+  .bubble { top: -6px; right: -9px; }
+  .topbar-actions {
+    order: 2; margin: 0; padding: .45rem .35rem .55rem; border-top: 1px solid rgba(255, 255, 255, .12);
+    display: flex; flex-direction: column; align-items: stretch; gap: .3rem;
+  }
+  .topbar-actions .icon-btn, .topbar-actions .notif, .topbar-actions .theme-menu { width: 100%; }
+  .topbar-actions .icon-btn { justify-content: center; height: 38px; padding: 0; border-radius: 11px; }
+  .topbar-actions > .status { justify-content: center; padding: .4rem 0; }
+  .topbar-actions > .status > span:not(.dot) { display: none; }
+  .topbar-actions > .icon-btn .hide-sm { display: none; }
+  .topbar-actions .lang-switch { flex-direction: column; gap: 0; font-size: .62rem; height: 40px; }
+  .topbar-actions .lang-switch svg { display: none; }
+  .content { padding: 1rem .9rem 1.5rem; }
+  /* windows of the bell and the background open beside the column */
+  .topbar .notif-panel, .topbar .theme-panel {
+    position: fixed; left: calc(100% + 8px); right: auto; top: auto; bottom: 0;
+    width: min(340px, calc(100vw - 92px)); max-height: calc(100vh - 16px);
+  }
+}
