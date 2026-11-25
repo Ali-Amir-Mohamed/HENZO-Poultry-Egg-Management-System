@@ -1987,6 +1987,48 @@ await expectOk('dahirou removes a preparation', 'dahirou', `select public.retire
 await expectNoRows('kenfack does not see the preparations', 'kenfack', `select * from public.preparations_paie`)
 }
 
+// ---------- 0068: HR step 2, attendance and overtime ----------
+try {
+  await db.exec(readFileSync(new URL('0068_presences_heures_sup.sql', MIG), 'utf8'))
+  await db.exec(readFileSync(new URL('0068_presences_heures_sup.sql', MIG), 'utf8'))
+  ok('migration 0068 runs (twice without error)', true)
+} catch (e) { ok('migration 0068 runs (twice without error)', false, e.message); process.exit(1) }
+{
+const EMP = (await db.query(`select id from public.employes where nom = 'Paul Test RH'`)).rows[0].id
+const EMP2 = (await db.query(`select id from public.employes where nom = 'Awa Test RH'`)).rows[0].id
+const AUJ = (await db.query(`select to_char(current_date, 'YYYY-MM-DD') d`)).rows[0].d
+const M2 = AUJ.slice(0, 8) + '01'
+const lignes = JSON.stringify([{ employe_id: EMP, statut: 'present' }, { employe_id: EMP2, statut: 'absent', justifiee: false }])
+await expectErr('the employee cannot note attendance', 'employe', `select public.noter_presences($1, $2::jsonb)`, [AUJ, lignes], 'exploitation')
+await expectOk('kenfack notes the day', 'kenfack', `select public.noter_presences($1, $2::jsonb)`, [AUJ, lignes])
+await expectOk('kenfack corrects it (same day, same employee)', 'kenfack', `select public.noter_presences($1, $2::jsonb)`, [AUJ, lignes])
+ok('one line per employee and day', Number((await db.query(`select count(*) n from public.presences where date_jour = $1`, [AUJ])).rows[0].n) === 2)
+await expectErr('no attendance in the future', 'kenfack', `select public.noter_presences(current_date + 1, $1::jsonb)`, [lignes], 'impossible')
+
+await expectErr('overtime needs a reason', 'kenfack', `select public.declarer_heures_sup($1, $2, 10, 'jour', '')`, [EMP, AUJ], 'pourquoi')
+const H1 = (await oneP('kenfack', `select public.declarer_heures_sup($1, $2, 10, 'jour', 'Chargement des poulets') id`, [EMP, AUJ])).id
+const H2 = (await oneP('kenfack', `select public.declarer_heures_sup($1, $2, 2, 'nuit_dimanche_ferie', 'Garde de nuit') id`, [EMP, AUJ])).id
+ok('Ali is told to authorise', (await db.query(`select message from public.notifications where role_destinataire = 'directeur' order by created_at desc, id desc limit 1`)).rows[0].message.includes('à autoriser'))
+await expectErr('dahirou cannot authorise overtime', 'dahirou', `select public.decider_heures_sup(array[$1]::uuid[], true)`, [H1], 'directeur')
+await expectErr('a refusal needs a reason', 'ali', `select public.decider_heures_sup(array[$1]::uuid[], false, '')`, [H1], 'motif')
+ok('hours not yet authorised are not paid', Number((await oneP('dahirou', `select public.resume_presences($1, $2) r`, [EMP, M2])).r.heures_sup.montant) === 0)
+await expectOk('ali authorises both', 'ali', `select public.decider_heures_sup(array[$1, $2]::uuid[], true)`, [H1, H2])
+const r = (await oneP('dahirou', `select public.resume_presences($1, $2) r`, [EMP, M2])).r
+ok('overtime priced: 8 h at +20 %, 2 h at +30 %, 2 night hours at +50 % (hour = 100 000 / 200)', Number(r.heures_sup.montant) === 4800 + 1300 + 1500, JSON.stringify(r.heures_sup))
+const r2 = (await oneP('dahirou', `select public.resume_presences($1, $2) r`, [EMP2, M2])).r
+ok('an unjustified absence proposes one day of deduction', Number(r2.absences_non_justifiees) === 1 && Number(r2.retenue_proposee) === 0, JSON.stringify(r2))
+const P = (await oneP('dahirou', `select public.preparer_paie($1, $2, $3::jsonb) id`, [EMP, M2, JSON.stringify([{ type: 'heures_sup', libelle: 'Triche', montant: 999999 }])])).id
+const pr = (await db.query(`select primes, elements from public.preparations_paie where id = $1`, [P])).rows[0]
+ok('the preparation adds the authorised overtime itself (a typed amount is ignored)', Number(pr.primes) === 7600 && pr.elements.some((x) => x.type === 'heures_sup' && Number(x.montant) === 7600), JSON.stringify(pr))
+const H3 = (await oneP('kenfack', `select public.declarer_heures_sup($1, $2, 1, 'jour', 'Réparation') id`, [EMP, AUJ])).id
+await expectOk('ali authorises one more hour', 'ali', `select public.decider_heures_sup(array[$1]::uuid[], true)`, [H3])
+ok('the preparation is removed, to be done again with the new hours', Number((await db.query(`select count(*) n from public.preparations_paie where id = $1`, [P])).rows[0].n) === 0)
+await expectErr('0 hours in a month is refused', 'dahirou', `select public.maj_parametres_paie('{"heures_mois": "0"}'::jsonb)`, [], '0')
+await expectOk('dahirou sets 208 hours a month', 'dahirou', `select public.maj_parametres_paie('{"heures_mois": "208"}'::jsonb)`)
+await expectOk('back to 200', 'dahirou', `select public.maj_parametres_paie('{"heures_mois": "200"}'::jsonb)`)
+await expectNoRows('the employee does not see the attendance', 'employe', `select * from public.presences`)
+}
+
 // ---------- HENZO AGRO reset tool (supabase/outils/remise_a_zero_henzo_agro.sql) ----------
 {
 const compter = async () => {

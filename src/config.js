@@ -79,6 +79,9 @@ export const PERMISSIONS = {
   'salaires.envoyer': [F],       // send the prepared month to Ali
   'salaires.valider': [D],       // validate the pay, close the month (Ali)
   'salaires.payer': [F],         // pay advances and validated salaries (Dahirou only)
+  'rh.presences': [D, X, F],     // attendance of the day (Kenfack)
+  'rh.heuresSup': [D, X],        // declare overtime (Kenfack)
+  'rh.autoriser': [D],           // authorise or refuse overtime (Ali)
   'equipe': [D, F],              // staff files: add, change the job, departure (Dahirou, and Ali); Kenfack reads
   'equipe.voir': [D, X, F],      // see the farm team (Ali and Dahirou read only)
   'employes.bureau': [D, F],     // office staff (accountant, secretary…): Argent > Employés

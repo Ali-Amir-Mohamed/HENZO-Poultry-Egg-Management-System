@@ -1285,3 +1285,10 @@ body.dash-sombre .tag { background: rgba(255, 255, 255, .16); color: #fff; text-
 body.dash-sombre .tag.ok { background: rgba(127, 224, 160, .25); color: #c9ffd9; }
 body.dash-sombre .tag.warn { background: rgba(245, 181, 46, .28); color: #ffe2a3; }
 body.dash-sombre .tag.danger, body.dash-sombre .tag.bad { background: rgba(255, 122, 102, .28); color: #ffd0c8; }
+
+/* Attendance of the day: one row per employee, four choices */
+.presences li { flex-wrap: wrap; gap: .5rem; }
+.presences .segmented.small button { padding: .4rem .65rem; font-size: .8rem; }
+.presence-extra { display: inline-flex; align-items: center; gap: .4rem; font-size: .8rem; }
+.presence-extra input[type="number"] { width: 5rem; padding: .35rem .5rem; }
+body.dash-sombre .segmented button:not(.active) { color: rgba(255, 255, 255, .88); }

@@ -77,7 +77,8 @@ export function ChargesAReverser() {
 
 const NUMS = [
   ['plafond_cnps', 1], ['taux_cnps_salarie', 0.01], ['taux_cnps_vieillesse_pat', 0.01], ['taux_allocations_fam', 0.01], ['taux_accidents_travail', 0.01],
-  ['taux_cfc_salarie', 0.01], ['taux_cfc_patronal', 0.01], ['taux_fne', 0.01], ['taux_cac', 0.01], ['abattement_frais', 0.01], ['abattement_annuel', 1], ['seuil_irpp', 1]
+  ['taux_cfc_salarie', 0.01], ['taux_cfc_patronal', 0.01], ['taux_fne', 0.01], ['taux_cac', 0.01], ['abattement_frais', 0.01], ['abattement_annuel', 1], ['seuil_irpp', 1],
+  ['heures_mois', 0.5], ['jours_mois', 0.5], ['taux_hs_1', 0.01], ['taux_hs_2', 0.01], ['taux_hs_3', 0.01], ['taux_hs_nuit', 0.01]
 ]
 const BAREMES = [['bareme_irpp', 'taux'], ['bareme_rav', 'montant'], ['bareme_tdl', 'montant']]
 const versTexte = (b, cle) => (b ?? []).map((x) => `${x.jusqu_a ?? '-'} ; ${x[cle]}`).join('\n')

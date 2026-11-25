@@ -7,6 +7,7 @@ import { day, Empty, Field, FormCard, Loading, Panel } from '../../components/ui
 import { useAsk, useRun } from '../../components/Dialog'
 import { useAuth } from '../../auth/AuthProvider'
 import { can } from '../../config'
+import { HeuresSup, Presences } from './Presences'
 
 // Team (exploitation): add an employee, change his job, mark a departure. Salaries are never shown here:
 // finance (Dahirou) is notified to set or check the salary. Farm staff only: Ali and Dahirou see it read only,
@@ -59,6 +60,8 @@ export default function Equipe() {
         {gere ? <p className="note"><Icon name="wallet" size={16} />{t('equipe.salaryHint')}</p>
           : <p className="note"><Icon name="note" size={16} />{t('equipe.readOnly')}</p>}
       </Panel>
+
+      {can(role, 'rh.presences') && q.data.some((x) => x.actif) && <><Presences /><HeuresSup /></>}
 
       {gere && <FormCard title={t('salaires.new')} icon="users" onSubmit={creer}>
         <div className="grid-2">

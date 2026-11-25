@@ -20,6 +20,8 @@
 -- =====================================================================
 
 truncate table
+  public.presences,
+  public.heures_sup,
   public.preparations_paie,
   public.periodes_paie,
   public.affectations_stock,

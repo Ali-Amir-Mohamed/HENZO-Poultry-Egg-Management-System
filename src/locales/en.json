@@ -1965,7 +1965,13 @@
       "seuil_irpp": "No IRPP below this monthly gross (FCFA)",
       "bareme_irpp": "IRPP scale (annual limit ; rate %)",
       "bareme_rav": "RAV scale (monthly gross ; amount)",
-      "bareme_tdl": "TDL scale (base salary ; amount)"
+      "bareme_tdl": "TDL scale (base salary ; amount)",
+      "heures_mois": "Working hours per month (hour price = salary ÷ hours)",
+      "jours_mois": "Working days per month (absence deduction = salary ÷ days)",
+      "taux_hs_1": "Overtime: first 8 hours of the week (%)",
+      "taux_hs_2": "Overtime: next 8 hours (%)",
+      "taux_hs_3": "Overtime: beyond 16 hours (%)",
+      "taux_hs_nuit": "Overtime: night, Sunday, holiday (%)"
     },
     "lines": {
       "base": "Base salary",
@@ -2532,5 +2538,51 @@
     },
     "filesBy": "Staff files (adding, job, departure) are managed by Dahirou in Farm → Team and Money → Employees.",
     "cancelHint": "A paid salary is cancelled through its expense (Money → Expenses) while the month is not closed; it can then be prepared again."
+  },
+  "rh": {
+    "attendance": "Attendance of the day",
+    "attendanceHint": "One tap per employee. An unjustified absence will propose a one-day deduction in the pay.",
+    "status": {
+      "present": "Present",
+      "absent": "Absent",
+      "retard": "Late",
+      "permission": "Leave"
+    },
+    "minutes": "Minutes late",
+    "justified": "Justified absence",
+    "allPresent": "All present",
+    "saveDay": "Save {{d}}",
+    "overtime": "Overtime",
+    "overtimeHint": "Kenfack declares, Ali authorises. Only authorised hours are paid, with the legal increase.",
+    "otDeclare": "Declare hours",
+    "otSend": "Send to Ali",
+    "otHint": "Ali will be notified to authorise these hours.",
+    "employee": "Employee",
+    "hours": "Number of hours",
+    "otKind": "When?",
+    "otDay": "Working day (+20 % / +30 % / +40 %)",
+    "otNight": "Night, Sunday or public holiday (+50 %)",
+    "otReason": "For which work?",
+    "otRefuseTitle": "Refuse this overtime",
+    "otAuthoriseAll_one": "Authorise {{count}} declaration",
+    "otAuthoriseAll_other": "Authorise the {{count}} declarations",
+    "otNone": "No overtime declared in the last two months.",
+    "otLine": "{{h}} h on {{d}}",
+    "otNightShort": "night / Sunday / holiday",
+    "refused": "refused",
+    "otStatus": {
+      "demandee": "To authorise",
+      "autorisee": "Authorised",
+      "refusee": "Refused"
+    },
+    "authorise": "Authorise",
+    "refuse": "Refuse",
+    "monthSummary": "Attendance this month: {{p}} present, {{a}} absence(s) of which {{nj}} unjustified, {{perm}} leave(s), {{r}} late ({{m}} min).",
+    "otIncluded": "Authorised overtime: {{h}} h = {{n}}, added automatically.",
+    "otWaiting": "Note: {{h}} overtime hours still wait for Ali’s approval (not counted).",
+    "deductionProposed_one": "Proposed deduction for {{count}} unjustified absence: {{n}} (change it or set it to 0).",
+    "deductionProposed_other": "Proposed deduction for {{count}} unjustified absences: {{n}} (change it or set it to 0).",
+    "absenceReason_one": "{{count}} unjustified absence",
+    "absenceReason_other": "{{count}} unjustified absences"
   }
 }

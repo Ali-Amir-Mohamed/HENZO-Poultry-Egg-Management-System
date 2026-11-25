@@ -1965,7 +1965,13 @@
       "seuil_irpp": "Pas d’IRPP sous ce brut mensuel (FCFA)",
       "bareme_irpp": "Barème IRPP (borne annuelle ; taux %)",
       "bareme_rav": "Barème RAV (brut mensuel ; montant)",
-      "bareme_tdl": "Barème TDL (salaire de base ; montant)"
+      "bareme_tdl": "Barème TDL (salaire de base ; montant)",
+      "heures_mois": "Heures de travail par mois (prix d’une heure = salaire ÷ heures)",
+      "jours_mois": "Jours de travail par mois (retenue d’une absence = salaire ÷ jours)",
+      "taux_hs_1": "Heures supplémentaires : 8 premières heures de la semaine (%)",
+      "taux_hs_2": "Heures supplémentaires : 8 heures suivantes (%)",
+      "taux_hs_3": "Heures supplémentaires : au-delà de 16 heures (%)",
+      "taux_hs_nuit": "Heures supplémentaires : nuit, dimanche, jour férié (%)"
     },
     "lines": {
       "base": "Salaire de base",
@@ -2532,5 +2538,51 @@
     },
     "filesBy": "Les fiches du personnel (ajout, poste, départ) sont gérées par Dahirou dans Ferme → Équipe et Argent → Employés.",
     "cancelHint": "Un salaire payé s’annule par sa dépense (Argent → Dépenses) tant que le mois n’est pas clôturé ; il pourra alors être préparé de nouveau."
+  },
+  "rh": {
+    "attendance": "Présences du jour",
+    "attendanceHint": "Un appui par employé. Une absence non justifiée proposera une retenue d’une journée à la paie.",
+    "status": {
+      "present": "Présent",
+      "absent": "Absent",
+      "retard": "Retard",
+      "permission": "Permission"
+    },
+    "minutes": "Minutes de retard",
+    "justified": "Absence justifiée",
+    "allPresent": "Tous présents",
+    "saveDay": "Enregistrer le {{d}}",
+    "overtime": "Heures supplémentaires",
+    "overtimeHint": "Kenfack les déclare, Ali les autorise. Seules les heures autorisées sont payées, avec la majoration légale.",
+    "otDeclare": "Déclarer des heures",
+    "otSend": "Envoyer à Ali",
+    "otHint": "Ali recevra une notification pour autoriser ces heures.",
+    "employee": "Employé",
+    "hours": "Nombre d’heures",
+    "otKind": "Quand ?",
+    "otDay": "Jour ouvrable (+20 % / +30 % / +40 %)",
+    "otNight": "Nuit, dimanche ou jour férié (+50 %)",
+    "otReason": "Pour quel travail ?",
+    "otRefuseTitle": "Refuser ces heures supplémentaires",
+    "otAuthoriseAll_one": "Autoriser {{count}} déclaration",
+    "otAuthoriseAll_other": "Autoriser les {{count}} déclarations",
+    "otNone": "Aucune heure supplémentaire déclarée ces deux derniers mois.",
+    "otLine": "{{h}} h le {{d}}",
+    "otNightShort": "nuit / dimanche / férié",
+    "refused": "refusé",
+    "otStatus": {
+      "demandee": "À autoriser",
+      "autorisee": "Autorisée",
+      "refusee": "Refusée"
+    },
+    "authorise": "Autoriser",
+    "refuse": "Refuser",
+    "monthSummary": "Présences du mois : {{p}} présent(s), {{a}} absence(s) dont {{nj}} non justifiée(s), {{perm}} permission(s), {{r}} retard(s) ({{m}} min).",
+    "otIncluded": "Heures supplémentaires autorisées : {{h}} h = {{n}}, ajoutées automatiquement.",
+    "otWaiting": "Attention : {{h}} h supplémentaires attendent encore l’accord d’Ali (non comptées).",
+    "deductionProposed_one": "Retenue proposée pour {{count}} absence non justifiée : {{n}} (modifiable ou à mettre à 0).",
+    "deductionProposed_other": "Retenue proposée pour {{count}} absences non justifiées : {{n}} (modifiable ou à mettre à 0).",
+    "absenceReason_one": "{{count}} absence non justifiée",
+    "absenceReason_other": "{{count}} absences non justifiées"
   }
 }

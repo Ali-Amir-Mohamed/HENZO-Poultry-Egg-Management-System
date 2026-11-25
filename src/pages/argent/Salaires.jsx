@@ -65,8 +65,17 @@ export default function Salaires() {
     const ancien = (type, libelle) => old?.elements?.find((x) => x.type === type && (!libelle || x.libelle === libelle))
     const autres = old?.elements?.filter((x) => x.type === 'indemnite' && !['Transport', 'Logement'].includes(x.libelle)) ?? []
     const oui = [{ value: 'non', label: t('circuit.notSubject') }, { value: 'oui', label: t('circuit.subject') }]
+    // attendance and authorised overtime of the month (Kenfack, Ali): overtime is added by itself, the absence deduction is proposed
+    const { data: pres, error } = await supabase.rpc('resume_presences', { p_employe: e.id, p_mois: m1 })
+    if (error) return ask.error(error.message)
+    const hs = pres.heures_sup
+    const proposee = !old && Number(pres.retenue_proposee) > 0
     const v = await ask.form({ title: t('circuit.prepareTitle', { nom: e.nom, mois: moisLong }), icon: 'wallet', submit: t('circuit.prepare'),
-      message: t('circuit.prepareHint', { salaire: money(e.salaire_mensuel, lang), avances: money(aDeduire(e), lang) }),
+      message: [t('circuit.prepareHint', { salaire: money(e.salaire_mensuel, lang), avances: money(aDeduire(e), lang) }),
+        t('rh.monthSummary', { p: pres.presents, a: pres.absences, nj: pres.absences_non_justifiees, perm: pres.permissions, r: pres.retards, m: pres.minutes_retard }),
+        Number(hs.heures) > 0 ? t('rh.otIncluded', { h: Number(hs.heures).toLocaleString(lang), n: money(hs.montant, lang) }) : null,
+        Number(hs.en_attente) > 0 ? t('rh.otWaiting', { h: Number(hs.en_attente).toLocaleString(lang) }) : null,
+        proposee ? t('rh.deductionProposed', { n: money(pres.retenue_proposee, lang), count: pres.absences_non_justifiees }) : null].filter(Boolean).join('\n'),
       fields: [
         { name: 'prime_libelle', label: t('circuit.bonusName'), value: ancien('prime')?.libelle ?? t('circuit.bonusDefault') },
         { name: 'prime', label: t('circuit.bonusAmount'), type: 'number', min: 0, value: ancien('prime')?.montant ?? 0 },
@@ -77,8 +86,9 @@ export default function Salaires() {
         { name: 'autre_soumis', label: t('circuit.otherSubject'), type: 'select', value: autres[0]?.soumis ? 'oui' : 'non', options: oui, showIf: (x) => Number(x.autre) > 0 },
         { name: 'regul_libelle', label: t('circuit.regulName'), value: ancien('regularisation')?.libelle ?? '' },
         { name: 'regul', label: t('circuit.regulAmount'), type: 'number', min: 0, value: ancien('regularisation')?.montant ?? 0 },
-        { name: 'retenues', label: t('salaires.deductions'), type: 'number', min: 0, value: old?.retenues ?? 0 },
-        { name: 'motif', label: t('salaires.deductionReason'), type: 'text', value: old?.motif_retenues ?? '', showIf: (x) => Number(x.retenues) > 0 }
+        { name: 'retenues', label: t('salaires.deductions'), type: 'number', min: 0, value: old?.retenues ?? (proposee ? pres.retenue_proposee : 0) },
+        { name: 'motif', label: t('salaires.deductionReason'), type: 'text', showIf: (x) => Number(x.retenues) > 0,
+          value: old?.motif_retenues ?? (proposee ? t('rh.absenceReason', { count: pres.absences_non_justifiees }) : '') }
       ] })
     if (!v) return
     const elements = [
