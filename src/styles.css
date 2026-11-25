@@ -1083,7 +1083,7 @@ body.dash-sombre::before {
   .shell { padding-left: 262px; }
   .topbar {
     position: fixed; top: 12px; left: 12px; bottom: 12px; width: 238px; z-index: 30;
-    display: flex; flex-direction: column; border-radius: 20px; overflow: hidden;
+    display: flex; flex-direction: column; border-radius: 20px;
     background: linear-gradient(180deg, var(--green-800), var(--green-900));
     box-shadow: 0 20px 50px -20px rgba(0, 0, 0, .55);
   }
@@ -1177,3 +1177,46 @@ body.dash-sombre .content input:not([type="checkbox"]):not([type="radio"]):not([
 }
 body.dash-sombre .content input::placeholder, body.dash-sombre .content textarea::placeholder { color: rgba(255, 255, 255, .6); }
 body.dash-sombre .receipt input, body.dash-sombre .invoice input { color: #142033; }
+
+/* Background chosen by the person (Fond d'écran): hen in the grass, or plain green without photo */
+body.dash-sombre[data-fond="poule"]::before {
+  background: linear-gradient(180deg, rgba(10, 30, 14, .3) 0%, rgba(10, 30, 14, .45) 50%, rgba(10, 30, 14, .62) 100%), url('/login-fond.webp') 50% 40% / cover no-repeat;
+}
+body.dash-sombre[data-fond="uni"]::before {
+  background: radial-gradient(55% 45% at 10% 8%, rgba(47, 143, 74, .55), transparent 70%), radial-gradient(45% 40% at 92% 88%, rgba(201, 154, 46, .45), transparent 70%),
+    linear-gradient(135deg, #0b2414, #123a20 50%, #08180d);
+}
+.fond-choices { display: flex; flex-direction: column; gap: .45rem; }
+.fond-choice { display: flex; align-items: center; gap: .7rem; padding: .45rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, .16); background: rgba(255, 255, 255, .06); color: inherit; font: inherit; font-size: .9rem; font-weight: 600; cursor: pointer; text-align: left; }
+.fond-choice:hover { background: rgba(255, 255, 255, .12); }
+.fond-choice[aria-pressed="true"] { border-color: #f5b52e; box-shadow: 0 0 0 2px rgba(245, 181, 46, .35); }
+.fond-choice svg { margin-left: auto; color: #f5b52e; }
+.fond-thumb { width: 64px; height: 40px; border-radius: 8px; flex: none; background: radial-gradient(60% 60% at 20% 20%, #2f8f4a, transparent 70%), linear-gradient(135deg, #0b2414, #123a20); background-size: cover; background-position: center; }
+
+/* FR / EN switch: the language in use is highlighted */
+.lang-switch span { opacity: .55; }
+.lang-switch span.on { opacity: 1; color: #f5c65a; }
+
+/* Windows of the bell and of the background: solid dark green, easy to read */
+body.dash-sombre .notif-panel, body.dash-sombre .theme-panel {
+  background: #10301b; color: #eaf3ec; border: 1px solid rgba(255, 255, 255, .18); border-radius: 16px;
+  box-shadow: 0 24px 50px -14px rgba(0, 0, 0, .6); text-shadow: none;
+}
+body.dash-sombre .notif-panel h2, body.dash-sombre .theme-panel h3 { color: #fff; }
+body.dash-sombre .notif-panel .list li { border-color: rgba(255, 255, 255, .12); }
+body.dash-sombre .notif .bubble { border-color: transparent; }
+
+@media (min-width: 1024px) {
+  /* bottom of the side menu: online state on its own line, then four equal buttons */
+  .topbar-actions { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .4rem; align-items: stretch; }
+  .topbar-actions > .status { grid-column: 1 / -1; justify-content: center; padding: .45rem; }
+  .topbar-actions > .icon-btn:has(.hide-sm) { grid-column: 1 / -1; justify-content: center; }
+  .topbar-actions .icon-btn, .topbar-actions .notif, .topbar-actions .theme-menu { width: 100%; }
+  .topbar-actions .icon-btn { justify-content: center; height: 40px; padding: 0 .3rem; border-radius: 11px; }
+  .topbar-actions .lang-switch { gap: .2rem; font-size: .72rem; }
+  .topbar-actions .lang-switch svg { display: none; }
+  /* the windows open beside the menu, at the bottom, instead of below a top bar
+     (the glass menu is the reference box of fixed elements inside it: backdrop-filter) */
+  .topbar .notif-panel, .topbar .theme-panel { position: fixed; left: calc(100% + 12px); right: auto; top: auto; bottom: 0; width: 360px; max-height: calc(100vh - 24px); }
+  .topbar .theme-panel { width: 290px; }
+}

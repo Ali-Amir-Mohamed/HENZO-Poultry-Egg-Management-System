@@ -2472,5 +2472,11 @@
   "splash": {
     "welcome": "Bon retour, {{name}}",
     "opening": "Ouverture de votre tableau de bord…"
+  },
+  "fond": {
+    "title": "Fond d’écran",
+    "poussins": "Poussins",
+    "poule": "Poule dans l’herbe",
+    "uni": "Vert uni"
   }
 }

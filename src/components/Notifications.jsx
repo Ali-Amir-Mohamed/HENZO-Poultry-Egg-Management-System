@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { TABLES } from '../config'
@@ -20,6 +20,17 @@ export default function Notifications() {
   const { t, i18n } = useTranslation()
   const [items, setItems] = useState([])
   const [open, setOpen] = useState(false)
+  const box = useRef(null)
+
+  // Close when tapping outside, or with Escape
+  useEffect(() => {
+    if (!open) return
+    const close = (e) => { if (!box.current?.contains(e.target)) setOpen(false) }
+    const esc = (e) => { if (e.key === 'Escape') setOpen(false) }
+    document.addEventListener('pointerdown', close)
+    document.addEventListener('keydown', esc)
+    return () => { document.removeEventListener('pointerdown', close); document.removeEventListener('keydown', esc) }
+  }, [open])
 
   const load = useCallback(async () => {
     if (!navigator.onLine) return
@@ -43,7 +54,7 @@ export default function Notifications() {
   }
 
   return (
-    <div className="notif">
+    <div className="notif" ref={box}>
       <button className="icon-btn" onClick={() => setOpen(!open)} aria-label={t('notifications.title')}>
         <Icon name="bell" size={18} />
         {unread.length > 0 && <span className="bubble">{unread.length}</span>}

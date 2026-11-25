@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase'
 import { sectionVisible, estNegoce, lireRefus, ecrireRefus } from '../lib/systeme'
 import { useInstallPrompt, useOnline, usePendingCount } from '../hooks'
 import LanguageSwitch from './LanguageSwitch'
-import ThemeSwitch from './ThemeSwitch'
+import FondSwitch, { applyFond } from './FondSwitch'
 import Notifications from './Notifications'
 import SessionGuard from './SessionGuard'
 import FarmSwitch from './FarmSwitch'
@@ -55,7 +55,8 @@ export default function Layout() {
   // Glass look on every page: chicks photo behind, frosted panels (see .dash-sombre in styles.css)
   useEffect(() => {
     document.body.classList.add('dash-sombre')
-    return () => document.body.classList.remove('dash-sombre')
+    applyFond()
+    return () => { document.body.classList.remove('dash-sombre'); delete document.body.dataset.fond }
   }, [])
 
   return (
@@ -80,7 +81,7 @@ export default function Layout() {
               </button>
             )}
             {!['employe', 'vendeur', 'comptable'].includes(role) && <Notifications />}
-            <ThemeSwitch />
+            <FondSwitch />
             <LanguageSwitch />
             <button className="icon-btn" onClick={signOut} title={t('nav.logout')} aria-label={t('nav.logout')}>
               <Icon name="logout" size={18} />

@@ -2,7 +2,6 @@ import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/AuthProvider'
 import LanguageSwitch from '../components/LanguageSwitch'
-import ThemeSwitch from '../components/ThemeSwitch'
 import Icon, { Logo } from '../components/Icon'
 import { EXPIRED_FLAG } from '../components/SessionGuard'
 import { faceIdActiveIci, faceIdSupported, messageFaceId, nomBiometrie } from '../lib/faceid'
@@ -84,7 +83,7 @@ export default function Login({ systeme = 'elevage', site, onRetour }) {
           <Logo size={36} />
           <div><strong>{negoce ? 'HENZO AGRO' : t('app.name')}</strong><small>AGROFARM PARTNERS</small></div>
         </div>
-        <div className="login-lang"><ThemeSwitch className="icon-btn light" /><LanguageSwitch className="icon-btn light" /></div>
+        <div className="login-lang"><LanguageSwitch className="icon-btn light" /></div>
       </header>
 
       <main className="login-main" onPointerMove={incliner} onPointerLeave={redresser}>

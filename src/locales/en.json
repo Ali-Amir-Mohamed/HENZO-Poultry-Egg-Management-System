@@ -2472,5 +2472,11 @@
   "splash": {
     "welcome": "Welcome back, {{name}}",
     "opening": "Opening your dashboard…"
+  },
+  "fond": {
+    "title": "Background",
+    "poussins": "Chicks",
+    "poule": "Hen in the grass",
+    "uni": "Plain green"
   }
 }
