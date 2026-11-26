@@ -1434,3 +1434,16 @@ body.dash-sombre .rapport-groupe .muted, .rapport-groupe .muted { color: #5d6b61
   .stock-table td:first-child { white-space: normal; overflow-wrap: anywhere; }
   .stock-table td:last-child .row { flex-direction: column; align-items: flex-end; gap: .35rem; }
 }
+
+/* ---------- Dialogs: buttons always visible at the bottom; on a phone a sheet that rises from the bottom ---------- */
+.dialog { max-height: 90dvh; overscroll-behavior: contain; }
+.dialog-actions { position: sticky; bottom: -1.2rem; margin: .2rem -1.2rem -1.2rem; padding: .8rem 1.2rem 1.2rem; background: var(--surface); border-top: 1px solid var(--border); z-index: 1; }
+body.dash-sombre .dialog-actions { background: #10301b; border-color: rgba(255, 255, 255, .14); }
+.dialog input[type="date"], .dialog input[type="time"] { min-width: 0; width: 100%; -webkit-appearance: none; appearance: none; }
+@media (max-width: 639px) {
+  .dialog-backdrop { padding: 0; padding-top: env(safe-area-inset-top); }
+  .dialog { width: 100%; max-height: 92dvh; border-radius: 18px 18px 0 0; padding-bottom: calc(1.2rem + env(safe-area-inset-bottom)); }
+  .dialog-actions { bottom: calc(-1.2rem - env(safe-area-inset-bottom)); margin-bottom: calc(-1.2rem - env(safe-area-inset-bottom)); padding-bottom: calc(1rem + env(safe-area-inset-bottom)); }
+  .dialog-actions .btn { flex: 1; min-height: 46px; justify-content: center; }
+  .dialog-head h2 { font-size: 1.1rem; }
+}

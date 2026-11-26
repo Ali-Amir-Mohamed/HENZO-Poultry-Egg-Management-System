@@ -77,7 +77,8 @@ function DialogView({ spec, onClose }) {
   const first = useRef(null)
 
   useEffect(() => {
-    first.current?.focus()
+    // on a phone the keyboard would cover half the form at once: the person taps the field they want
+    if (!window.matchMedia?.('(pointer: coarse)').matches) first.current?.focus()
     const onKey = (e) => { if (e.key === 'Escape') onClose(null) }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
