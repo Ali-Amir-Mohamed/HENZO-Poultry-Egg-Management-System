@@ -29,11 +29,17 @@ export const applyFond = (f = readFond(), o = readOpacite()) => { document.body.
 // left edge or with ☰), « ouvert » (always open). Kept on each device; read by the CSS through body[data-menu].
 export const MENU_KEY = 'henzo.menu'
 export const MENUS = ['icones', 'cache', 'ouvert']
-export const readMenu = () => { try { const v = localStorage.getItem(MENU_KEY); return MENUS.includes(v) ? v : 'icones' } catch { return 'icones' } }
+// without a choice: hidden on a phone (the whole width for the page, ☰ to open), icons on a computer
+const menuParDefaut = () => (window.matchMedia?.('(max-width: 719px)').matches ? 'cache' : 'icones')
+export const readMenu = () => { try { const v = localStorage.getItem(MENU_KEY); return MENUS.includes(v) ? v : menuParDefaut() } catch { return menuParDefaut() } }
 export const applyMenu = (m = readMenu()) => {
   document.body.dataset.menu = m
-  try { m === 'icones' ? localStorage.removeItem(MENU_KEY) : localStorage.setItem(MENU_KEY, m) } catch { /* ignore */ }
   window.dispatchEvent(new Event('henzo-menu'))
+}
+// a choice made by the person (Appearance panel, pin): kept on this device
+export const choisirMenu = (m) => {
+  try { localStorage.setItem(MENU_KEY, m) } catch { /* ignore */ }
+  applyMenu(m)
 }
 
 export default function FondSwitch() {
@@ -86,7 +92,7 @@ export default function FondSwitch() {
           </div>
           <h3>{t('fond.menu')}</h3>
           <div className="segmented small" role="group" aria-label={t('fond.menu')}>
-            {MENUS.map((m) => <button key={m} type="button" className={menu === m ? 'active' : ''} onClick={() => { applyMenu(m); setMenu(m) }}>{t(`fond.menus.${m}`)}</button>)}
+            {MENUS.map((m) => <button key={m} type="button" className={menu === m ? 'active' : ''} onClick={() => { choisirMenu(m); setMenu(m) }}>{t(`fond.menus.${m}`)}</button>)}
           </div>
           <p className="small muted">{t(`fond.menuHint.${menu}`)}</p>
           <h3>{t('fond.opacity')}</h3>

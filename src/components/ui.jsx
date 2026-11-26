@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Icon from './Icon'
 
@@ -6,8 +6,11 @@ import Icon from './Icon'
 
 export function Tabs({ tabs, value, onChange }) {
   const { t } = useTranslation()
+  // on a phone the tabs are one row that slides sideways: the open tab is brought into view
+  const barre = useRef(null)
+  useEffect(() => { barre.current?.querySelector('[aria-selected="true"]')?.scrollIntoView?.({ block: 'nearest', inline: 'center' }) }, [value])
   return (
-    <div className="segmented wrap" role="tablist">
+    <div className="segmented wrap" role="tablist" ref={barre}>
       {tabs.map((k) => (
         <button key={k.id ?? k} type="button" role="tab" aria-selected={value === (k.id ?? k)}
           className={value === (k.id ?? k) ? 'active' : ''} onClick={() => onChange(k.id ?? k)}>

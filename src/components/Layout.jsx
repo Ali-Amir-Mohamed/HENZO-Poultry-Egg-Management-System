@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase'
 import { sectionVisible, estNegoce, lireRefus, ecrireRefus } from '../lib/systeme'
 import { useInstallPrompt, useOnline, usePendingCount } from '../hooks'
 import LanguageSwitch from './LanguageSwitch'
-import FondSwitch, { applyFond, applyMenu } from './FondSwitch'
+import FondSwitch, { applyFond, applyMenu, choisirMenu } from './FondSwitch'
 import Notifications from './Notifications'
 import SessionGuard from './SessionGuard'
 import FarmSwitch from './FarmSwitch'
@@ -90,8 +90,8 @@ export default function Layout() {
               <NavLink to="/compte" className="account-link" title={t('compte.title')}>{profile?.nom_complet || t(`roles.${role}`)}</NavLink>
               <FarmSwitch />
             </div>
-            <button type="button" className="icon-btn menu-pin" onClick={() => applyMenu('ouvert')} title={t('fond.pin')} aria-label={t('fond.pin')}><Icon name="pin" size={16} /></button>
-            <button type="button" className="icon-btn menu-unpin" onClick={() => { applyMenu('icones'); setDeplie(false) }} title={t('fond.unpin')} aria-label={t('fond.unpin')}><Icon name="chevron" size={16} className="flip" /></button>
+            <button type="button" className="icon-btn menu-pin" onClick={() => choisirMenu('ouvert')} title={t('fond.pin')} aria-label={t('fond.pin')}><Icon name="pin" size={16} /></button>
+            <button type="button" className="icon-btn menu-unpin" onClick={() => { choisirMenu('icones'); setDeplie(false) }} title={t('fond.unpin')} aria-label={t('fond.unpin')}><Icon name="chevron" size={16} className="flip" /></button>
           </div>
           <div className="topbar-actions">
             <span className={`status ${online ? 'on' : 'off'}`}>

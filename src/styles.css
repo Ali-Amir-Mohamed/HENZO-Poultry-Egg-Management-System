@@ -386,7 +386,7 @@ a { color: inherit; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .total-box { color: var(--text); } }
 :root[data-theme="dark"] .total-box { color: var(--text); }
 
-.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: .9rem; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); gap: .9rem; }
 .card-item {
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
   padding: 1rem; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: .8rem;
@@ -1400,3 +1400,20 @@ body.dash-sombre .rapport-groupe .muted, .rapport-groupe .muted { color: #5d6b61
 @media print { .rg-wm { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
 .rapport-groupe .benef-calcul { background: rgba(246, 248, 245, .72); }
 .rg-carte { background: rgba(251, 252, 250, .8); }
+
+/* ---------- Phones: whole width for the page, tabs in one sliding row, finger-sized buttons, no zoom on the fields ---------- */
+@media (max-width: 720px) {
+  .segmented.wrap { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; scroll-snap-type: x proximity; max-width: 100%; -webkit-overflow-scrolling: touch; }
+  .segmented.wrap::-webkit-scrollbar { display: none; }
+  .segmented.wrap button { flex: none; min-width: 0; white-space: nowrap; scroll-snap-align: center; padding: .6rem .85rem; }
+  .btn.sm { min-height: 36px; padding: .45rem .8rem; }
+  .row-actions { gap: .4rem; flex-wrap: wrap; }
+  /* iPhone zooms the page on a field written smaller than 16 px */
+  input, select, textarea { font-size: 16px !important; }
+  .content { padding-left: .8rem; padding-right: .8rem; }
+  .panel { padding: 1rem; }
+  .card-item { min-width: 0; }
+  .dash-hero h1 { font-size: 1.45rem; }
+  .list li { flex-wrap: wrap; }
+  .table-wrap { margin: 0 -.2rem; }
+}
