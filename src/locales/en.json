@@ -2482,14 +2482,28 @@
     "opening": "Opening your dashboard…"
   },
   "fond": {
-    "title": "Background and opacity",
+    "title": "Appearance",
     "poussins": "Chicks",
     "poule": "Hen in the grass",
     "uni": "Plain green",
     "opacity": "Panel opacity",
     "clear": "See-through",
     "solid": "Solid",
-    "reset": "Back to glass"
+    "reset": "Back to glass",
+    "menu": "Left menu",
+    "menus": {
+      "icones": "Icons",
+      "cache": "Hidden",
+      "ouvert": "Open"
+    },
+    "menuHint": {
+      "icones": "A column of icons: the menu opens when the mouse passes over it. 📌 keeps it open.",
+      "cache": "Nothing on the left: the menu appears when the mouse touches the left edge, or with ☰.",
+      "ouvert": "The menu always stays open."
+    },
+    "openMenu": "Open the menu",
+    "pin": "Keep the menu open",
+    "unpin": "Fold the menu"
   },
   "circuit": {
     "title": "Pay for {{mois}}",

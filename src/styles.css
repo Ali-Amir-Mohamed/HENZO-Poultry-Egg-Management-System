@@ -1318,3 +1318,36 @@ body.dash-sombre .dash-kpi:not(.gold), body.dash-sombre .dash-panel, body.dash-s
   background-color: rgba(255, 255, 255, var(--vw, .14));
   backdrop-filter: blur(var(--vb, 18px)) saturate(140%); -webkit-backdrop-filter: blur(var(--vb, 18px)) saturate(140%);
 }
+
+/* ---------- Side menu modes (body[data-menu], chosen in « Fond et opacité ») ---------- */
+.menu-zone, .menu-burger, .menu-pin, .menu-unpin { display: none; }
+.menu-burger { align-items: center; justify-content: center; width: 44px; height: 44px; border: 1px solid rgba(255, 255, 255, .32); border-radius: 13px; cursor: pointer;
+  background: rgba(10, 30, 15, .55); color: #fff; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 10px 24px -10px rgba(0, 0, 0, .5); }
+.brand .menu-pin, .brand .menu-unpin { margin-left: auto; flex: none; }
+.topbar { transition: width .2s ease, transform .25s ease, box-shadow .2s; }
+/* hidden menu: nothing on the left; ☰ at the top left (and the left edge of the screen on computers) */
+body[data-menu="cache"] .shell { padding-left: 0; }
+body[data-menu="cache"] .content { padding-top: 4rem; }
+body[data-menu="cache"] .topbar:not(.deplie) { transform: translateX(calc(-100% - 24px)); }
+body[data-menu="cache"] .topbar.deplie { z-index: 40; }
+body[data-menu="cache"] .menu-burger:not(.off) { display: inline-flex; position: fixed; top: 12px; left: 12px; z-index: 35; }
+@media (min-width: 1024px) {
+  body[data-menu="cache"] .menu-zone { display: block; position: fixed; left: 0; top: 0; bottom: 0; width: 14px; z-index: 34; }
+  body[data-menu="cache"] .topbar.deplie, body[data-menu="icones"] .topbar.deplie { box-shadow: 0 30px 70px -20px rgba(0, 0, 0, .7); }
+  body[data-menu="icones"] .topbar.deplie .menu-pin { display: inline-flex; }
+  body[data-menu="ouvert"] .menu-unpin { display: inline-flex; }
+  /* icons column: narrow until the mouse comes, then it opens over the page */
+  body[data-menu="icones"] .shell { padding-left: 92px; }
+  body[data-menu="icones"] .topbar.deplie { z-index: 40; }
+  body[data-menu="icones"] .topbar:not(.deplie) { width: 68px; }
+  body[data-menu="icones"] .topbar:not(.deplie) .brand { justify-content: center; padding: .7rem 0 .4rem; }
+  body[data-menu="icones"] .topbar:not(.deplie) .brand > div { display: none; }
+  body[data-menu="icones"] .topbar:not(.deplie) .nav { padding: .3rem .35rem; overflow-y: auto; scrollbar-width: none; }
+  body[data-menu="icones"] .topbar:not(.deplie) .nav-item { flex-direction: column; gap: .15rem; padding: .45rem .1rem; font-size: .6rem; text-align: center; }
+  body[data-menu="icones"] .topbar:not(.deplie) .nav-item > span:last-child { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  body[data-menu="icones"] .topbar:not(.deplie) .nav-group { display: none; }
+  body[data-menu="icones"] .topbar:not(.deplie) .topbar-actions { display: flex; flex-direction: column; padding: .45rem .35rem .55rem; gap: .3rem; }
+  body[data-menu="icones"] .topbar:not(.deplie) .topbar-actions > .status { padding: .4rem 0; }
+  body[data-menu="icones"] .topbar:not(.deplie) .topbar-actions > .status > span:not(.dot) { display: none; }
+  body[data-menu="icones"] .topbar:not(.deplie) .topbar-actions .lang-switch { flex-direction: column; gap: 0; font-size: .62rem; height: 40px; }
+}

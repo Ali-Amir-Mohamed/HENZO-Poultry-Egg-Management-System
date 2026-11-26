@@ -2482,14 +2482,28 @@
     "opening": "Ouverture de votre tableau de bord…"
   },
   "fond": {
-    "title": "Fond et opacité",
+    "title": "Apparence",
     "poussins": "Poussins",
     "poule": "Poule dans l’herbe",
     "uni": "Vert uni",
     "opacity": "Opacité des panneaux",
     "clear": "Transparent",
     "solid": "Opaque",
-    "reset": "Revenir au verre"
+    "reset": "Revenir au verre",
+    "menu": "Menu de gauche",
+    "menus": {
+      "icones": "Icônes",
+      "cache": "Caché",
+      "ouvert": "Ouvert"
+    },
+    "menuHint": {
+      "icones": "Une colonne d’icônes : le menu s’ouvre quand la souris passe dessus. 📌 pour le garder ouvert.",
+      "cache": "Rien à gauche : le menu apparaît quand la souris touche le bord gauche, ou avec ☰.",
+      "ouvert": "Le menu reste toujours ouvert."
+    },
+    "openMenu": "Ouvrir le menu",
+    "pin": "Garder le menu ouvert",
+    "unpin": "Replier le menu"
   },
   "circuit": {
     "title": "Paie de {{mois}}",

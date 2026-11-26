@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/AuthProvider'
@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase'
 import { sectionVisible, estNegoce, lireRefus, ecrireRefus } from '../lib/systeme'
 import { useInstallPrompt, useOnline, usePendingCount } from '../hooks'
 import LanguageSwitch from './LanguageSwitch'
-import FondSwitch, { applyFond } from './FondSwitch'
+import FondSwitch, { applyFond, applyMenu } from './FondSwitch'
 import Notifications from './Notifications'
 import SessionGuard from './SessionGuard'
 import FarmSwitch from './FarmSwitch'
@@ -59,12 +59,29 @@ export default function Layout() {
   useEffect(() => {
     document.body.classList.add('dash-sombre')
     applyFond()
-    return () => { document.body.classList.remove('dash-sombre'); delete document.body.dataset.fond }
+    applyMenu()
+    return () => { document.body.classList.remove('dash-sombre'); delete document.body.dataset.fond; delete document.body.dataset.menu }
   }, [])
+  // The side menu opens under the mouse (« icones ») or at the left edge / with ☰ (« cache »), and closes after a short delay
+  const [deplie, setDeplie] = useState(false)
+  const minuteur = useRef(null)
+  const ouvrir = () => { clearTimeout(minuteur.current); setDeplie(true) }
+  const fermer = () => { clearTimeout(minuteur.current); minuteur.current = setTimeout(() => setDeplie(false), 250) }
+  useEffect(() => setDeplie(false), [location.pathname])
+  // on a phone there is no mouse: a tap outside the open menu closes it
+  const entete = useRef(null)
+  useEffect(() => {
+    if (!deplie) return
+    const dehors = (e) => { if (!entete.current?.contains(e.target) && !e.target.closest?.('.menu-burger, .menu-zone')) setDeplie(false) }
+    document.addEventListener('pointerdown', dehors)
+    return () => document.removeEventListener('pointerdown', dehors)
+  }, [deplie])
 
   return (
     <div className={`shell ${negoce ? 'negoce' : ''}`}>
-      <header className="topbar">
+      <div className="menu-zone" onMouseEnter={ouvrir} aria-hidden="true" />
+      <button type="button" className={`menu-burger ${deplie ? 'off' : ''}`} onClick={() => setDeplie(true)} aria-label={t('fond.openMenu')} title={t('fond.openMenu')}><Icon name="menu" size={20} /></button>
+      <header ref={entete} className={`topbar ${deplie ? 'deplie' : ''}`} onMouseEnter={ouvrir} onMouseLeave={fermer}>
         <div className="topbar-inner">
           <div className="brand">
             <Logo size={38} />
@@ -73,6 +90,8 @@ export default function Layout() {
               <NavLink to="/compte" className="account-link" title={t('compte.title')}>{profile?.nom_complet || t(`roles.${role}`)}</NavLink>
               <FarmSwitch />
             </div>
+            <button type="button" className="icon-btn menu-pin" onClick={() => applyMenu('ouvert')} title={t('fond.pin')} aria-label={t('fond.pin')}><Icon name="pin" size={16} /></button>
+            <button type="button" className="icon-btn menu-unpin" onClick={() => { applyMenu('icones'); setDeplie(false) }} title={t('fond.unpin')} aria-label={t('fond.unpin')}><Icon name="chevron" size={16} className="flip" /></button>
           </div>
           <div className="topbar-actions">
             <span className={`status ${online ? 'on' : 'off'}`}>

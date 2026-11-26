@@ -25,11 +25,24 @@ const applyOpacite = (o) => {
 }
 export const applyFond = (f = readFond(), o = readOpacite()) => { document.body.dataset.fond = f; applyOpacite(o) }
 
+// Side menu on computers: « icones » (narrow column that opens under the mouse, default), « cache » (hidden, opens at the
+// left edge or with ☰), « ouvert » (always open). Kept on each device; read by the CSS through body[data-menu].
+export const MENU_KEY = 'henzo.menu'
+export const MENUS = ['icones', 'cache', 'ouvert']
+export const readMenu = () => { try { const v = localStorage.getItem(MENU_KEY); return MENUS.includes(v) ? v : 'icones' } catch { return 'icones' } }
+export const applyMenu = (m = readMenu()) => {
+  document.body.dataset.menu = m
+  try { m === 'icones' ? localStorage.removeItem(MENU_KEY) : localStorage.setItem(MENU_KEY, m) } catch { /* ignore */ }
+  window.dispatchEvent(new Event('henzo-menu'))
+}
+
 export default function FondSwitch() {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [fond, setFond] = useState(readFond)
   const [opacite, setOpacite] = useState(readOpacite)
+  const [menu, setMenu] = useState(readMenu)
+  useEffect(() => { const maj = () => setMenu(readMenu()); window.addEventListener('henzo-menu', maj); return () => window.removeEventListener('henzo-menu', maj) }, [])
   const box = useRef(null)
 
   // Close when tapping outside, or with Escape
@@ -71,6 +84,11 @@ export default function FondSwitch() {
               </button>
             ))}
           </div>
+          <h3>{t('fond.menu')}</h3>
+          <div className="segmented small" role="group" aria-label={t('fond.menu')}>
+            {MENUS.map((m) => <button key={m} type="button" className={menu === m ? 'active' : ''} onClick={() => { applyMenu(m); setMenu(m) }}>{t(`fond.menus.${m}`)}</button>)}
+          </div>
+          <p className="small muted">{t(`fond.menuHint.${menu}`)}</p>
           <h3>{t('fond.opacity')}</h3>
           <label className="fond-opacite">
             <span className="small">{t('fond.clear')}</span>
