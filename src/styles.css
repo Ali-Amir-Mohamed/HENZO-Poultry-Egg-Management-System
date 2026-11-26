@@ -1312,3 +1312,9 @@ body.dash-sombre .dash-kpi:not(.gold), body.dash-sombre .dash-panel, body.dash-s
 .fond-opacite input[type="range"] { flex: 1; accent-color: #f5b52e; }
 .fond-opacite-val { display: flex; align-items: center; justify-content: space-between; font-size: .85rem; }
 .fond-opacite-val .link-btn { color: #f5c65a; }
+/* the white veil and the blur of the glass follow the opacity slider too (0 = fully transparent) */
+body.dash-sombre .panel, body.dash-sombre .kpi, body.dash-sombre .summary, body.dash-sombre .card,
+body.dash-sombre .dash-kpi:not(.gold), body.dash-sombre .dash-panel, body.dash-sombre .topbar {
+  background-color: rgba(255, 255, 255, var(--vw, .14));
+  backdrop-filter: blur(var(--vb, 18px)) saturate(140%); -webkit-backdrop-filter: blur(var(--vb, 18px)) saturate(140%);
+}

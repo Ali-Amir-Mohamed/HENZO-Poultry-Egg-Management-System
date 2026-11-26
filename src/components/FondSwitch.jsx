@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next'
 import Icon from './Icon'
 
 // Appearance on each device: the background behind the glass panels (chicks, hen in the grass, plain green)
-// and the opacity of the panels (0 % = see-through glass as designed, 100 % = solid dark green, easiest to read).
+// and the opacity of the panels: 0 % = fully transparent (no veil, no blur), 30 % = the frosted glass as designed (default),
+// 100 % = solid dark green, easiest to read.
 export const FOND_KEY = 'henzo.fond'
 export const OPACITE_KEY = 'henzo.opacite'
 export const FONDS = {
@@ -12,9 +13,16 @@ export const FONDS = {
   uni: null
 }
 export const readFond = () => { try { const v = localStorage.getItem(FOND_KEY); return v in FONDS ? v : 'poussins' } catch { return 'poussins' } }
-export const readOpacite = () => { try { const v = Number(localStorage.getItem(OPACITE_KEY)); return v >= 0 && v <= 100 ? v : 0 } catch { return 0 } }
-// the panels get a dark green layer: 0 → none, 100 → almost solid (see --vo in styles.css)
-const applyOpacite = (o) => document.body.style.setProperty('--vo', String(Math.round(o * 0.92) / 100))
+export const OPACITE_VERRE = 30
+export const readOpacite = () => { try { const s = localStorage.getItem(OPACITE_KEY); const v = Number(s); return s !== null && v >= 0 && v <= 100 ? v : OPACITE_VERRE } catch { return OPACITE_VERRE } }
+// up to 30: the white veil and the blur grow (--vw, --vb); beyond: a dark green layer covers the glass (--vo), see styles.css
+const applyOpacite = (o) => {
+  const verre = Math.min(o, OPACITE_VERRE) / OPACITE_VERRE
+  const s = document.body.style
+  s.setProperty('--vw', String(Math.round(verre * 14) / 100))
+  s.setProperty('--vb', `${Math.round(verre * 18)}px`)
+  s.setProperty('--vo', String(Math.round(Math.max(0, o - OPACITE_VERRE) / (100 - OPACITE_VERRE) * 92) / 100))
+}
 export const applyFond = (f = readFond(), o = readOpacite()) => { document.body.dataset.fond = f; applyOpacite(o) }
 
 export default function FondSwitch() {
@@ -42,7 +50,7 @@ export default function FondSwitch() {
   const regler = (o) => {
     setOpacite(o)
     applyOpacite(o)   // seen at once while sliding
-    try { o === 0 ? localStorage.removeItem(OPACITE_KEY) : localStorage.setItem(OPACITE_KEY, String(o)) } catch { /* ignore */ }
+    try { o === OPACITE_VERRE ? localStorage.removeItem(OPACITE_KEY) : localStorage.setItem(OPACITE_KEY, String(o)) } catch { /* ignore */ }
   }
 
   return (
@@ -69,7 +77,7 @@ export default function FondSwitch() {
             <input type="range" min="0" max="100" step="5" value={opacite} onChange={(e) => regler(Number(e.target.value))} aria-label={t('fond.opacity')} />
             <span className="small">{t('fond.solid')}</span>
           </label>
-          <div className="fond-opacite-val"><strong>{opacite} %</strong>{opacite !== 0 && <button type="button" className="link-btn" onClick={() => regler(0)}>{t('fond.reset')}</button>}</div>
+          <div className="fond-opacite-val"><strong>{opacite} %</strong>{opacite !== OPACITE_VERRE && <button type="button" className="link-btn" onClick={() => regler(OPACITE_VERRE)}>{t('fond.reset')}</button>}</div>
         </div>
       )}
     </div>
