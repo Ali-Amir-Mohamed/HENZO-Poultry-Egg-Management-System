@@ -27,10 +27,11 @@ export const ROLES = {
   FINANCE: 'finance',             // Dahirou Bachar
   EMPLOYE: 'employe',
   VENDEUR: 'vendeur',             // shop seller: his shop only
-  COMPTABLE: 'comptable'          // accountant / CGA: accounts and taxes of the whole company, never moves money
+  COMPTABLE: 'comptable',         // accountant / CGA: accounts and taxes of the whole company, never moves money
+  RH: 'rh'                        // HR manager (when hired): the Personnel section only, never moves money
 }
 
-const { DIRECTEUR: D, EXPLOITATION: X, FINANCE: F, EMPLOYE: E, VENDEUR: V, COMPTABLE: C } = ROLES
+const { DIRECTEUR: D, EXPLOITATION: X, FINANCE: F, EMPLOYE: E, VENDEUR: V, COMPTABLE: C, RH: R } = ROLES
 
 // Which roles can open each section of the app (the database enforces the same rules)
 export const ACCESS = {
@@ -46,12 +47,12 @@ export const ACCESS = {
   stock: [D, X, F],
   reglages: [D, X, F],
   boutique: [D, X, F, E, V],
-  personnel: [D, X, F],           // HR: staff, attendance, overtime, leave, pay (Kenfack reads the pay)
+  personnel: [D, X, F, R],        // HR: staff, attendance, overtime, leave, pay (Kenfack reads the pay; the HR manager's home)
   administration: [D, F, X],      // Ali: everything; Dahirou: land (read) + bank accounts; Kenfack: land (read)
   commandes: [D, X, F, E],        // HENZO AGRO: chick orders from farmers
   benefices: [D, X, F],           // HENZO AGRO: profits by period and by item
   provenderie: [D, X, F, E],      // HENZO AGRO: feed mill (formulas, productions, cost price)
-  sync: [D, X, F, E, V]
+  sync: [D, X, F, E, V, R]
 }
 
 // Actions inside the sections
@@ -75,19 +76,19 @@ export const PERMISSIONS = {
   'stock.manual': [X],
   'capital.manage': [D, F],      // investors, contributions, withdrawals, 10 % decisions
   'capital.allocate': [D, X, F], // investors' capital placed in each flock
-  'salaires': [D, X, F],         // see employees and pay (Kenfack, a partner, reads only)
-  'salaires.preparer': [D, F],   // prepare the month's pay: bonuses, allowances, deductions (Dahirou)
-  'salaires.envoyer': [F],       // send the prepared month to Ali
+  'salaires': [D, X, F, R],         // see employees and pay (Kenfack, a partner, reads only)
+  'salaires.preparer': [D, F, R],   // prepare the month's pay: bonuses, allowances, deductions (Dahirou)
+  'salaires.envoyer': [F, R],       // send the prepared month to Ali
   'salaires.valider': [D],       // validate the pay, close the month (Ali)
   'salaires.payer': [F],         // pay advances and validated salaries (Dahirou only)
-  'rh.presences': [D, X, F],     // attendance of the day (Kenfack)
+  'rh.presences': [D, X, F, R],     // attendance of the day (Kenfack)
   'rh.heuresSup': [D, X],        // declare overtime (Kenfack)
   'rh.autoriser': [D],           // authorise or refuse overtime (Ali)
-  'rh.conges.decider': [D, F],   // grant or refuse leave (Ali, Dahirou)
+  'rh.conges.decider': [D, F, R],   // grant or refuse leave (Ali, Dahirou)
   'rh.evaluer': [D, X],          // evaluate the staff (Kenfack)
-  'equipe': [D, F],              // staff files: add, change the job, departure (Dahirou, and Ali); Kenfack reads
-  'equipe.voir': [D, X, F],      // see the farm team (Ali and Dahirou read only)
-  'employes.bureau': [D, F],     // office staff (accountant, secretary…): Argent > Employés
+  'equipe': [D, F, R],              // staff files: add, change the job, departure (Dahirou, and Ali); Kenfack reads
+  'equipe.voir': [D, X, F, R],      // see the farm team (Ali and Dahirou read only)
+  'employes.bureau': [D, F, R],     // office staff (accountant, secretary…): Argent > Employés
   'admin.complet': [D],          // documents, deadlines, editing land
   'admin.terrains': [D, F, X],   // see the land
   'admin.banques': [D, F],       // bank accounts
@@ -136,7 +137,7 @@ export const PERMISSIONS = {
 }
 
 // Roles automatically signed out after a period of inactivity (employees work offline: not them)
-export const SESSION_EXPIRY_ROLES = [D, X, F, C]
+export const SESSION_EXPIRY_ROLES = [D, X, F, C, R]
 
 export const TYPES_TACHE = ['vaccination', 'traitement', 'pesee', 'achat_aliment', 'remboursement', 'arrivee_poussins', 'vente_prevue', 'nettoyage', 'autre']
 

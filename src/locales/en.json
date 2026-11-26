@@ -35,7 +35,8 @@
     "finance": "Finance",
     "employe": "Employee",
     "vendeur": "Seller",
-    "comptable": "Accountant"
+    "comptable": "Accountant",
+    "rh": "HR manager"
   },
   "auth": {
     "welcome1": "Welcome",
@@ -1760,7 +1761,7 @@
     "editHint": "The salary is set in Money → Salaries.",
     "since": "since {{d}}",
     "salaryHint": "Salaries are set and paid in the Pay tab.",
-    "readOnly": "Read only: staff files are managed by Dahirou (finance)."
+    "readOnly": "Read only: staff files are managed by Dahirou or the HR manager."
   },
   "compta": {
     "tabs": {
@@ -2488,7 +2489,7 @@
   },
   "circuit": {
     "title": "Pay for {{mois}}",
-    "steps": "Dahirou prepares → Ali validates → Dahirou pays → Ali closes the month",
+    "steps": "Dahirou or the HR manager prepares → Ali validates → Dahirou pays → Ali closes the month",
     "closed": "Month closed: a mistake is corrected by an adjustment on a later salary.",
     "stepPrepared_one": "{{count}} prepared",
     "stepPrepared_other": "{{count}} prepared",
@@ -2537,7 +2538,7 @@
       "validee": "Validated, to pay",
       "payee": "Paid"
     },
-    "filesBy": "Staff files (adding, job, contract, departure) are managed in the Team tab, by Dahirou.",
+    "filesBy": "Staff files (adding, job, contract, departure) are managed in the Team tab, by Dahirou or the HR manager.",
     "cancelHint": "A paid salary is cancelled through its expense (Money → Expenses) while the month is not closed; it can then be prepared again."
   },
   "rh": {

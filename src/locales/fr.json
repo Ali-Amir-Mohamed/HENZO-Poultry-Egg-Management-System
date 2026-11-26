@@ -35,7 +35,8 @@
     "finance": "Finance",
     "employe": "Employé",
     "vendeur": "Vendeur",
-    "comptable": "Comptable"
+    "comptable": "Comptable",
+    "rh": "Responsable RH"
   },
   "auth": {
     "welcome1": "Bon",
@@ -1760,7 +1761,7 @@
     "editHint": "Le salaire se fixe dans Argent → Salaires.",
     "since": "depuis le {{d}}",
     "salaryHint": "Les salaires se fixent et se paient dans l’onglet Paie.",
-    "readOnly": "Lecture seule : les fiches du personnel sont gérées par Dahirou (finance)."
+    "readOnly": "Lecture seule : les fiches du personnel sont gérées par Dahirou ou le Responsable RH."
   },
   "compta": {
     "tabs": {
@@ -2488,7 +2489,7 @@
   },
   "circuit": {
     "title": "Paie de {{mois}}",
-    "steps": "Dahirou prépare → Ali valide → Dahirou paie → Ali clôture le mois",
+    "steps": "Dahirou ou le Responsable RH prépare → Ali valide → Dahirou paie → Ali clôture le mois",
     "closed": "Mois clôturé : une erreur se corrige par une régularisation sur un prochain salaire.",
     "stepPrepared_one": "{{count}} préparé",
     "stepPrepared_other": "{{count}} préparés",
@@ -2537,7 +2538,7 @@
       "validee": "Validé, à payer",
       "payee": "Payé"
     },
-    "filesBy": "Les fiches du personnel (ajout, poste, contrat, départ) se gèrent dans l’onglet Équipe, par Dahirou.",
+    "filesBy": "Les fiches du personnel (ajout, poste, contrat, départ) se gèrent dans l’onglet Équipe, par Dahirou ou le Responsable RH.",
     "cancelHint": "Un salaire payé s’annule par sa dépense (Argent → Dépenses) tant que le mois n’est pas clôturé ; il pourra alors être préparé de nouveau."
   },
   "rh": {

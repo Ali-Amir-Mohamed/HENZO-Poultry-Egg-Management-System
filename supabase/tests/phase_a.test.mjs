@@ -2090,6 +2090,44 @@ await expectNoRows('the employee still sees no salary', 'employe', `select * fro
 await expectNoRows('the accountant still sees no individual salary', 'comptable', `select * from public.paies`)
 }
 
+// ---------- 0071–0072: the HR manager role ----------
+try {
+  await db.exec(readFileSync(new URL('0071_role_rh.sql', MIG), 'utf8'))
+  await db.exec(readFileSync(new URL('0072_droits_rh.sql', MIG), 'utf8'))
+  await db.exec(readFileSync(new URL('0072_droits_rh.sql', MIG), 'utf8'))
+  ok('migrations 0071–0072 run (0072 twice without error)', true)
+} catch (e) { ok('migrations 0071–0072 run', false, e.message); process.exit(1) }
+{
+U.rh = '88888888-8888-8888-8888-888888888888'
+const FK = (await db.query(`select ferme_id from public.profiles where id = $1`, [U.kenfack])).rows[0].ferme_id
+await db.query(`insert into auth.users (id, email) values ($1, 'rh@henzo.local')`, [U.rh])
+await db.query(`update public.profiles set role = 'rh', nom_complet = 'Responsable RH', ferme_id = $2 where id = $1`, [U.rh, FK])
+await db.query(`insert into public.membres_fermes (user_id, ferme_id, role) values ($1, $2, 'rh') on conflict (user_id, ferme_id) do update set role = 'rh'`, [U.rh, FK])
+const fns = (await db.query(`select count(*) n from pg_proc where proname = 'preparer_paie' and prosrc like '%''rh''%'`)).rows[0].n
+ok('the HR functions now allow the HR manager', Number(fns) === 1)
+const EMP = (await oneP('rh', `select public.ajouter_employe('Marie Test RH', null, 'Ouvrière') id`)).id
+ok('the HR manager adds an employee', !!EMP)
+await expectOk('the HR manager sets the salary', 'rh', `update public.employes set salaire_mensuel = 70000, declare_cnps = false where id = $1`, [EMP])
+await expectOk('the HR manager records the contract', 'rh', `select public.maj_contrat($1, 'cdi', current_date, null, current_date + 60)`, [EMP])
+await expectOk('the HR manager notes attendance', 'rh', `select public.noter_presences(current_date, $1::jsonb)`, [JSON.stringify([{ employe_id: EMP, statut: 'present' }])])
+const M = (await db.query(`select to_char(current_date, 'YYYY-MM-01') m`)).rows[0].m
+const P = (await oneP('rh', `select public.preparer_paie($1, $2) id`, [EMP, M])).id
+ok('the HR manager prepares a pay', !!P)
+await expectOk('the HR manager sends the month to Ali', 'rh', `select public.envoyer_paie_validation($1)`, [M])
+await expectErr('the HR manager cannot validate', 'rh', `select public.valider_paie(array[$1]::uuid[])`, [P], 'directeur')
+await expectOk('ali validates', 'ali', `select public.valider_paie(array[$1]::uuid[])`, [P])
+await expectErr('the HR manager cannot pay', 'rh', `select public.payer_paie($1, 'especes')`, [P], 'finance')
+await expectErr('the HR manager cannot give an advance', 'rh', `select public.verser_avance($1, 1000, 'especes')`, [EMP])
+await expectNoRows('the HR manager sees no cash box movement', 'rh', `select * from public.ecritures`)
+await expectNoRows('the HR manager sees no sale', 'rh', `select * from public.ventes`)
+ok('the HR manager sees the staff and the pay', (await as('rh', `select * from public.employes`)).rows.length > 0 && (await as('rh', `select * from public.preparations_paie`)).rows.length > 0)
+const C = (await oneP('kenfack', `select public.demander_conge($1, 'permission', (date_trunc('week', current_date) + interval '7 days')::date, (date_trunc('week', current_date) + interval '7 days')::date, 'Mariage') id`, [EMP])).id
+await expectOk('the HR manager grants a permission', 'rh', `select public.decider_conge($1, true)`, [C])
+await expectOk('the HR manager reads the taxes paid over (shown with the pay)', 'rh', `select * from public.paiements_impots`)
+await expectOk('the HR manager reads the monthly charges', 'rh', `select * from public.charges_salaires_mensuelles`)
+await expectOk('dahirou keeps his HR rights', 'dahirou', `select public.preparer_paie($1, $2)`, [EMP, M])
+}
+
 // ---------- HENZO AGRO reset tool (supabase/outils/remise_a_zero_henzo_agro.sql) ----------
 {
 const compter = async () => {
@@ -2127,7 +2165,7 @@ try {
   const res = await db.exec(readFileSync(new URL('../outils/remise_a_zero.sql', MIG), 'utf8'))
   const counts = Object.fromEntries(res.at(-1).rows.map((r) => [r.element, Number(r.nombre)]))
   ok('reset keeps 6 cash boxes and accounts, empties data',
-    counts['caisses (6 par ferme)'] % 6 === 0 && counts['caisses (6 par ferme)'] > 0 && counts['écritures'] === 0 && counts['bandes'] === 0 && counts['ventes'] === 0 && counts['comptes conservés'] === 6,
+    counts['caisses (6 par ferme)'] % 6 === 0 && counts['caisses (6 par ferme)'] > 0 && counts['écritures'] === 0 && counts['bandes'] === 0 && counts['ventes'] === 0 && counts['comptes conservés'] === 7,
     JSON.stringify(counts))
   ok('cash balances back to 0', (await as('ali', `select sum(solde)::int s from public.soldes_caisses`)).rows[0].s === 0)
   ok('vaccination programme kept', (await as('kenfack', `select * from public.modeles_taches`)).rows.length === 5)
