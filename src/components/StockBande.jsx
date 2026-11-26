@@ -103,7 +103,7 @@ export default function StockBande({ bande }) {
     <Panel icon="box" tone="sky" title={t('stockBande.title', { code: bande.code })} subtitle={t('stockBande.hint')}
       actions={ouverte ? <button className="btn ghost sm" onClick={mettre}><Icon name="plus" size={14} />{t('stockBande.put')}</button> : null}>
       {lignes.length === 0 ? <p className="muted">{t('stockBande.empty')}</p> : (
-        <table className="table">
+        <table className="table stock-table">
           <thead><tr><th>{t('saisie.article')}</th><th className="num">{t('stockBande.left')}</th><th /></tr></thead>
           <tbody>
             {lignes.map((l) => (

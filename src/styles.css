@@ -1417,3 +1417,20 @@ body.dash-sombre .rapport-groupe .muted, .rapport-groupe .muted { color: #5d6b61
   .list li { flex-wrap: wrap; }
   .table-wrap { margin: 0 -.2rem; }
 }
+
+/* ---------- Phones: flock and lot pages (hero stacked, money tables inside the screen) ---------- */
+@media (max-width: 720px) {
+  .hero.compact { flex-direction: column; align-items: stretch; gap: .9rem; padding: 1.1rem 1.1rem; }
+  .hero.compact h1 { font-size: 1.6rem; }
+  .hero.compact .hero-actions, .hero.compact > .btn { align-self: flex-start; }
+  .hero-facts { gap: 1.25rem; flex-wrap: wrap; }
+  .money-table { table-layout: fixed; width: 100%; font-size: .85rem; }
+  .money-table td { padding: .6rem .35rem; }
+  .money-table td:first-child { white-space: normal; overflow-wrap: anywhere; width: 58%; }
+  .money-table td:last-child { white-space: nowrap; }
+  .facts.big { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
+  .facts.big strong { font-size: 1.05rem; overflow-wrap: anywhere; }
+  .stock-table td { padding: .6rem .3rem; }
+  .stock-table td:first-child { white-space: normal; overflow-wrap: anywhere; }
+  .stock-table td:last-child .row { flex-direction: column; align-items: flex-end; gap: .35rem; }
+}
