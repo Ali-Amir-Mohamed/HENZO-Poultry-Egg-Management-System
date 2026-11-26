@@ -26,7 +26,8 @@
     "groupe1": "Farm",
     "groupe1Negoce": "Business",
     "groupe2": "Money",
-    "groupe3": "Company"
+    "groupe3": "Company",
+    "personnel": "Staff"
   },
   "roles": {
     "directeur": "Director",
@@ -1755,10 +1756,10 @@
     "title": "Farm team",
     "subtitle_one": "{{count}} active employee",
     "subtitle_other": "{{count}} active employees",
-    "created": "Employee added. Set the salary in Money → Salaries.",
+    "created": "Employee added. Set the salary in the Pay tab.",
     "editHint": "The salary is set in Money → Salaries.",
     "since": "since {{d}}",
-    "salaryHint": "Salaries are not shown here: they are set and paid in Money → Salaries.",
+    "salaryHint": "Salaries are set and paid in the Pay tab.",
     "readOnly": "Read only: staff files are managed by Dahirou (finance)."
   },
   "compta": {
@@ -2536,7 +2537,7 @@
       "validee": "Validated, to pay",
       "payee": "Paid"
     },
-    "filesBy": "Staff files (adding, job, departure) are managed by Dahirou in Farm → Team and Money → Employees.",
+    "filesBy": "Staff files (adding, job, contract, departure) are managed in the Team tab, by Dahirou.",
     "cancelHint": "A paid salary is cancelled through its expense (Money → Expenses) while the month is not closed; it can then be prepared again."
   },
   "rh": {
@@ -2657,5 +2658,52 @@
     },
     "lastEval": "Last evaluation on {{d}}: {{m}}/5",
     "neverEvaluated": "Never evaluated."
+  },
+  "personnel": {
+    "tabs": {
+      "tableau": "Dashboard",
+      "equipe": "Team",
+      "presences": "Attendance",
+      "heures": "Overtime",
+      "conges": "Leave",
+      "paie": "Pay",
+      "evaluations": "Evaluations",
+      "rapports": "Reports"
+    },
+    "staff": "Active employees",
+    "staffSplit": "{{f}} at the farm · {{b}} at the office",
+    "payroll": "Payroll per month",
+    "paidThisMonth": "{{n}} paid this month",
+    "presentToday": "Present today",
+    "onLeave_one": "{{count}} on leave",
+    "onLeave_other": "{{count}} on leave",
+    "notNoted": "not noted yet",
+    "waiting": "Waiting for a decision",
+    "toDecide": "to decide",
+    "nothingWaiting": "Nothing waiting",
+    "waitTitle": "To decide",
+    "yourTurn": "Your turn",
+    "open": "Open",
+    "awayNow": "Away now",
+    "waitOt_one": "{{count}} overtime declaration to authorise",
+    "waitOt_other": "{{count}} overtime declarations to authorise",
+    "waitLeave_one": "{{count}} leave request to decide",
+    "waitLeave_other": "{{count}} leave requests to decide",
+    "waitValidate_one": "{{count}} prepared salary to validate",
+    "waitValidate_other": "{{count}} prepared salaries to validate",
+    "waitPay_one": "{{count}} validated salary to pay",
+    "waitPay_other": "{{count}} validated salaries to pay",
+    "endingTitle": "Contracts and trials ending",
+    "endingHint": "In the next two months",
+    "noEnding": "No contract nor trial period ends soon.",
+    "trialEnds": "Trial period ends on {{d}}",
+    "contractEnds": "{{c}}: ends on {{d}}",
+    "payroll12": "Salaries paid, last 12 months",
+    "payroll12Hint": "Net paid, in thousands of FCFA",
+    "monthReport": "Report for {{mois}}",
+    "absences": "Absences",
+    "unjustified": "Unjustified",
+    "otHours": "Authorised overtime",
+    "netPaid": "Net paid"
   }
 }

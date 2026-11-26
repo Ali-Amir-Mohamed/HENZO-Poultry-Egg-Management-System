@@ -22,6 +22,7 @@ const Ferme = lazy(() => import('./pages/Ferme'))
 const FicheBande = lazy(() => import('./pages/FicheBande'))
 const FicheLot = lazy(() => import('./pages/FicheLot'))
 const Argent = lazy(() => import('./pages/Argent'))
+const Personnel = lazy(() => import('./pages/Personnel'))
 const Stock = lazy(() => import('./pages/Stock'))
 const Planning = lazy(() => import('./pages/Planning'))
 const Analyses = lazy(() => import('./pages/Analyses'))
@@ -157,6 +158,7 @@ export default function App() {
         <Route path="ferme/bande/:id" element={<Guard section="ferme"><FicheBande /></Guard>} />
         <Route path="ferme/lot/:id" element={<Guard section="ferme"><FicheLot /></Guard>} />
         <Route path="argent" element={<Guard section="argent"><Argent /></Guard>} />
+        <Route path="personnel" element={<Guard section="personnel"><Personnel /></Guard>} />
         <Route path="argent/investisseur/:id" element={<Guard section="argent"><ReleveInvestisseur /></Guard>} />
         <Route path="planning" element={<Guard section="planning"><Planning /></Guard>} />
         <Route path="analyses" element={<Guard section="analyses"><Analyses /></Guard>} />

@@ -1300,3 +1300,4 @@ body.dash-sombre .segmented button:not(.active) { color: rgba(255, 255, 255, .88
 .rh-docs label.btn { cursor: pointer; }
 .rh-docs label.btn.disabled { opacity: .6; pointer-events: none; }
 .rh-soldes { display: flex; flex-wrap: wrap; gap: .4rem .9rem; font-size: .82rem; color: var(--muted); }
+body.dash-sombre .warn-text { color: #ffd27a; }

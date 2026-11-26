@@ -6,6 +6,8 @@ import Icon from '../../components/Icon'
 import { day, Empty, Field, FormCard, Loading, Panel } from '../../components/ui'
 import { useAsk, useRun } from '../../components/Dialog'
 import { DocumentsEmploye, ligneContrat, useContrat } from '../ferme/PersonnelRH'
+import { useAuth } from '../../auth/AuthProvider'
+import { can } from '../../config'
 
 // Office staff (Ali and Dahirou): accountant, secretary, a partner with a paid job… The farm staff stays in
 // Ferme > Équipe (Kenfack). Salaries are set and paid in Argent > Salaires, like everybody's, by the month.
@@ -16,6 +18,8 @@ export default function EmployesBureau() {
   const run = useRun()
   const q = useQuery(async () => must(await supabase.from('employes').select('id, nom, telephone, poste, date_embauche, actif, type_contrat, date_debut_contrat, date_fin_contrat, fin_periode_essai')
     .eq('categorie', 'bureau').order('actif', { ascending: false }).order('nom')))
+  const { role } = useAuth()
+  const gere = can(role, 'employes.bureau')   // Kenfack, a partner, reads only
   const contrat = useContrat(() => q.reload())
   const [docs, setDocs] = useState(null)
   const vide = { nom: '', telephone: '', poste: '', date_embauche: '' }
@@ -50,11 +54,11 @@ export default function EmployesBureau() {
                   <strong>{e.nom}</strong>{e.poste ? <span className="muted"> · {e.poste}</span> : null}
                   <div className="muted small">{[e.telephone, e.date_embauche && t('equipe.since', { d: day(e.date_embauche, lang) }), ligneContrat(e, t, lang), !e.actif && t('salaires.left')].filter(Boolean).join(' · ') || '—'}</div>
                   <div className="row-actions">
-                    <button className="btn ghost sm" onClick={() => modifier(e)}>{t('common.edit')}</button>
-                    <button className="btn ghost sm" onClick={() => contrat(e)}>{t('rh3.contractBtn')}</button>
+                    {gere && <button className="btn ghost sm" onClick={() => modifier(e)}>{t('common.edit')}</button>}
+                    {gere && <button className="btn ghost sm" onClick={() => contrat(e)}>{t('rh3.contractBtn')}</button>}
                     <button className="btn ghost sm" onClick={() => setDocs(docs?.id === e.id ? null : e)}><Icon name="note" size={14} />{t('rh3.docs')}</button>
                   </div>
-                  {docs?.id === e.id && <DocumentsEmploye employe={e} onClose={() => setDocs(null)} />}
+                  {docs?.id === e.id && <DocumentsEmploye employe={e} lecture={!gere} onClose={() => setDocs(null)} />}
                 </div>
               </li>
             ))}
@@ -63,14 +67,14 @@ export default function EmployesBureau() {
         <p className="note"><Icon name="wallet" size={16} />{t('bureau.salaryHint')}</p>
       </Panel>
 
-      <FormCard title={t('bureau.new')} icon="users" onSubmit={creer}>
+      {gere && <FormCard title={t('bureau.new')} icon="users" onSubmit={creer}>
         <div className="grid-2">
           <Field label={t('reglages.name')}><input required value={form.nom} onChange={set('nom')} /></Field>
           <Field label={t('salaires.job')}><input value={form.poste} onChange={set('poste')} placeholder={t('bureau.jobPh')} /></Field>
           <Field label={t('reglages.phone')}><input type="tel" value={form.telephone} onChange={set('telephone')} /></Field>
           <Field label={t('salaires.hired')}><input type="date" value={form.date_embauche} onChange={set('date_embauche')} /></Field>
         </div>
-      </FormCard>
+      </FormCard>}
     </>
   )
 }

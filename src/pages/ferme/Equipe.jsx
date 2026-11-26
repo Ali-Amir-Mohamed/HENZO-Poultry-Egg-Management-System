@@ -7,8 +7,7 @@ import { day, Empty, Field, FormCard, Loading, Panel } from '../../components/ui
 import { useAsk, useRun } from '../../components/Dialog'
 import { useAuth } from '../../auth/AuthProvider'
 import { can } from '../../config'
-import { HeuresSup, Presences } from './Presences'
-import { Conges, DocumentsEmploye, Evaluations, ligneContrat, useContrat } from './PersonnelRH'
+import { DocumentsEmploye, ligneContrat, useContrat } from './PersonnelRH'
 
 // Team (exploitation): add an employee, change his job, mark a departure. Salaries are never shown here:
 // finance (Dahirou) is notified to set or check the salary. Farm staff only: Ali and Dahirou see it read only,
@@ -20,10 +19,9 @@ export default function Equipe() {
   const run = useRun()
   const { role } = useAuth()
   const gere = can(role, 'equipe')
-  // Dahirou and Ali read the files themselves (contract); Kenfack the team view, without salaries
-  const q = useQuery(async () => must(await (gere
-    ? supabase.from('employes').select('id, nom, telephone, poste, date_embauche, actif, type_contrat, date_debut_contrat, date_fin_contrat, fin_periode_essai').eq('categorie', 'ferme')
-    : supabase.from('equipe').select('*')).order('actif', { ascending: false }).order('nom')), [gere])
+  // Ali, Dahirou and Kenfack (a partner, read only) see the files with the contract
+  const q = useQuery(async () => must(await supabase.from('employes').select('id, nom, telephone, poste, date_embauche, actif, type_contrat, date_debut_contrat, date_fin_contrat, fin_periode_essai')
+    .eq('categorie', 'ferme').order('actif', { ascending: false }).order('nom')))
   const contrat = useContrat(() => q.reload())
   const [docs, setDocs] = useState(null)
   const vide = { nom: '', telephone: '', poste: '', date_embauche: '' }
@@ -57,12 +55,12 @@ export default function Equipe() {
                 <div className="grow">
                   <strong>{e.nom}</strong>{e.poste ? <span className="muted"> · {e.poste}</span> : null}
                   <div className="muted small">{[e.telephone, e.date_embauche && t('equipe.since', { d: day(e.date_embauche, lang) }), ligneContrat(e, t, lang), !e.actif && t('salaires.left')].filter(Boolean).join(' · ') || '—'}</div>
-                  {gere && <div className="row-actions">
-                    <button className="btn ghost sm" onClick={() => modifier(e)}>{t('common.edit')}</button>
-                    <button className="btn ghost sm" onClick={() => contrat(e)}>{t('rh3.contractBtn')}</button>
+                  <div className="row-actions">
+                    {gere && <button className="btn ghost sm" onClick={() => modifier(e)}>{t('common.edit')}</button>}
+                    {gere && <button className="btn ghost sm" onClick={() => contrat(e)}>{t('rh3.contractBtn')}</button>}
                     <button className="btn ghost sm" onClick={() => setDocs(docs?.id === e.id ? null : e)}><Icon name="note" size={14} />{t('rh3.docs')}</button>
-                  </div>}
-                  {docs?.id === e.id && <DocumentsEmploye employe={e} onClose={() => setDocs(null)} />}
+                  </div>
+                  {docs?.id === e.id && <DocumentsEmploye employe={e} lecture={!gere} onClose={() => setDocs(null)} />}
                 </div>
               </li>
             ))}
@@ -71,13 +69,6 @@ export default function Equipe() {
         {gere ? <p className="note"><Icon name="wallet" size={16} />{t('equipe.salaryHint')}</p>
           : <p className="note"><Icon name="note" size={16} />{t('equipe.readOnly')}</p>}
       </Panel>
-
-      {can(role, 'rh.presences') && q.data.some((x) => x.actif) && <>
-        <Presences />
-        <HeuresSup />
-        <Conges employes={q.data.filter((x) => x.actif)} />
-        <Evaluations employes={q.data.filter((x) => x.actif)} />
-      </>}
 
       {gere && <FormCard title={t('salaires.new')} icon="users" onSubmit={creer}>
         <div className="grid-2">

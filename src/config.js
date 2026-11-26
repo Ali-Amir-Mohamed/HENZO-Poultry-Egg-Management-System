@@ -46,6 +46,7 @@ export const ACCESS = {
   stock: [D, X, F],
   reglages: [D, X, F],
   boutique: [D, X, F, E, V],
+  personnel: [D, X, F],           // HR: staff, attendance, overtime, leave, pay (Kenfack reads the pay)
   administration: [D, F, X],      // Ali: everything; Dahirou: land (read) + bank accounts; Kenfack: land (read)
   commandes: [D, X, F, E],        // HENZO AGRO: chick orders from farmers
   benefices: [D, X, F],           // HENZO AGRO: profits by period and by item
@@ -74,7 +75,7 @@ export const PERMISSIONS = {
   'stock.manual': [X],
   'capital.manage': [D, F],      // investors, contributions, withdrawals, 10 % decisions
   'capital.allocate': [D, X, F], // investors' capital placed in each flock
-  'salaires': [D, F],            // see employees and pay (confidential)
+  'salaires': [D, X, F],         // see employees and pay (Kenfack, a partner, reads only)
   'salaires.preparer': [D, F],   // prepare the month's pay: bonuses, allowances, deductions (Dahirou)
   'salaires.envoyer': [F],       // send the prepared month to Ali
   'salaires.valider': [D],       // validate the pay, close the month (Ali)

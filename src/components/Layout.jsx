@@ -29,6 +29,7 @@ export const SECTIONS = [
   { to: '/analyses', key: 'analyses', icon: 'chart', groupe: 2 },
   { to: '/stock', key: 'stock', icon: 'box', groupe: 1 },
   { to: '/boutique', key: 'boutique', icon: 'cart', groupe: 1 },
+  { to: '/personnel', key: 'personnel', icon: 'users', groupe: 3 },
   { to: '/administration', key: 'administration', icon: 'note', groupe: 3 },
   { to: '/reglages', key: 'reglages', icon: 'settings', groupe: 3 },
   { to: '/sync', key: 'sync', icon: 'sync', groupe: 3 }

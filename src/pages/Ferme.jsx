@@ -11,7 +11,6 @@ import { day, Empty, Field, FormCard, Loading, money, Tabs } from '../components
 import Commandes from './ferme/Commandes'
 import Batiments from './ferme/Batiments'
 import Saisies from './ferme/Saisies'
-import Equipe from './ferme/Equipe'
 import StockOeufs from './ferme/StockOeufs'
 import { useAsk, useRun } from '../components/Dialog'
 
@@ -27,14 +26,12 @@ export default function Ferme() {
           { id: 'pondeuse', label: 'types.pondeuse_pl', icon: 'egg' },
           { id: 'batiments', label: 'batiments.tab', icon: 'barn' },
           { id: 'saisies', label: 'saisies.tab', icon: 'note' },
-          ...(can(role, 'equipe.voir') ? [{ id: 'equipe', label: 'equipe.tab', icon: 'users' }] : [])
         ]} />
       {(tab === 'chair' || tab === 'pondeuse') && <ActivitySummary activite={tab} />}
       {tab === 'chair' && <Bandes />}
       {tab === 'pondeuse' && <><StockOeufs /><Lots /></>}
       {tab === 'batiments' && <Batiments />}
       {tab === 'saisies' && <Saisies />}
-      {tab === 'equipe' && <Equipe />}
     </div>
   )
 }

@@ -26,7 +26,8 @@
     "groupe1": "Ferme",
     "groupe1Negoce": "Activité",
     "groupe2": "Argent",
-    "groupe3": "Société"
+    "groupe3": "Société",
+    "personnel": "Personnel"
   },
   "roles": {
     "directeur": "Directeur",
@@ -1755,10 +1756,10 @@
     "title": "Équipe de la ferme",
     "subtitle_one": "{{count}} employé actif",
     "subtitle_other": "{{count}} employés actifs",
-    "created": "Employé ajouté. Fixez son salaire dans Argent → Salaires.",
+    "created": "Employé ajouté. Fixez son salaire dans l’onglet Paie.",
     "editHint": "Le salaire se fixe dans Argent → Salaires.",
     "since": "depuis le {{d}}",
-    "salaryHint": "Les salaires ne s’affichent pas ici : ils se fixent et se paient dans Argent → Salaires.",
+    "salaryHint": "Les salaires se fixent et se paient dans l’onglet Paie.",
     "readOnly": "Lecture seule : les fiches du personnel sont gérées par Dahirou (finance)."
   },
   "compta": {
@@ -2536,7 +2537,7 @@
       "validee": "Validé, à payer",
       "payee": "Payé"
     },
-    "filesBy": "Les fiches du personnel (ajout, poste, départ) sont gérées par Dahirou dans Ferme → Équipe et Argent → Employés.",
+    "filesBy": "Les fiches du personnel (ajout, poste, contrat, départ) se gèrent dans l’onglet Équipe, par Dahirou.",
     "cancelHint": "Un salaire payé s’annule par sa dépense (Argent → Dépenses) tant que le mois n’est pas clôturé ; il pourra alors être préparé de nouveau."
   },
   "rh": {
@@ -2657,5 +2658,52 @@
     },
     "lastEval": "Dernière évaluation le {{d}} : {{m}}/5",
     "neverEvaluated": "Jamais évalué."
+  },
+  "personnel": {
+    "tabs": {
+      "tableau": "Tableau de bord",
+      "equipe": "Équipe",
+      "presences": "Présences",
+      "heures": "Heures sup.",
+      "conges": "Congés",
+      "paie": "Paie",
+      "evaluations": "Évaluations",
+      "rapports": "Rapports"
+    },
+    "staff": "Employés actifs",
+    "staffSplit": "{{f}} à la ferme · {{b}} au bureau",
+    "payroll": "Masse salariale par mois",
+    "paidThisMonth": "{{n}} payés ce mois",
+    "presentToday": "Présents aujourd’hui",
+    "onLeave_one": "{{count}} en congé",
+    "onLeave_other": "{{count}} en congé",
+    "notNoted": "pas encore noté",
+    "waiting": "En attente de décision",
+    "toDecide": "à décider",
+    "nothingWaiting": "Rien en attente",
+    "waitTitle": "À décider",
+    "yourTurn": "C’est à vous",
+    "open": "Ouvrir",
+    "awayNow": "Absents en ce moment",
+    "waitOt_one": "{{count}} déclaration d’heures supplémentaires à autoriser",
+    "waitOt_other": "{{count}} déclarations d’heures supplémentaires à autoriser",
+    "waitLeave_one": "{{count}} demande de congé à décider",
+    "waitLeave_other": "{{count}} demandes de congé à décider",
+    "waitValidate_one": "{{count}} salaire préparé à valider",
+    "waitValidate_other": "{{count}} salaires préparés à valider",
+    "waitPay_one": "{{count}} salaire validé à payer",
+    "waitPay_other": "{{count}} salaires validés à payer",
+    "endingTitle": "Contrats et essais qui se terminent",
+    "endingHint": "Dans les deux prochains mois",
+    "noEnding": "Aucun contrat ni période d’essai ne se termine bientôt.",
+    "trialEnds": "Fin de la période d’essai le {{d}}",
+    "contractEnds": "{{c}} : fin le {{d}}",
+    "payroll12": "Salaires payés, 12 derniers mois",
+    "payroll12Hint": "Nets payés, en milliers de FCFA",
+    "monthReport": "Rapport de {{mois}}",
+    "absences": "Absences",
+    "unjustified": "Non justifiées",
+    "otHours": "Heures sup. autorisées",
+    "netPaid": "Net payé"
   }
 }

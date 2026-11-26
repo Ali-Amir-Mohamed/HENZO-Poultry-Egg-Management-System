@@ -39,8 +39,8 @@ export function useContrat(reload) {
   }
 }
 
-// Documents of one employee, shown under his line (Ali and Dahirou only)
-export function DocumentsEmploye({ employe, onClose }) {
+// Documents of one employee, shown under his line: Ali and Dahirou add and remove, Kenfack (a partner) only opens them
+export function DocumentsEmploye({ employe, onClose, lecture = false }) {
   const { t, i18n } = useTranslation()
   const lang = i18n.resolvedLanguage
   const ask = useAsk()
@@ -88,12 +88,12 @@ export function DocumentsEmploye({ employe, onClose }) {
             <li key={d.id}>
               <div className="grow"><strong>{d.titre}</strong><div className="muted small">{day(d.created_at, lang)}</div></div>
               {d.fichier && <button type="button" className="btn ghost sm" onClick={() => ouvrir(d)}><Icon name="download" size={14} />{t('rh3.open')}</button>}
-              <button type="button" className="btn ghost sm" onClick={() => supprimer(d)} aria-label={t('admin.delete')}><Icon name="trash" size={14} /></button>
+              {!lecture && <button type="button" className="btn ghost sm" onClick={() => supprimer(d)} aria-label={t('admin.delete')}><Icon name="trash" size={14} /></button>}
             </li>
           ))}
         </ul>
       )}
-      <div className="row">
+      {!lecture && <div className="row">
         <select value={type} onChange={(ev) => setType(ev.target.value)} aria-label={t('rh3.docType')}>
           {TYPES_DOC.map((x) => <option key={x} value={x}>{t(`rh3.doc.${x}`)}</option>)}
         </select>
@@ -101,7 +101,7 @@ export function DocumentsEmploye({ employe, onClose }) {
           <Icon name="plus" size={14} />{busy ? t('common.loading') : t('rh3.addDoc')}
           <input type="file" hidden disabled={busy} onChange={ajouter} accept="image/*,application/pdf" />
         </label>
-      </div>
+      </div>}
     </div>
   )
 }

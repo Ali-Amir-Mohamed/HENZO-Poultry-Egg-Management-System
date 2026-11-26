@@ -12,8 +12,13 @@ const lienAppli = (lien) => {
   if (lien.startsWith('/bandes/')) return lien.replace('/bandes/', '/ferme/bande/')
   if (lien.startsWith('/lots/')) return lien.replace('/lots/', '/ferme/lot/')
   if (lien.startsWith('/depenses')) return '/argent'
+  if (lien.startsWith('/argent?tab=salaires')) return '/personnel?tab=paie'
   return lien
 }
+
+// HR notifications point to the matching tab of « Personnel »
+const ONGLET_RH = { heures_sup: 'heures', conge: 'conges', contrat_fin: 'equipe', nouvel_employe: 'equipe', depart_employe: 'equipe', paie_a_valider: 'paie', paie_validee: 'paie', paie_cloturee: 'paie', paie_a_refaire: 'paie' }
+const lienPersonnel = (n) => (ONGLET_RH[n.type_notification] ? `/personnel?tab=${ONGLET_RH[n.type_notification]}` : null)
 
 // Bell in the header: notifications addressed to the user's role (created by database triggers)
 export default function Notifications() {
@@ -71,7 +76,7 @@ export default function Notifications() {
             <ul className="list">
               {items.map((n) => (
                 <li key={n.id} className={n.lu ? 'read' : ''}>
-                  <Link to={lienAppli(n.lien)} onClick={() => setOpen(false)}>
+                  <Link to={lienPersonnel(n) ?? lienAppli(n.lien)} onClick={() => setOpen(false)}>
                     <strong>{n.message}</strong>
                     <div className="muted small">{new Date(n.created_at).toLocaleString(i18n.resolvedLanguage)}</div>
                   </Link>

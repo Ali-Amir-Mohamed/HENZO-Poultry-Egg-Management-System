@@ -16,8 +16,6 @@ import Demandes, { useDemandeCorrection } from './argent/Demandes'
 import Prets from './argent/Prets'
 import Verification from './argent/Verification'
 import Demarrage from './reglages/Demarrage'
-import Salaires from './argent/Salaires'
-import EmployesBureau from './argent/EmployesBureau'
 import CaissesSites from './argent/CaissesSites'
 import Factures from './compta/Factures'
 import Impots from './compta/Impots'
@@ -28,7 +26,8 @@ import Creances from './argent/Creances'
 export default function Argent() {
   const { role } = useAuth()
   const [tab, setTab] = useState(() => {
-    try { return sessionStorage.getItem('henzo.argent.tab') || 'caisses' } catch { return 'caisses' }
+    // staff and salaries moved to « Personnel » (0070)
+    try { const v = sessionStorage.getItem('henzo.argent.tab'); return v && !['employes', 'salaires'].includes(v) ? v : 'caisses' } catch { return 'caisses' }
   })
   // Refreshes the requests panel after a new correction request
   const [rev, setRev] = useState(0)
@@ -44,8 +43,6 @@ export default function Argent() {
         { id: 'investisseurs', label: 'argent.tabs.investisseurs', icon: 'users' },
         { id: 'prets', label: 'argent.tabs.prets', icon: 'receipt' },
         { id: 'verification', label: 'argent.tabs.verification', icon: 'check' },
-        ...(can(role, 'employes.bureau') ? [{ id: 'employes', label: 'argent.tabs.employes', icon: 'users' }] : []),
-        ...(can(role, 'salaires') ? [{ id: 'salaires', label: 'argent.tabs.salaires', icon: 'users' }] : []),
         ...(can(role, 'facture.create') ? [{ id: 'factures', label: 'compta.tabs.factures', icon: 'receipt' }] : []),
         ...(can(role, 'impots.payer') ? [{ id: 'impots', label: 'compta.tabs.impots', icon: 'wallet' }] : []),
         ...(can(role, 'demarrage') ? [{ id: 'demarrage', label: 'argent.tabs.demarrage', icon: 'flag' }] : [])
@@ -58,8 +55,6 @@ export default function Argent() {
       {tab === 'investisseurs' && <Investisseurs />}
       {tab === 'prets' && <Prets />}
       {tab === 'verification' && <Verification />}
-      {tab === 'employes' && <EmployesBureau />}
-      {tab === 'salaires' && <Salaires />}
       {tab === 'factures' && <Factures />}
       {tab === 'impots' && <Impots />}
       {tab === 'demarrage' && <Demarrage />}

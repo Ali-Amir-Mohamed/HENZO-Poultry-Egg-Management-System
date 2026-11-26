@@ -2069,6 +2069,27 @@ await expectErr('marks are from 1 to 5', 'kenfack', `select public.evaluer_emplo
 await expectOk('kenfack evaluates', 'kenfack', `select public.evaluer_employe($1, 4, 5, 3, 'Bon travail, arrive parfois en retard')`, [EMP])
 }
 
+// ---------- 0070: HR step 4, Kenfack (a partner) sees the staff and the pay, read only ----------
+try {
+  await db.exec(readFileSync(new URL('0070_personnel_lecture_associes.sql', MIG), 'utf8'))
+  await db.exec(readFileSync(new URL('0070_personnel_lecture_associes.sql', MIG), 'utf8'))
+  ok('migration 0070 runs (twice without error)', true)
+} catch (e) { ok('migration 0070 runs (twice without error)', false, e.message); process.exit(1) }
+{
+const EMP = (await db.query(`select id from public.employes where nom = 'Paul Test RH'`)).rows[0].id
+const M = (await db.query(`select to_char(current_date, 'YYYY-MM-01') m`)).rows[0].m
+ok('kenfack now sees the salaries', Number((await oneP('kenfack', `select salaire_mensuel from public.employes where id = $1`, [EMP]))?.salaire_mensuel) === 100000)
+ok('kenfack sees the paid salaries and payslips', (await as('kenfack', `select * from public.paies`)).rows.length > 0 && (await as('kenfack', `select * from public.bulletins_paie`)).rows.length > 0)
+ok('kenfack sees the employee documents', (await as('kenfack', `select * from public.documents_employes`)).rows.length > 0)
+await expectOk('kenfack reads the month summary', 'kenfack', `select public.resume_presences($1, $2)`, [EMP, M])
+await expectNoRows('kenfack still cannot change a salary', 'kenfack', `update public.employes set salaire_mensuel = 1 where id = '${EMP}' returning id`)
+await expectErr('kenfack still cannot prepare a pay', 'kenfack', `select public.preparer_paie($1, $2)`, [EMP, M], 'finance')
+await expectErr('kenfack still cannot pay', 'kenfack', `select public.payer_paie(gen_random_uuid(), 'especes')`, [], 'finance')
+await expectErr('kenfack still cannot change a contract', 'kenfack', `select public.maj_contrat($1, 'cdi', null, null, null)`, [EMP], 'finance')
+await expectNoRows('the employee still sees no salary', 'employe', `select * from public.employes`)
+await expectNoRows('the accountant still sees no individual salary', 'comptable', `select * from public.paies`)
+}
+
 // ---------- HENZO AGRO reset tool (supabase/outils/remise_a_zero_henzo_agro.sql) ----------
 {
 const compter = async () => {
