@@ -2420,7 +2420,8 @@
     "newClients_other": "{{count}} new clients this month",
     "footer": "Report made by HENZO from the recorded sales, expenses and cash boxes.",
     "farmDetail": "The detailed report of a farm (production, feed, flocks) stays in",
-    "shareText": "Group report – {{mois}}: sales {{ventes}}, result {{resultat}}."
+    "shareText": "Group report – {{mois}}: sales {{ventes}}, result {{resultat}}.",
+    "kicker": "Monthly report"
   },
   "mesures": {
     "cuillere_cafe": "teaspoons",

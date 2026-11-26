@@ -48,42 +48,47 @@ export default function RapportGroupe() {
 
       {!r ? <Loading error={q.error} /> : (
         <article ref={docRef} className="rapport-groupe">
+          <img src="/logo-societe.png" alt="" className="rg-wm" />{/* AGROFARM logo, faint, behind the whole report */}
           <header className="rg-head">
-            <Logo size={44} />
+            <Logo size={52} />
             <div>
+              <span className="rg-kicker">AGROFARM PARTNERS · {t('rapportG.kicker')}</span>
               <h1>{t('rapportG.title', { mois: titreMois })}</h1>
-              <p className="muted">{day(r.debut, lang)} – {day(r.fin, lang)} · {t('rapportG.made', { d: day(new Date().toLocaleDateString('en-CA'), lang) })}</p>
+              <p>{day(r.debut, lang)} – {day(r.fin, lang)} · {t('rapportG.made', { d: day(new Date().toLocaleDateString('en-CA'), lang) })}</p>
             </div>
           </header>
 
           <section>
             <h2>{t('rapportG.overview')}</h2>
-            <table className="table rg-table">
-              <thead><tr><th /><th className="num">{t('rapportG.sales')}</th><th className="num">{t('rapportG.result')}</th><th className="num">{t('rapportG.money')}</th><th className="num">{t('rapportG.toCollect')}</th><th className="num">{t('rapportG.toPay')}</th></tr></thead>
-              <tbody>
-                {r.societes.map((s) => (
-                  <tr key={s.id}>
-                    <td><strong>{s.nom}</strong><div className="muted small">{t(s.type === 'negoce' ? 'systeme.negoce' : 'systeme.elevage')}</div></td>
-                    <td className="num">{money(s.ventes, lang)}{evol(s) != null && <div className={`small ${evol(s) < 0 ? 'error' : 'success'}`}>{evol(s) > 0 ? '+' : ''}{evol(s)} %</div>}</td>
-                    <td className={`num ${Number(s.resultat) < 0 ? 'error' : ''}`}><strong>{money(s.resultat, lang)}</strong></td>
-                    <td className="num">{money(s.argent_fin, lang)}</td>
-                    <td className="num">{money(s.a_recevoir_fin, lang)}</td>
-                    <td className="num">{money(s.a_payer_fin, lang)}</td>
-                  </tr>
-                ))}
-                {r.societes.length > 1 && (
-                  <tr className="sum">
-                    <td>{t('rapportG.total')}</td>
-                    <td className="num">{money(total('ventes'), lang)}</td>
-                    <td className="num"><strong>{money(total('resultat'), lang)}</strong></td>
-                    <td className="num">{money(total('argent_fin'), lang)}</td>
-                    <td className="num">{money(total('a_recevoir_fin'), lang)}</td>
-                    <td className="num">{money(total('a_payer_fin'), lang)}</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-            <p className="muted small">{t('rapportG.overviewNote')}</p>
+            <div className="rg-cartes">
+              {r.societes.map((s) => (
+                <div key={s.id} className="rg-carte">
+                  <div className="rg-carte-head"><strong>{s.nom}</strong><span className="rg-chip">{t(s.type === 'negoce' ? 'systeme.negoce' : 'systeme.elevage')}</span></div>
+                  <span className="rg-label">{t('rapportG.result')}</span>
+                  <span className={`rg-big ${Number(s.resultat) < 0 ? 'neg' : 'pos'}`}>{money(s.resultat, lang)}</span>
+                  <dl>
+                    <div><dt>{t('rapportG.sales')}</dt><dd>{money(s.ventes, lang)}{evol(s) != null && <small className={evol(s) < 0 ? 'neg' : 'pos'}> {evol(s) > 0 ? '+' : ''}{evol(s)} %</small>}</dd></div>
+                    <div><dt>{t('rapportG.money')}</dt><dd>{money(s.argent_fin, lang)}</dd></div>
+                    <div><dt>{t('rapportG.toCollect')}</dt><dd>{money(s.a_recevoir_fin, lang)}</dd></div>
+                    <div><dt>{t('rapportG.toPay')}</dt><dd>{money(s.a_payer_fin, lang)}</dd></div>
+                  </dl>
+                </div>
+              ))}
+              {r.societes.length > 1 && (
+                <div className="rg-carte total">
+                  <div className="rg-carte-head"><strong>{t('rapportG.total')}</strong></div>
+                  <span className="rg-label">{t('rapportG.result')}</span>
+                  <span className={`rg-big ${total('resultat') < 0 ? 'neg' : 'pos'}`}>{money(total('resultat'), lang)}</span>
+                  <dl>
+                    <div><dt>{t('rapportG.sales')}</dt><dd>{money(total('ventes'), lang)}</dd></div>
+                    <div><dt>{t('rapportG.money')}</dt><dd>{money(total('argent_fin'), lang)}</dd></div>
+                    <div><dt>{t('rapportG.toCollect')}</dt><dd>{money(total('a_recevoir_fin'), lang)}</dd></div>
+                    <div><dt>{t('rapportG.toPay')}</dt><dd>{money(total('a_payer_fin'), lang)}</dd></div>
+                  </dl>
+                </div>
+              )}
+            </div>
+            <p className="rg-note">{t('rapportG.overviewNote')}</p>
           </section>
 
           {r.societes.map((s) => (
@@ -125,7 +130,7 @@ export default function RapportGroupe() {
               </div>
             </section>
           ))}
-          <footer className="muted small">{t('rapportG.footer')}</footer>
+          <footer className="rg-foot">{t('rapportG.footer')}</footer>
         </article>
       )}
       <p className="muted small no-print">{t('rapportG.farmDetail')} <Link to="/analyses">{t('nav.analyses')}</Link></p>

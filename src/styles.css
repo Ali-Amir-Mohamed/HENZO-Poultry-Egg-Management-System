@@ -1351,3 +1351,52 @@ body[data-menu="cache"] .menu-burger:not(.off) { display: inline-flex; position:
   body[data-menu="icones"] .topbar:not(.deplie) .topbar-actions > .status > span:not(.dot) { display: none; }
   body[data-menu="icones"] .topbar:not(.deplie) .topbar-actions .lang-switch { flex-direction: column; gap: 0; font-size: .62rem; height: 40px; }
 }
+
+/* ---------- Group report: a clean white document (printed, shared on WhatsApp), even in the glass look ---------- */
+body.dash-sombre .rapport-groupe, .rapport-groupe {
+  --surface: #fff; --surface-2: #f6f8f5; --text: #1d2a21; --muted: #5d6b61; --border: #e3e9e2; --ok: #1f7a34; --rose: #c0392b;
+  background: #fff; color: #1d2a21; text-shadow: none; border: 0; border-radius: 16px; padding: 0 0 22px; overflow: hidden;
+  box-shadow: 0 24px 60px -24px rgba(0, 0, 0, .45);
+}
+body.dash-sombre .rapport-groupe *, .rapport-groupe * { text-shadow: none; }
+.rapport-groupe > section, .rapport-groupe > footer { padding: 0 26px; }
+.rg-head { display: flex; align-items: center; gap: 16px; padding: 22px 26px; color: #fff;
+  background: radial-gradient(60% 120% at 90% 0%, rgba(245, 181, 46, .45), transparent 60%), linear-gradient(120deg, #123a20, #1f7a34); }
+.rg-head .logo { box-shadow: 0 8px 20px rgba(0, 0, 0, .25); }
+body.dash-sombre .rapport-groupe .rg-head h1, .rg-head h1 { margin: 2px 0; font-size: 1.45rem; color: #fff; }
+.rg-head p { margin: 0; color: rgba(255, 255, 255, .85); font-size: .9rem; }
+.rg-kicker { font-size: .68rem; letter-spacing: .16em; text-transform: uppercase; color: #ffd27a; font-weight: 700; }
+body.dash-sombre .rapport-groupe h2, .rapport-groupe h2 { font-size: 1.05rem; margin: 0 0 12px; padding: 0 0 0 10px; border: 0; border-left: 4px solid #1f7a34; color: #123a20; }
+body.dash-sombre .rapport-groupe h2 .muted, .rapport-groupe h2 .muted { color: #5d6b61; font-weight: 500; }
+body.dash-sombre .rapport-groupe h3, .rapport-groupe h3 { font-size: .74rem; margin: 14px 0 6px; text-transform: uppercase; letter-spacing: .08em; color: #7a8a7e; }
+body.dash-sombre .rapport-groupe .muted, .rapport-groupe .muted { color: #5d6b61; }
+.rg-cartes { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+.rg-carte { border: 1px solid #e3e9e2; border-radius: 14px; padding: 14px 16px; background: #fbfcfa; display: flex; flex-direction: column; gap: 2px; }
+.rg-carte.total { background: linear-gradient(140deg, #fff7e2, #fffdf6); border-color: #f0d79a; }
+.rg-carte-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.rg-carte-head strong { font-size: .98rem; color: #123a20; }
+.rg-chip { font-size: .66rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: #e7f3e9; color: #1f6a30; white-space: nowrap; }
+.rg-label { font-size: .72rem; color: #7a8a7e; text-transform: uppercase; letter-spacing: .06em; }
+.rg-big { font-size: 1.45rem; font-weight: 800; letter-spacing: -.01em; }
+.rg-big.pos, .rg-carte small.pos { color: #1f7a34; }
+.rg-big.neg, .rg-carte small.neg { color: #c0392b; }
+.rg-carte dl { margin: 8px 0 0; display: flex; flex-direction: column; gap: 3px; }
+.rg-carte dl div { display: flex; justify-content: space-between; gap: 8px; font-size: .84rem; border-top: 1px dashed #e3e9e2; padding-top: 3px; }
+.rg-carte dt { color: #5d6b61; }
+.rg-carte dd { margin: 0; font-weight: 600; text-align: right; }
+.rg-note { margin: 10px 0 0; font-size: .78rem; color: #7a8a7e; }
+.rg-societe { break-inside: avoid; }
+.rapport-groupe .benef-calcul { background: #f6f8f5; border-radius: 12px; padding: 10px 14px; max-width: none; }
+.rapport-groupe .benef-ligne { font-size: .92rem; }
+.rapport-groupe .benef-ligne.fort { border-top: 2px solid #1f7a34; color: #123a20; }
+.rapport-groupe .rg-liste li { border-bottom: 1px solid #eef1ec; }
+.rapport-groupe .rg-liste li span { color: #3d4b41; }
+.rg-foot { font-size: .75rem; color: #7a8a7e; border-top: 1px solid #eef1ec; padding-top: 12px !important; margin: 0 26px; padding-left: 0 !important; padding-right: 0 !important; }
+@media (max-width: 640px) { .rapport-groupe > section { padding: 0 14px; } .rg-head { padding: 16px 14px; } .rg-head h1 { font-size: 1.15rem; } }
+@media print { .rapport-groupe { box-shadow: none; border-radius: 0; } .rg-head, .rg-carte.total, .rg-chip, .benef-calcul { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+/* the company logo, faint, in the middle of the report (screen, print, WhatsApp image) */
+.rapport-groupe { position: relative; isolation: isolate; }
+.rg-wm { position: absolute; left: 50%; top: 55%; width: min(520px, 70%); transform: translate(-50%, -50%); opacity: .06; pointer-events: none; z-index: -1; }
+@media print { .rg-wm { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+.rapport-groupe .benef-calcul { background: rgba(246, 248, 245, .72); }
+.rg-carte { background: rgba(251, 252, 250, .8); }

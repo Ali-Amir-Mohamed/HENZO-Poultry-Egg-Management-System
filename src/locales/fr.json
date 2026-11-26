@@ -2420,7 +2420,8 @@
     "newClients_other": "{{count}} nouveaux clients ce mois",
     "footer": "Rapport établi par HENZO à partir des ventes, dépenses et caisses enregistrées.",
     "farmDetail": "Le rapport détaillé d’une ferme (production, aliment, bandes) reste dans",
-    "shareText": "Rapport du groupe – {{mois}} : ventes {{ventes}}, résultat {{resultat}}."
+    "shareText": "Rapport du groupe – {{mois}} : ventes {{ventes}}, résultat {{resultat}}.",
+    "kicker": "Rapport mensuel"
   },
   "mesures": {
     "cuillere_cafe": "cuillères à café",
