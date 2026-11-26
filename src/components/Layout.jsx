@@ -51,6 +51,8 @@ export default function Layout() {
   const [refus, setRefus] = useState(lireRefus)
   // Administration reminders (also sent every morning by the database when pg_cron is on)
   useEffect(() => { if (role === 'directeur' && navigator.onLine) supabase.rpc('rappels_administration').then(() => {}, () => {}) }, [role])
+  // End of a fixed-term contract or of a trial period: reminder to Ali and Dahirou, one month before
+  useEffect(() => { if (['directeur', 'finance'].includes(role) && navigator.onLine) supabase.rpc('rappels_rh').then(() => {}, () => {}) }, [role])
   const needsMore = sections.length > MOBILE_SLOTS + 1
   // Glass look on every page: chicks photo behind, frosted panels (see .dash-sombre in styles.css)
   useEffect(() => {

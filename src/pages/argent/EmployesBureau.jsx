@@ -5,6 +5,7 @@ import { must, useQuery } from '../../hooks'
 import Icon from '../../components/Icon'
 import { day, Empty, Field, FormCard, Loading, Panel } from '../../components/ui'
 import { useAsk, useRun } from '../../components/Dialog'
+import { DocumentsEmploye, ligneContrat, useContrat } from '../ferme/PersonnelRH'
 
 // Office staff (Ali and Dahirou): accountant, secretary, a partner with a paid job… The farm staff stays in
 // Ferme > Équipe (Kenfack). Salaries are set and paid in Argent > Salaires, like everybody's, by the month.
@@ -13,8 +14,10 @@ export default function EmployesBureau() {
   const lang = i18n.resolvedLanguage
   const ask = useAsk()
   const run = useRun()
-  const q = useQuery(async () => must(await supabase.from('employes').select('id, nom, telephone, poste, date_embauche, actif')
+  const q = useQuery(async () => must(await supabase.from('employes').select('id, nom, telephone, poste, date_embauche, actif, type_contrat, date_debut_contrat, date_fin_contrat, fin_periode_essai')
     .eq('categorie', 'bureau').order('actif', { ascending: false }).order('nom')))
+  const contrat = useContrat(() => q.reload())
+  const [docs, setDocs] = useState(null)
   const vide = { nom: '', telephone: '', poste: '', date_embauche: '' }
   const [form, setForm] = useState(vide)
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
@@ -45,8 +48,13 @@ export default function EmployesBureau() {
               <li key={e.id} className={e.actif ? '' : 'read'}>
                 <div className="grow">
                   <strong>{e.nom}</strong>{e.poste ? <span className="muted"> · {e.poste}</span> : null}
-                  <div className="muted small">{[e.telephone, e.date_embauche && t('equipe.since', { d: day(e.date_embauche, lang) }), !e.actif && t('salaires.left')].filter(Boolean).join(' · ') || '—'}</div>
-                  <div className="row-actions"><button className="btn ghost sm" onClick={() => modifier(e)}>{t('common.edit')}</button></div>
+                  <div className="muted small">{[e.telephone, e.date_embauche && t('equipe.since', { d: day(e.date_embauche, lang) }), ligneContrat(e, t, lang), !e.actif && t('salaires.left')].filter(Boolean).join(' · ') || '—'}</div>
+                  <div className="row-actions">
+                    <button className="btn ghost sm" onClick={() => modifier(e)}>{t('common.edit')}</button>
+                    <button className="btn ghost sm" onClick={() => contrat(e)}>{t('rh3.contractBtn')}</button>
+                    <button className="btn ghost sm" onClick={() => setDocs(docs?.id === e.id ? null : e)}><Icon name="note" size={14} />{t('rh3.docs')}</button>
+                  </div>
+                  {docs?.id === e.id && <DocumentsEmploye employe={e} onClose={() => setDocs(null)} />}
                 </div>
               </li>
             ))}

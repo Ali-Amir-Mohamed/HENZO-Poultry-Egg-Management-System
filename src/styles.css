@@ -1292,3 +1292,11 @@ body.dash-sombre .tag.danger, body.dash-sombre .tag.bad { background: rgba(255, 
 .presence-extra { display: inline-flex; align-items: center; gap: .4rem; font-size: .8rem; }
 .presence-extra input[type="number"] { width: 5rem; padding: .35rem .5rem; }
 body.dash-sombre .segmented button:not(.active) { color: rgba(255, 255, 255, .88); }
+
+/* HR step 3: documents under an employee, leave balances */
+.rh-docs { margin-top: .6rem; padding: .8rem; border-radius: 12px; border: 1px dashed var(--border); display: flex; flex-direction: column; gap: .6rem; }
+.rh-docs-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+.rh-docs .row select { flex: 1; min-width: 0; }
+.rh-docs label.btn { cursor: pointer; }
+.rh-docs label.btn.disabled { opacity: .6; pointer-events: none; }
+.rh-soldes { display: flex; flex-wrap: wrap; gap: .4rem .9rem; font-size: .82rem; color: var(--muted); }

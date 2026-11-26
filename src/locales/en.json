@@ -2584,5 +2584,78 @@
     "deductionProposed_other": "Proposed deduction for {{count}} unjustified absences: {{n}} (change it or set it to 0).",
     "absenceReason_one": "{{count}} unjustified absence",
     "absenceReason_other": "{{count}} unjustified absences"
+  },
+  "rh3": {
+    "contract": {
+      "cdi": "Permanent",
+      "cdd": "Fixed-term",
+      "stage": "Internship",
+      "journalier": "Day labourer"
+    },
+    "until": "until {{d}}",
+    "trialUntil": "trial until {{d}}",
+    "contractBtn": "Contract",
+    "contractTitle": "Contract of {{nom}}",
+    "contractHint": "Ali and Dahirou will get a reminder one month before the end of a fixed-term contract or of a trial period.",
+    "contractType": "Contract type",
+    "start": "Contract start",
+    "end": "Contract end",
+    "trialEnd": "End of the trial period (optional)",
+    "docs": "Documents",
+    "docsOf": "Documents of {{nom}}",
+    "noDoc": "No document yet.",
+    "open": "Open",
+    "addDoc": "Add a file",
+    "docType": "Document type",
+    "doc": {
+      "contrat": "Signed contract",
+      "identite": "Identity document",
+      "cv": "CV",
+      "diplome": "Diploma",
+      "certificat": "Certificate (medical, work…)",
+      "autre": "Other document"
+    },
+    "leaveTitle": "Leave and permissions",
+    "leaveSubtitle": "Paid leave: 1.5 working day per month of service (Sunday does not count). Granted by Ali or Dahirou.",
+    "leaveAsk": "Request",
+    "leaveSend": "Send the request",
+    "leaveHint": "Ali and Dahirou will be notified. Granted days will be noted in the attendance.",
+    "leaveType": "Type",
+    "leave": {
+      "conge": "Paid leave",
+      "permission": "Permission",
+      "maladie": "Sick leave"
+    },
+    "from": "From",
+    "to": "To",
+    "leaveReason": "Reason",
+    "leaveRefuse": "Refuse this request",
+    "noLeave": "No request in the last three months.",
+    "leaveLine": "from {{a}} to {{b}} ({{n}} d)",
+    "leaveStatus": {
+      "demandee": "To decide",
+      "accordee": "Granted",
+      "refusee": "Refused"
+    },
+    "grant": "Grant",
+    "balance": ": {{n}} leave day(s) left out of {{a}} earned",
+    "balanceShort": "{{n}} d left",
+    "evalPanel": "Evaluations",
+    "evalHint": "Kenfack rates each employee from 1 to 5, for example every quarter.",
+    "evaluate": "Evaluate",
+    "evalTitle": "Evaluate {{nom}}",
+    "punctuality": "Punctuality",
+    "work": "Work",
+    "behaviour": "Behaviour",
+    "comment": "Comment",
+    "mark": {
+      "1": "poor",
+      "2": "to improve",
+      "3": "fair",
+      "4": "good",
+      "5": "excellent"
+    },
+    "lastEval": "Last evaluation on {{d}}: {{m}}/5",
+    "neverEvaluated": "Never evaluated."
   }
 }

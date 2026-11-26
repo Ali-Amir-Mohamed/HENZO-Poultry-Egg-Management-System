@@ -2584,5 +2584,78 @@
     "deductionProposed_other": "Retenue proposée pour {{count}} absences non justifiées : {{n}} (modifiable ou à mettre à 0).",
     "absenceReason_one": "{{count}} absence non justifiée",
     "absenceReason_other": "{{count}} absences non justifiées"
+  },
+  "rh3": {
+    "contract": {
+      "cdi": "CDI",
+      "cdd": "CDD",
+      "stage": "Stage",
+      "journalier": "Journalier"
+    },
+    "until": "jusqu’au {{d}}",
+    "trialUntil": "essai jusqu’au {{d}}",
+    "contractBtn": "Contrat",
+    "contractTitle": "Contrat de {{nom}}",
+    "contractHint": "Ali et Dahirou recevront un rappel un mois avant la fin d’un CDD ou d’une période d’essai.",
+    "contractType": "Type de contrat",
+    "start": "Début du contrat",
+    "end": "Fin du contrat",
+    "trialEnd": "Fin de la période d’essai (facultatif)",
+    "docs": "Documents",
+    "docsOf": "Documents de {{nom}}",
+    "noDoc": "Aucun document pour l’instant.",
+    "open": "Ouvrir",
+    "addDoc": "Ajouter un fichier",
+    "docType": "Type de document",
+    "doc": {
+      "contrat": "Contrat signé",
+      "identite": "Pièce d’identité",
+      "cv": "CV",
+      "diplome": "Diplôme",
+      "certificat": "Certificat (médical, travail…)",
+      "autre": "Autre document"
+    },
+    "leaveTitle": "Congés et permissions",
+    "leaveSubtitle": "Congé payé : 1,5 jour ouvrable par mois de service (le dimanche ne compte pas). Accordés par Ali ou Dahirou.",
+    "leaveAsk": "Demander",
+    "leaveSend": "Envoyer la demande",
+    "leaveHint": "Ali et Dahirou recevront une notification. Les jours accordés seront notés dans les présences.",
+    "leaveType": "Type",
+    "leave": {
+      "conge": "Congé payé",
+      "permission": "Permission",
+      "maladie": "Maladie"
+    },
+    "from": "Du",
+    "to": "Au",
+    "leaveReason": "Motif",
+    "leaveRefuse": "Refuser cette demande",
+    "noLeave": "Aucune demande ces trois derniers mois.",
+    "leaveLine": "du {{a}} au {{b}} ({{n}} j)",
+    "leaveStatus": {
+      "demandee": "À décider",
+      "accordee": "Accordé",
+      "refusee": "Refusé"
+    },
+    "grant": "Accorder",
+    "balance": ": {{n}} j de congé restant(s) sur {{a}} acquis",
+    "balanceShort": "{{n}} j restants",
+    "evalPanel": "Évaluations",
+    "evalHint": "Kenfack note chaque employé de 1 à 5, par exemple chaque trimestre.",
+    "evaluate": "Évaluer",
+    "evalTitle": "Évaluer {{nom}}",
+    "punctuality": "Ponctualité",
+    "work": "Travail",
+    "behaviour": "Comportement",
+    "comment": "Commentaire",
+    "mark": {
+      "1": "insuffisant",
+      "2": "à améliorer",
+      "3": "correct",
+      "4": "bien",
+      "5": "excellent"
+    },
+    "lastEval": "Dernière évaluation le {{d}} : {{m}}/5",
+    "neverEvaluated": "Jamais évalué."
   }
 }

@@ -82,6 +82,8 @@ export const PERMISSIONS = {
   'rh.presences': [D, X, F],     // attendance of the day (Kenfack)
   'rh.heuresSup': [D, X],        // declare overtime (Kenfack)
   'rh.autoriser': [D],           // authorise or refuse overtime (Ali)
+  'rh.conges.decider': [D, F],   // grant or refuse leave (Ali, Dahirou)
+  'rh.evaluer': [D, X],          // evaluate the staff (Kenfack)
   'equipe': [D, F],              // staff files: add, change the job, departure (Dahirou, and Ali); Kenfack reads
   'equipe.voir': [D, X, F],      // see the farm team (Ali and Dahirou read only)
   'employes.bureau': [D, F],     // office staff (accountant, secretary…): Argent > Employés

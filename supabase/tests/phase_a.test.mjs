@@ -2029,6 +2029,46 @@ await expectOk('back to 200', 'dahirou', `select public.maj_parametres_paie('{"h
 await expectNoRows('the employee does not see the attendance', 'employe', `select * from public.presences`)
 }
 
+// ---------- 0069: HR step 3, contracts, documents, leave, evaluations ----------
+try {
+  await db.exec(readFileSync(new URL('0069_conges_contrats_evaluations.sql', MIG), 'utf8'))
+  await db.exec(readFileSync(new URL('0069_conges_contrats_evaluations.sql', MIG), 'utf8'))
+  ok('migration 0069 runs (twice without error)', true)
+} catch (e) { ok('migration 0069 runs (twice without error)', false, e.message); process.exit(1) }
+{
+const EMP = (await db.query(`select id from public.employes where nom = 'Paul Test RH'`)).rows[0].id
+await expectErr('kenfack cannot change a contract', 'kenfack', `select public.maj_contrat($1, 'cdd', current_date - 300, current_date + 20, null)`, [EMP], 'finance')
+await expectErr('a CDD needs an end date', 'dahirou', `select public.maj_contrat($1, 'cdd', current_date - 300, null, null)`, [EMP], 'date de fin')
+await expectOk('dahirou records a CDD ending in 20 days', 'dahirou', `select public.maj_contrat($1, 'cdd', current_date - 300, current_date + 20, null)`, [EMP])
+const n1 = Number((await oneP('dahirou', `select public.rappels_rh() n`)).n)
+ok('a reminder is sent one month before the end of the CDD', n1 >= 1 && (await db.query(`select message from public.notifications where type_notification = 'contrat_fin' order by created_at desc limit 1`)).rows[0]?.message.includes('Paul Test RH'))
+ok('only once', Number((await oneP('dahirou', `select public.rappels_rh() n`)).n) === 0)
+
+await expectOk('dahirou adds a document record', 'dahirou', `insert into public.documents_employes (employe_id, type_doc, titre, ajoute_par) values ($1, 'contrat', 'Contrat signé', auth.uid())`, [EMP])
+await expectNoRows('kenfack does not see the documents', 'kenfack', `select * from public.documents_employes`)
+await expectErr('kenfack cannot add a document', 'kenfack', `insert into public.documents_employes (employe_id, titre, ajoute_par) values ($1, 'x', auth.uid())`, [EMP])
+
+const s = (await oneP('kenfack', `select public.solde_conges($1) s`, [EMP])).s
+ok('leave earned: 1.5 day per month of service (contract started 300 days ago)', Number(s.mois_service) === 9 && Number(s.acquis) === 13.5, JSON.stringify(s))
+await expectErr('a permission needs a reason', 'kenfack', `select public.demander_conge($1, 'permission', current_date + 1, current_date + 1)`, [EMP], 'motif')
+const C1 = (await oneP('kenfack', `select public.demander_conge($1, 'conge', current_date + 30, current_date + 46) id`, [EMP])).id
+ok('Ali and Dahirou are told', (await db.query(`select count(*) n from public.notifications where type_notification = 'conge' and created_at > now() - interval '1 minute'`)).rows[0].n >= 2)
+await expectErr('kenfack cannot grant leave', 'kenfack', `select public.decider_conge($1, true)`, [C1], 'direction')
+await expectErr('more than the balance is refused', 'dahirou', `select public.decider_conge($1, true)`, [C1], 'insuffisant')
+await expectOk('dahirou refuses with a reason', 'dahirou', `select public.decider_conge($1, false, 'Période de vente')`, [C1])
+const AUJ = (await db.query(`select to_char(current_date, 'YYYY-MM-DD') d`)).rows[0].d
+const C2 = (await oneP('kenfack', `select public.demander_conge($1, 'permission', $2, $2, 'Enterrement') id`, [EMP, AUJ])).id
+await expectErr('two requests on the same days are refused', 'kenfack', `select public.demander_conge($1, 'permission', $2, $2, 'x')`, [EMP, AUJ], 'existe déjà')
+await expectOk('ali grants the permission', 'ali', `select public.decider_conge($1, true)`, [C2])
+const pr = (await db.query(`select statut, justifiee from public.presences where employe_id = $1 and date_jour = $2`, [EMP, AUJ])).rows[0]
+ok('the granted day appears in the attendance', !AUJ || (pr && pr.statut === 'permission' && pr.justifiee) || (await db.query(`select extract(isodow from current_date) d`)).rows[0].d == 7, JSON.stringify(pr))
+ok('a working-day count skips Sundays', Number((await db.query(`select public.jours_ouvrables('2026-11-23', '2026-11-29') n`)).rows[0].n) === 6)
+
+await expectErr('dahirou does not evaluate', 'dahirou', `select public.evaluer_employe($1, 4, 4, 4)`, [EMP], 'exploitation')
+await expectErr('marks are from 1 to 5', 'kenfack', `select public.evaluer_employe($1, 6, 4, 4)`, [EMP])
+await expectOk('kenfack evaluates', 'kenfack', `select public.evaluer_employe($1, 4, 5, 3, 'Bon travail, arrive parfois en retard')`, [EMP])
+}
+
 // ---------- HENZO AGRO reset tool (supabase/outils/remise_a_zero_henzo_agro.sql) ----------
 {
 const compter = async () => {

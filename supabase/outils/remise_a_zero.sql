@@ -20,6 +20,9 @@
 -- =====================================================================
 
 truncate table
+  public.documents_employes,
+  public.conges,
+  public.evaluations,
   public.presences,
   public.heures_sup,
   public.preparations_paie,
