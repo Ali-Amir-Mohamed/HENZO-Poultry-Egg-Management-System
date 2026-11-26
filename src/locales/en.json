@@ -2482,10 +2482,14 @@
     "opening": "Opening your dashboard…"
   },
   "fond": {
-    "title": "Background",
+    "title": "Background and opacity",
     "poussins": "Chicks",
     "poule": "Hen in the grass",
-    "uni": "Plain green"
+    "uni": "Plain green",
+    "opacity": "Panel opacity",
+    "clear": "See-through",
+    "solid": "Solid",
+    "reset": "Back to glass"
   },
   "circuit": {
     "title": "Pay for {{mois}}",

@@ -1301,3 +1301,14 @@ body.dash-sombre .segmented button:not(.active) { color: rgba(255, 255, 255, .88
 .rh-docs label.btn.disabled { opacity: .6; pointer-events: none; }
 .rh-soldes { display: flex; flex-wrap: wrap; gap: .4rem .9rem; font-size: .82rem; color: var(--muted); }
 body.dash-sombre .warn-text { color: #ffd27a; }
+
+/* Opacity of the glass panels, chosen with the background (--vo, 0 = see-through as designed, .92 = almost solid):
+   a dark green layer over the glass, so the white text stays readable at every level */
+body.dash-sombre .panel, body.dash-sombre .kpi, body.dash-sombre .summary, body.dash-sombre .card,
+body.dash-sombre .dash-kpi:not(.gold), body.dash-sombre .dash-panel, body.dash-sombre .total-box, body.dash-sombre .topbar {
+  background-image: linear-gradient(rgba(10, 30, 15, var(--vo, 0)), rgba(10, 30, 15, var(--vo, 0)));
+}
+.fond-opacite { display: flex; align-items: center; gap: .6rem; }
+.fond-opacite input[type="range"] { flex: 1; accent-color: #f5b52e; }
+.fond-opacite-val { display: flex; align-items: center; justify-content: space-between; font-size: .85rem; }
+.fond-opacite-val .link-btn { color: #f5c65a; }

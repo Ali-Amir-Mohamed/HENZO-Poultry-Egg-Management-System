@@ -2482,10 +2482,14 @@
     "opening": "Ouverture de votre tableau de bord…"
   },
   "fond": {
-    "title": "Fond d’écran",
+    "title": "Fond et opacité",
     "poussins": "Poussins",
     "poule": "Poule dans l’herbe",
-    "uni": "Vert uni"
+    "uni": "Vert uni",
+    "opacity": "Opacité des panneaux",
+    "clear": "Transparent",
+    "solid": "Opaque",
+    "reset": "Revenir au verre"
   },
   "circuit": {
     "title": "Paie de {{mois}}",
